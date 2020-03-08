@@ -1,6 +1,8 @@
 package database;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseService {
 	private final String DATABASE_SERVER_ADDRESS = "vm23.cs.lth.se";
@@ -32,5 +34,25 @@ public class DatabaseService {
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	public List<ActivitySubType> getActivitySubTypes() throws SQLException {
+		List<ActivitySubType> activitySubTypes = new ArrayList<>();
+		
+		String sql = "SELECT * FROM ActivitySubTypes";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		while (rs.next()) {
+	    	activitySubTypes.add(new ActivitySubType(
+	    		rs.getInt("activitySubTypeId"),
+	    		rs.getInt("activityTypeId"),
+	    		rs.getString("subType")
+			));
+	    }		
+		
+		ps.close();
+		return activitySubTypes;
 	}
 }
