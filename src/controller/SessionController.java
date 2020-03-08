@@ -36,9 +36,14 @@ public class SessionController extends servletBase {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		PrintWriter out = resp.getWriter();
 		out.println(getPageIntro());
+		out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/SessionController.css\">");
 		
-		out.println("<h1>This is where we start!</h1>");
-		out.println("<h1>Hello World!</h1>");
+		out.println("    <div class=\"wrapper\">\r\n" + 
+				"        <div class=\"credentials_form\">\r\n" + 
+				"            Hello World\r\n" + 
+				"        </div>\r\n" + 
+				"    </div>"
+				);
 
 		out.println("</body></html>");
     }
