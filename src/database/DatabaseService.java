@@ -1,6 +1,8 @@
 package database;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseService {
 	private final String DATABASE_SERVER_ADDRESS = "vm23.cs.lth.se";
@@ -32,5 +34,13 @@ public class DatabaseService {
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	public List<ActivityType> getActivityTypes() throws SQLException{
+		PreparedStatement ps = null;
+		List<ActivityType> activityTypes = new ArrayList<>();
+		String sql = "SELECT * FROM ActivityTypes";
+		
+		return activityTypes;
 	}
 }
