@@ -325,7 +325,7 @@ public class DatabaseService {
 		}
 		
 		ps.close();
-		return project;
+		return p;
 	}
 	
 	public void deleteProject(int projectId) throws Exception {
