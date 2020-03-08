@@ -36,6 +36,98 @@ public class DatabaseService {
 		}
 	}
 	
+	public List<Project> getAllProjects() throws SQLException {
+		List<Project> projects = new ArrayList<>();
+		
+		String sql = "SELECT * FROM Projects";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		while (rs.next()) {
+			projects.add(new Project(
+	    		rs.getInt("projectId"),
+	    		rs.getString("name")
+			));
+	    }		
+		
+		ps.close();
+		return projects;
+	}
+	
+	public List<Project> getAllProjects(int userId) throws SQLException {
+		List<Project> projects = new ArrayList<>();
+		
+		String sql = "SELECT Projects.* " + 
+				"FROM Projects JOIN ProjectUsers USING (projectId) " + 
+				"WHERE userId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, userId);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		while (rs.next()) {
+			projects.add(new Project(
+	    		rs.getInt("projectId"),
+	    		rs.getString("name")
+			));
+	    }		
+		
+		ps.close();
+		return projects;
+	}
+	
+	public Project getProject(int projectId) throws SQLException {
+		Project project = null;
+		
+		String sql = "SELECT * FROM Projects WHERE projectId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, projectId);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		if (rs.next()) {
+			project = new Project(
+	    		rs.getInt("projectId"),
+	    		rs.getString("name")
+			);
+	    }		
+		
+		ps.close();
+		return project;
+	}
+	
+	public Project createProject(Project project) throws SQLException {
+		String sql = "INSERT INTO Projects (`name`) values (?)";
+		PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+		ps.setString(1, project.getName());
+		
+		ps.executeUpdate();
+		ResultSet rs = ps.getGeneratedKeys();
+		
+		Project p = null;
+		if(rs.next()) {
+			p = new Project(rs.getInt(1), project.getName());
+		}
+		
+		ps.close();
+		return project;
+	}
+	
+	public void deleteProject(int projectId) throws Exception {
+		String sql = "DELETE FROM Projects WHERE projectId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, projectId);
+		
+		int deleted = ps.executeUpdate();		
+	
+		ps.close();
+		
+		if (deleted == 0) {
+			throw new Exception("Project does not exist");
+		}
+	}
+	
 	public List<ActivitySubType> getActivitySubTypes() throws SQLException {
 		List<ActivitySubType> activitySubTypes = new ArrayList<>();
 		
