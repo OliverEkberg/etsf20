@@ -36,6 +36,26 @@ public class DatabaseService {
 		}
 	}
 	
+	public List<ActivitySubType> getActivitySubTypes() throws SQLException {
+		List<ActivitySubType> activitySubTypes = new ArrayList<>();
+		
+		String sql = "SELECT * FROM ActivitySubTypes";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		while (rs.next()) {
+	    	activitySubTypes.add(new ActivitySubType(
+	    		rs.getInt("activitySubTypeId"),
+	    		rs.getInt("activityTypeId"),
+	    		rs.getString("subType")
+			));
+	    }		
+		
+		ps.close();
+		return activitySubTypes;
+	}
+	
 	public List<ActivityType> getActivityTypes() throws SQLException{
 		PreparedStatement ps = null;
 		List<ActivityType> activityTypes = new ArrayList<>();
