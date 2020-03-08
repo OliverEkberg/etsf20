@@ -212,6 +212,53 @@ public class DatabaseService {
 		return u;
 	}
 	
+	public void addUserToProject(int userId, int projectId, int roleId) throws Exception {
+		String sql = "INSERT INTO ProjectUsers (`userId`, `projectId`, `roleId`) values (?, ?, ?)";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, userId);
+		ps.setInt(2, projectId);
+		ps.setInt(3, roleId);
+		
+		int added = ps.executeUpdate();
+		
+		if (added == 0) {
+			throw new Exception("Could not add user to project");
+		}
+	}
+	
+	public void removeUserFromProject(int userId, int projectId) throws Exception {
+		String sql = "DELETE FROM ProjectUsers WHERE userId = ? AND projectId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, userId);
+		ps.setInt(2, projectId);
+		
+		int deleted = ps.executeUpdate();		
+	
+		ps.close();
+		
+		if (deleted == 0) {
+			throw new Exception("Could not remove user from project");
+		}
+	}
+	
+	public void updateUserProjectRole(int userId, int projectId, int roleId) throws Exception {
+		String sql = "UPDATE ProjectUsers " + 
+				"SET roleId = ? " + 
+				"WHERE userId = ? AND projectId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, roleId);
+		ps.setInt(2, userId);
+		ps.setInt(3, projectId);
+		
+		int updated = ps.executeUpdate();		
+	
+		ps.close();
+		
+		if (updated == 0) {
+			throw new Exception("Could not update users role in project");
+		}
+	}
+	
 	public List<Project> getAllProjects() throws SQLException {
 		List<Project> projects = new ArrayList<>();
 		
