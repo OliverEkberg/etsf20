@@ -58,6 +58,17 @@ public class DatabaseService {
 		);
 	}
 	
+	private ActivityReport mapActivityReport(ResultSet rs) throws SQLException {
+		return new ActivityReport(
+				rs.getInt("activityReportId"),
+				rs.getInt("activityTypeId"),
+				rs.getInt("activitySubTypeId"),
+				rs.getInt("timeReportId"),
+				rs.getDate("reportDate").toLocalDate(),
+				rs.getInt("minutes")
+				);
+	}
+	
 	private User mapUser(ResultSet rs) throws SQLException {
 		return new User(
 			rs.getInt("userId"),
@@ -409,7 +420,7 @@ public class DatabaseService {
 	
 	public Role getRole(int userId, int projectId) throws SQLException {
 		Role role = null;
-		String sql = "SELECT Roles.roleId, role FROM Roles, ProjectUsers, WHERE (userId, projectId) = (?, ?)";
+		String sql = "SELECT Roles.roleId, role FROM Roles, ProjectUsers WHERE (userId, projectId) = (?, ?)";
 		PreparedStatement ps = conn.prepareStatement(sql);
 		ps.setInt(1, userId);
 		ps.setInt(2, projectId);
@@ -422,5 +433,99 @@ public class DatabaseService {
 		
 		ps.close();
 		return role;	    	
+	}
+	
+	public List<ActivityReport> getActivityReports(int timeReportId) throws SQLException {
+		List<ActivityReport> activityReports = new ArrayList<>();
+		
+		String sql = "SELECT * FROM ActivityReports WHERE timeReportId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, timeReportId);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		while (rs.next()) {
+			activityReports.add(mapActivityReport(rs));
+		}
+		
+		ps.close();
+		return activityReports;
+	}
+	
+	public ActivityReport getActivityReport(int activityReportId) throws SQLException {	
+		ActivityReport activityReport = null;
+		
+		String sql = "SELECT * FROM ActivityReports WHERE activityReportId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, activityReportId);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		if (rs.next()) {
+			activityReport = mapActivityReport(rs);
+		}
+		
+		ps.close();
+		return activityReport;
+	}
+	
+	public ActivityReport createActivityReport(ActivityReport newAR) throws SQLException {
+		String sql = "INSERT INTO ActivityReports (`activityReportId`, `activityTypeId`, `activitySubTypeId`, `timeReportId`, `reportDate`, `minutes`) " + 
+					 "values (?, ?, ?, ?, ?, ?)";
+		PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+		ps.setInt(1, newAR.getActivityReportId());
+		ps.setInt(2, newAR.getActivityTypeId());
+		ps.setInt(3, newAR.getActivitySubTypeId());
+		ps.setInt(4, newAR.getTimeReportId());
+		ps.setDate(5, Date.valueOf(newAR.getReportDate()));
+		ps.setInt(6, newAR.getMinutes());
+		
+		ps.executeUpdate();
+		ResultSet rs = ps.getGeneratedKeys();
+		
+		ActivityReport activityReport = null;
+		if(rs.next()) {
+			activityReport = getActivityReport(rs.getInt("activityReportId"));
+		}
+		
+		ps.close();
+		return activityReport;		
+	}
+	
+	public ActivityReport updateActivityReport(ActivityReport updateAR) throws Exception {
+		String sql = "UPDATE ActivityReports " + 
+				"SET `activityTypeId` = ?, `activitySubTypeId` = ?, `timeReportId` = ?, `reportDate` = ?, `minutes` = ? " + 
+				"WHERE userId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, updateAR.getActivityTypeId());
+		ps.setInt(2, updateAR.getActivitySubTypeId());
+		ps.setInt(3, updateAR.getTimeReportId());
+		ps.setDate(4, Date.valueOf(updateAR.getReportDate()));
+		ps.setInt(5, updateAR.getMinutes());
+		ps.setInt(6, updateAR.getActivityReportId());
+		
+		int updated = ps.executeUpdate();		
+	
+		ps.close();
+		
+		if (updated == 0) {
+			return updateAR;
+		} else {
+			return getActivityReport(updateAR.getActivityReportId());
+		}
+	}
+	
+	public void deleteActivityReport(int activityReportId) throws Exception {
+		String sql = "DELETE FROM ActivityReport WHERE activityReportId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, activityReportId);
+		
+		int deleted = ps.executeUpdate();		
+	
+		ps.close();
+		
+		if (deleted == 0) {
+			throw new Exception("Activity Report does not exist");
+		}
 	}
 }
