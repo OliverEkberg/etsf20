@@ -36,6 +36,20 @@ public class DatabaseService {
 		}
 	}
 	
+	private Role mapRole(ResultSet rs) throws SQLException {
+		return new Role(
+				rs.getInt("roleId"),
+				rs.getString("role")
+				);
+	}
+	
+	private ActivityType mapActivityType(ResultSet rs) throws SQLException {
+		return new ActivityType(
+				rs.getInt("activityTypeId"),
+				rs.getString("type")
+				);
+	}
+	
 	public List<Project> getAllProjects() throws SQLException {
 		List<Project> projects = new ArrayList<>();
 		
@@ -169,11 +183,52 @@ public class DatabaseService {
 		return activitySubTypes;
 	}
 	
-	public List<ActivityType> getActivityTypes() throws SQLException{
-		PreparedStatement ps = null;
+	public List<ActivityType> getActivityTypes() throws SQLException {		
 		List<ActivityType> activityTypes = new ArrayList<>();
-		String sql = "SELECT * FROM ActivityTypes";
 		
+		String sql = "SELECT * FROM ActivityTypes";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		while (rs.next()) {
+			activityTypes.add(mapActivityType(rs));
+		}
+		
+		ps.close();
 		return activityTypes;
+	}
+	
+	public List<Role> getAllRoles() throws SQLException {
+		List<Role> allRoles = new ArrayList<>();
+		
+		String sql = "SELECT * FROM Roles";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		while (rs.next()) {
+			allRoles.add(mapRole(rs));
+		}
+		
+		ps.close();
+		return allRoles;
+	}
+	
+	public Role getRole(int userId, int projectId) throws SQLException {
+		Role role = null;
+		String sql = "SELECT Roles.roleId, role FROM Roles, ProjectUsers, WHERE (userId, projectId) = (?, ?)";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, userId);
+		ps.setInt(2, projectId);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		if (rs.next()) {
+	    	role = mapRole(rs);
+		}
+		
+		ps.close();
+		return role;	    	
 	}
 }
