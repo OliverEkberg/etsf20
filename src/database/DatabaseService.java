@@ -50,6 +50,153 @@ public class DatabaseService {
 				);
 	}
 	
+	private User mapUser(ResultSet rs) throws SQLException {
+		return new User(
+			rs.getInt("userId"),
+			rs.getString("username"),
+			rs.getString("password"),
+			rs.getBoolean("isAdmin")
+		);
+	}
+	
+	public User getUserByCredentials(String username, String password) throws SQLException {
+		User user = null;
+		
+		String sql = "SELECT * FROM Users WHERE username = ? AND password = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setString(1, username);
+		ps.setString(2, password);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		if (rs.next()) {
+			user = mapUser(rs);
+	    }		
+		
+		ps.close();
+		return user;
+	}
+	
+	public User getUserById(int userId) throws SQLException {
+		User user = null;
+		
+		String sql = "SELECT * FROM Users WHERE userId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, userId);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		if (rs.next()) {
+			user = mapUser(rs);
+	    }		
+		
+		ps.close();
+		return user;
+	}
+	
+	public List<User> getAllUsers() throws SQLException {
+		List<User> users = new ArrayList<>();
+		
+		String sql = "SELECT * FROM Users";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		while (rs.next()) {
+			users.add(mapUser(rs));
+	    }		
+		
+		ps.close();
+		return users;
+	}
+	
+	public List<User> getAllUsers(int projectId) throws SQLException {
+		List<User> users = new ArrayList<>();
+		
+		String sql = "SELECT Users.* FROM " + 
+				"Users JOIN ProjectUsers USING (userId) " + 
+				"WHERE projectId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, projectId);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		while (rs.next()) {
+			users.add(mapUser(rs));
+	    }		
+		
+		ps.close();
+		return users;
+	}
+	
+	public void deleteUserById(int userId) throws Exception {
+		String sql = "DELETE FROM Users WHERE userId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, userId);
+		
+		int deleted = ps.executeUpdate();		
+	
+		ps.close();
+		
+		if (deleted == 0) {
+			throw new Exception("User does not exist");
+		}
+	}
+	
+	public void deleteUserByUsername(String username) throws Exception {
+		String sql = "DELETE FROM Users WHERE username = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setString(1, username);
+		
+		int deleted = ps.executeUpdate();		
+	
+		ps.close();
+		
+		if (deleted == 0) {
+			throw new Exception("User does not exist");
+		}
+	}
+	
+	public User updateUser(User user) throws Exception {
+		String sql = "UPDATE Users " + 
+				"SET `username` = ?, `password` = ?, `isAdmin` = ? " + 
+				"WHERE userId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setString(1, user.getUsername());
+		ps.setString(2, user.getPassword());
+		ps.setBoolean(3, user.isAdmin());
+		ps.setInt(4, user.getUserId());
+		
+		int updated = ps.executeUpdate();		
+	
+		ps.close();
+		
+		if (updated == 0) {
+			return user;
+		} else {
+			return getUserById(user.getUserId());
+		}
+	}
+	
+	public User createUser(User user) throws SQLException {
+		String sql = "INSERT INTO Users (`username`, `password`, `isAdmin`) values (?, ?, ?)";
+		PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+		ps.setString(1, user.getUsername());
+		ps.setString(2, user.getPassword());
+		ps.setBoolean(3, user.isAdmin());
+		
+		ps.executeUpdate();
+		ResultSet rs = ps.getGeneratedKeys();
+		
+		User u = null;
+		if(rs.next()) {
+			u = getUserById(rs.getInt(1));
+		}
+		
+		ps.close();
+		return u;
+	}
+	
 	public List<Project> getAllProjects() throws SQLException {
 		List<Project> projects = new ArrayList<>();
 		
