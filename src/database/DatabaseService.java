@@ -4,6 +4,11 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This abstracts and manages all communication with the database. 
+ * All returned rows are represented with models to make for a easy dev experience. 
+ * @author OliverEkberg and JesperAnnefors
+ */
 public class DatabaseService {
 	private final String DATABASE_SERVER_ADDRESS = "vm23.cs.lth.se";
 	private final String DATABASE_USER = "pusp2002hbg";
@@ -15,6 +20,10 @@ public class DatabaseService {
 		openConnection();
 	}
 	
+	/**
+	 * Opens the connection to the database
+	 * @return whether it was successful or not
+	 */
 	public boolean openConnection() {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -26,6 +35,10 @@ public class DatabaseService {
 		}
 	}
 	
+	/**
+	 * Closes the connection to the database
+	 * @return whether it was successful or not
+	 */
 	public boolean closeConnection() {
 		try {
 			conn.close();		
@@ -36,6 +49,12 @@ public class DatabaseService {
 		}
 	}
 	
+	/**
+	 * Maps a ResultSet to a Role model
+	 * @param rs - The result from the SQL query
+	 * @return The Role model
+	 * @throws SQLException
+	 */
 	private Role mapRole(ResultSet rs) throws SQLException {
 		return new Role(
 			rs.getInt("roleId"),
@@ -43,6 +62,12 @@ public class DatabaseService {
 		);
 	}
 	
+	/**
+	 * Maps a ResultSet to a ActivityType model
+	 * @param rs - The result from the SQL query
+	 * @return The ActivityType model
+	 * @throws SQLException
+	 */
 	private ActivityType mapActivityType(ResultSet rs) throws SQLException {
 		return new ActivityType(
 			rs.getInt("activityTypeId"),
@@ -50,6 +75,12 @@ public class DatabaseService {
 		);
 	}
 	
+	/**
+	 * Maps a ResultSet to a ActivitySubType model
+	 * @param rs - The result from the SQL query
+	 * @return The ActivitySubType model
+	 * @throws SQLException
+	 */
 	private ActivitySubType mapActivitySubType(ResultSet rs) throws SQLException {
 		return new ActivitySubType(
     		rs.getInt("activitySubTypeId"),
@@ -68,7 +99,13 @@ public class DatabaseService {
 				rs.getInt("minutes")
 				);
 	}
-	
+
+	/**
+	 * Maps a ResultSet to a User model
+	 * @param rs - The result from the SQL query
+	 * @return The User model
+	 * @throws SQLException
+	 */
 	private User mapUser(ResultSet rs) throws SQLException {
 		return new User(
 			rs.getInt("userId"),
@@ -78,6 +115,12 @@ public class DatabaseService {
 		);
 	}
 	
+	/**
+	 * Maps a ResultSet to a Project model
+	 * @param rs - The result from the SQL query
+	 * @return The Project model
+	 * @throws SQLException
+	 */
 	private Project mapProject(ResultSet rs) throws SQLException {
 		return new Project(
 			rs.getInt("projectId"),
@@ -85,6 +128,13 @@ public class DatabaseService {
 		);
 	}
 	
+	/**
+	 * Gets user by credentials. Will return null if user could not be found 
+	 * @param username - The username of the user
+	 * @param password - The password of the user
+	 * @return User model or null
+	 * @throws SQLException
+	 */
 	public User getUserByCredentials(String username, String password) throws SQLException {
 		User user = null;
 		
@@ -103,6 +153,12 @@ public class DatabaseService {
 		return user;
 	}
 	
+	/**
+	 * Gets user by userId. Will return null if user could not be found
+	 * @param userId - The unique identifier of the user
+	 * @return User model or null
+	 * @throws SQLException
+	 */
 	public User getUserById(int userId) throws SQLException {
 		User user = null;
 		
@@ -120,6 +176,11 @@ public class DatabaseService {
 		return user;
 	}
 	
+	/**
+	 * Gets all users
+	 * @return A list of all users in the database
+	 * @throws SQLException
+	 */
 	public List<User> getAllUsers() throws SQLException {
 		List<User> users = new ArrayList<>();
 		
@@ -136,6 +197,12 @@ public class DatabaseService {
 		return users;
 	}
 	
+	/**
+	 * Gets all users participating in the given project
+	 * @param projectId - The unique identifier of the project to find users for
+	 * @return A list of all users participating in the project
+	 * @throws SQLException
+	 */
 	public List<User> getAllUsers(int projectId) throws SQLException {
 		List<User> users = new ArrayList<>();
 		
@@ -155,6 +222,11 @@ public class DatabaseService {
 		return users;
 	}
 	
+	/**
+	 * Deletes a user by given id. Will throw if user does not exist
+	 * @param userId - The unique identifier of the user to delete
+	 * @throws Exception - Will be thrown if user does not exist
+	 */
 	public void deleteUserById(int userId) throws Exception {
 		String sql = "DELETE FROM Users WHERE userId = ?";
 		PreparedStatement ps = conn.prepareStatement(sql);
@@ -169,6 +241,11 @@ public class DatabaseService {
 		}
 	}
 	
+	/**
+	 * Deletes a user by given username. Will throw if user does not exist
+	 * @param userId - The unique username of the user to delete
+	 * @throws Exception - Will be thrown if user does not exist
+	 */
 	public void deleteUserByUsername(String username) throws Exception {
 		String sql = "DELETE FROM Users WHERE username = ?";
 		PreparedStatement ps = conn.prepareStatement(sql);
@@ -183,6 +260,12 @@ public class DatabaseService {
 		}
 	}
 	
+	/**
+	 * Updates all fields to the provided values. User must already exist for this to work
+	 * @param user - The user and its values to update
+	 * @return The updated user
+	 * @throws Exception
+	 */
 	public User updateUser(User user) throws Exception {
 		String sql = "UPDATE Users " + 
 				"SET `username` = ?, `password` = ?, `isAdmin` = ? " + 
@@ -204,6 +287,12 @@ public class DatabaseService {
 		}
 	}
 	
+	/**
+	 * Creates a new user 
+	 * @param user - The user model to insert
+	 * @return - The created model
+	 * @throws SQLException
+	 */
 	public User createUser(User user) throws SQLException {
 		String sql = "INSERT INTO Users (`username`, `password`, `isAdmin`) values (?, ?, ?)";
 		PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -223,6 +312,13 @@ public class DatabaseService {
 		return u;
 	}
 	
+	/**
+	 * Adds user to project with given role
+	 * @param userId - Unique identifier of user to add
+	 * @param projectId - Unique identifier of which project to add the user
+	 * @param roleId - Unique identifier of the role the user should have
+	 * @throws Exception - If user could not be added
+	 */
 	public void addUserToProject(int userId, int projectId, int roleId) throws Exception {
 		String sql = "INSERT INTO ProjectUsers (`userId`, `projectId`, `roleId`) values (?, ?, ?)";
 		PreparedStatement ps = conn.prepareStatement(sql);
@@ -237,6 +333,12 @@ public class DatabaseService {
 		}
 	}
 	
+	/**
+	 * Removes user from project
+	 * @param userId - Unique identifier of the user to remove
+	 * @param projectId - Unique identifier of the the project to which the user should be removed from
+	 * @throws Exception - If the user could not be removed. Could for example be due to user not actually participating in project
+	 */
 	public void removeUserFromProject(int userId, int projectId) throws Exception {
 		String sql = "DELETE FROM ProjectUsers WHERE userId = ? AND projectId = ?";
 		PreparedStatement ps = conn.prepareStatement(sql);
@@ -252,6 +354,13 @@ public class DatabaseService {
 		}
 	}
 	
+	/**
+	 * Change role for a user in a project
+	 * @param userId - Unique identifier of the user for which to change role
+	 * @param projectId - Unique identifier of the particular project
+	 * @param roleId - Unique identifier of the new role
+	 * @throws Exception - If the role could not be changed
+	 */
 	public void updateUserProjectRole(int userId, int projectId, int roleId) throws Exception {
 		String sql = "UPDATE ProjectUsers " + 
 				"SET roleId = ? " + 
@@ -270,6 +379,11 @@ public class DatabaseService {
 		}
 	}
 	
+	/**
+	 * Gets all projects
+	 * @return A list of project models
+	 * @throws SQLException
+	 */
 	public List<Project> getAllProjects() throws SQLException {
 		List<Project> projects = new ArrayList<>();
 		
@@ -286,6 +400,12 @@ public class DatabaseService {
 		return projects;
 	}
 	
+	/**
+	 * Gets all projects in which provided user is participating
+	 * @param userId - Unique identifier of the user
+	 * @return A list of all associated projects
+	 * @throws SQLException
+	 */
 	public List<Project> getAllProjects(int userId) throws SQLException {
 		List<Project> projects = new ArrayList<>();
 		
@@ -305,6 +425,12 @@ public class DatabaseService {
 		return projects;
 	}
 	
+	/**
+	 * Gets a project by its unique identifier
+	 * @param projectId - The unique identifier of the project to get
+	 * @return project model or null if project can not be found
+	 * @throws SQLException
+	 */
 	public Project getProject(int projectId) throws SQLException {
 		Project project = null;
 		
@@ -322,6 +448,12 @@ public class DatabaseService {
 		return project;
 	}
 	
+	/**
+	 * Creates a new project
+	 * @param project - The project model to persist
+	 * @return
+	 * @throws SQLException
+	 */
 	public Project createProject(Project project) throws SQLException {
 		String sql = "INSERT INTO Projects (`name`) values (?)";
 		PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -339,6 +471,11 @@ public class DatabaseService {
 		return p;
 	}
 	
+	/**
+	 * Removes a project using its unique identifier
+	 * @param projectId - The unique identifier of the project
+	 * @throws Exception - If the project does not exist
+	 */
 	public void deleteProject(int projectId) throws Exception {
 		String sql = "DELETE FROM Projects WHERE projectId = ?";
 		PreparedStatement ps = conn.prepareStatement(sql);
@@ -353,6 +490,11 @@ public class DatabaseService {
 		}
 	}
 	
+	/**
+	 * Gets a list of all activitySubTypes
+	 * @return A list of activitySubType models
+	 * @throws SQLException
+	 */
 	public List<ActivitySubType> getActivitySubTypes() throws SQLException {
 		List<ActivitySubType> activitySubTypes = new ArrayList<>();
 		
@@ -369,6 +511,12 @@ public class DatabaseService {
 		return activitySubTypes;
 	}
 	
+	/**
+	 * Gets a list of all activitySubTypes for given activityType
+	 * @param activityTypeId - Unique identifier of activityType
+	 * @return A list of activitySubType models
+	 * @throws SQLException
+	 */
 	public List<ActivitySubType> getActivitySubTypes(int activityTypeId) throws SQLException {
 		List<ActivitySubType> activitySubTypes = new ArrayList<>();
 		
@@ -386,6 +534,11 @@ public class DatabaseService {
 		return activitySubTypes;
 	}
 	
+	/**
+	 * Gets a list of all activityTypes
+	 * @return A list of activityType models
+	 * @throws SQLException
+	 */
 	public List<ActivityType> getActivityTypes() throws SQLException {		
 		List<ActivityType> activityTypes = new ArrayList<>();
 		
@@ -402,6 +555,11 @@ public class DatabaseService {
 		return activityTypes;
 	}
 	
+	/**
+	 * Gets a list of all roles
+	 * @return A list of role models
+	 * @throws SQLException
+	 */
 	public List<Role> getAllRoles() throws SQLException {
 		List<Role> allRoles = new ArrayList<>();
 		
@@ -418,6 +576,13 @@ public class DatabaseService {
 		return allRoles;
 	}
 	
+	/**
+	 * Gets the role for the given user in the given project
+	 * @param userId - Unique identifier of the user
+	 * @param projectId - Unique identifier of the project
+	 * @return role model
+	 * @throws SQLException
+	 */
 	public Role getRole(int userId, int projectId) throws SQLException {
 		Role role = null;
 		String sql = "SELECT Roles.roleId, role FROM Roles, ProjectUsers WHERE (userId, projectId) = (?, ?)";
@@ -435,6 +600,12 @@ public class DatabaseService {
 		return role;	    	
 	}
 	
+	/**
+	 * Gets all activityReports connected to given timeReport
+	 * @param timeReportId - Unique identifier of the timeReport for which to find connected activity reports
+	 * @return List of activityReport models
+	 * @throws SQLException
+	 */
 	public List<ActivityReport> getActivityReports(int timeReportId) throws SQLException {
 		List<ActivityReport> activityReports = new ArrayList<>();
 		
@@ -452,6 +623,12 @@ public class DatabaseService {
 		return activityReports;
 	}
 	
+	/**
+	 * Gets activityReport by its unique identifier
+	 * @param activityReportId - Unique identifier of the activityReport
+	 * @return ActivityReport model or null if it can not be found
+	 * @throws SQLException
+	 */
 	public ActivityReport getActivityReport(int activityReportId) throws SQLException {	
 		ActivityReport activityReport = null;
 		
@@ -469,6 +646,12 @@ public class DatabaseService {
 		return activityReport;
 	}
 	
+	/**
+	 * Creates an activityReport
+	 * @param newAR - The activityReport to be persisted
+	 * @return The persisted activityReport model
+	 * @throws SQLException
+	 */
 	public ActivityReport createActivityReport(ActivityReport newAR) throws SQLException {
 		String sql = "INSERT INTO ActivityReports (`activityReportId`, `activityTypeId`, `activitySubTypeId`, `timeReportId`, `reportDate`, `minutes`) " + 
 					 "values (?, ?, ?, ?, ?, ?)";
@@ -492,6 +675,12 @@ public class DatabaseService {
 		return activityReport;		
 	}
 	
+	/**
+	 * Updates an activityReport
+	 * @param updateAR - The activityReport to be updated. Must exist in the database before running this
+	 * @return The updated and persisted activityReport model
+	 * @throws Exception
+	 */
 	public ActivityReport updateActivityReport(ActivityReport updateAR) throws Exception {
 		String sql = "UPDATE ActivityReports " + 
 				"SET `activityTypeId` = ?, `activitySubTypeId` = ?, `timeReportId` = ?, `reportDate` = ?, `minutes` = ? " + 
@@ -515,6 +704,11 @@ public class DatabaseService {
 		}
 	}
 	
+	/**
+	 * Removes an activityReport by its unique identifier
+	 * @param activityReportId - Unique identifier of the activityReport to  remove
+	 * @throws Exception - If the activityReport does not exist
+	 */
 	public void deleteActivityReport(int activityReportId) throws Exception {
 		String sql = "DELETE FROM ActivityReport WHERE activityReportId = ?";
 		PreparedStatement ps = conn.prepareStatement(sql);
