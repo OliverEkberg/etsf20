@@ -3,16 +3,85 @@ body {
     font-family: Arial;
 }
 
+input {
+    text-align: center;
+}
+
 .wrapper {
     height: 100vh;
     position: relative;
-  }
-  
-  .credentials_form {
+}
+
+.title {
+    margin: 0;
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-size: 6rem;
+    color: #34495e;
+}
+
+.subTitle {
+    margin: 0;
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-size: 1.2rem;
+    color: #34495e;
+    opacity: 0.6;
+}
+
+.credentials_form {
     margin: 0;
     position: absolute;
     top: 50%;
     left: 50%;
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
-  }
+    text-align: center;
+}
+
+.credentials_rect {
+    width: 15vw;
+    height: 5vh;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.submitBtn {
+    width: 15vw;
+    height: 5vh;
+    background-color: #34495e;
+    color: white;
+    padding: 14px 20px;
+    margin: 6px 0;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+}
+
+.submitBtn:hover {
+    background-color: #2c3e50;
+}
+
+.footerText {
+    margin: 0;
+    position: absolute;
+    top: 85%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-size: 1rem;
+    color: #34495e;
+}
