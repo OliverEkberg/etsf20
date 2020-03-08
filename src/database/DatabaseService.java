@@ -38,16 +38,24 @@ public class DatabaseService {
 	
 	private Role mapRole(ResultSet rs) throws SQLException {
 		return new Role(
-				rs.getInt("roleId"),
-				rs.getString("role")
-				);
+			rs.getInt("roleId"),
+			rs.getString("role")
+		);
 	}
 	
 	private ActivityType mapActivityType(ResultSet rs) throws SQLException {
 		return new ActivityType(
-				rs.getInt("activityTypeId"),
-				rs.getString("type")
-				);
+			rs.getInt("activityTypeId"),
+			rs.getString("type")
+		);
+	}
+	
+	private ActivitySubType mapActivitySubType(ResultSet rs) throws SQLException {
+		return new ActivitySubType(
+    		rs.getInt("activitySubTypeId"),
+    		rs.getInt("activityTypeId"),
+    		rs.getString("subType")
+		);
 	}
 	
 	private User mapUser(ResultSet rs) throws SQLException {
@@ -56,6 +64,13 @@ public class DatabaseService {
 			rs.getString("username"),
 			rs.getString("password"),
 			rs.getBoolean("isAdmin")
+		);
+	}
+	
+	private Project mapProject(ResultSet rs) throws SQLException {
+		return new Project(
+			rs.getInt("projectId"),
+			rs.getString("name")
 		);
 	}
 	
@@ -206,10 +221,7 @@ public class DatabaseService {
 		ResultSet rs = ps.executeQuery();
 		
 		while (rs.next()) {
-			projects.add(new Project(
-	    		rs.getInt("projectId"),
-	    		rs.getString("name")
-			));
+			projects.add(mapProject(rs));
 	    }		
 		
 		ps.close();
@@ -228,10 +240,7 @@ public class DatabaseService {
 		ResultSet rs = ps.executeQuery();
 		
 		while (rs.next()) {
-			projects.add(new Project(
-	    		rs.getInt("projectId"),
-	    		rs.getString("name")
-			));
+			projects.add(mapProject(rs));
 	    }		
 		
 		ps.close();
@@ -248,10 +257,7 @@ public class DatabaseService {
 		ResultSet rs = ps.executeQuery();
 		
 		if (rs.next()) {
-			project = new Project(
-	    		rs.getInt("projectId"),
-	    		rs.getString("name")
-			);
+			project = mapProject(rs);
 	    }		
 		
 		ps.close();
@@ -268,7 +274,7 @@ public class DatabaseService {
 		
 		Project p = null;
 		if(rs.next()) {
-			p = new Project(rs.getInt(1), project.getName());
+			p = getProject(rs.getInt(1));
 		}
 		
 		ps.close();
@@ -298,11 +304,7 @@ public class DatabaseService {
 		ResultSet rs = ps.executeQuery();
 		
 		while (rs.next()) {
-	    	activitySubTypes.add(new ActivitySubType(
-	    		rs.getInt("activitySubTypeId"),
-	    		rs.getInt("activityTypeId"),
-	    		rs.getString("subType")
-			));
+	    	activitySubTypes.add(mapActivitySubType(rs));
 	    }		
 		
 		ps.close();
@@ -319,11 +321,7 @@ public class DatabaseService {
 		ResultSet rs = ps.executeQuery();
 		
 		while (rs.next()) {
-	    	activitySubTypes.add(new ActivitySubType(
-	    		rs.getInt("activitySubTypeId"),
-	    		rs.getInt("activityTypeId"),
-	    		rs.getString("subType")
-			));
+	    	activitySubTypes.add(mapActivitySubType(rs));
 	    }		
 		
 		ps.close();
