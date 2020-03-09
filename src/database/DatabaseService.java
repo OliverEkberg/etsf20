@@ -1,8 +1,16 @@
 package database;
 
 import java.sql.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * This abstracts and manages all communication with the database. 
@@ -921,5 +929,198 @@ public class DatabaseService {
 		if (deleted == 0) {
 			throw new Exception("Time report does not exist");
 		}
+	}
+	
+	public Statistic getActivityStatistics(int projectId, LocalDate from, LocalDate to) throws Exception {
+		Set<LocalDate> datesT = new TreeSet<>();
+		datesT.add(from);
+		
+		for (LocalDate date = from; date.isBefore(to); date = date.plusDays(1)) {
+		    if (date.getDayOfWeek() == DayOfWeek.MONDAY) {
+		    	datesT.add(date);
+		    } 
+		}
+		datesT.add(to);
+		
+		List<LocalDate> dates = new ArrayList<LocalDate>(datesT);
+		
+		List<ActivityType> at = getActivityTypes();
+		
+		String[] rowLabels = new String[at.size()];
+		String[] columnLabels = new String[dates.size() - 1];
+		
+		Map<String, Integer> rowLabelMap = new HashMap<String, Integer>();
+		
+		for (int i = 0; i < at.size(); i++) {
+			rowLabels[i] = at.get(i).getType();
+			rowLabelMap.put(rowLabels[i], i);
+		}
+			
+		for (int i = 0; i < dates.size() - 1; i++) {
+			columnLabels[i] = "v." + dates.get(i).get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear());
+		}
+		
+		int[][] data = new int[rowLabels.length][columnLabels.length];
+		
+		for (int i = 1; i < dates.size(); i++) {
+			int col = i - 1;
+			String sql = "SELECT AcT.type, SUM(AR.minutes) AS minutes " + 
+					"FROM ActivityReports AR " + 
+					"JOIN ActivityTypes AcT USING (activityTypeId) " + 
+					"JOIN TimeReports TR USING (timeReportId) " + 
+					"JOIN ProjectUsers PU USING (projectUserId) " + 
+					"WHERE " + 
+					"AR.reportDate >= ? " + 
+					"AND AR.reportDate < ? " + 
+					"AND PU.projectId = ? " + 
+					"GROUP BY AcT.activityTypeId";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(1, dates.get(i - 1).toString());
+			ps.setString(2, dates.get(i).toString());
+			ps.setInt(3, projectId);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			while (rs.next()) {
+				String type = rs.getString("type");
+				int minutes = rs.getInt("minutes");
+				
+				data[rowLabelMap.get(type)][col] = minutes;
+		    }
+			
+			ps.close();
+		}
+		
+		return new Statistic(columnLabels, rowLabels, data);
+	}
+	
+	public Statistic getActivityStatistics(int projectId, int userId, LocalDate from, LocalDate to) throws Exception {
+		Set<LocalDate> datesT = new TreeSet<>();
+		datesT.add(from);
+		
+		for (LocalDate date = from; date.isBefore(to); date = date.plusDays(1)) {
+		    if (date.getDayOfWeek() == DayOfWeek.MONDAY) {
+		    	datesT.add(date);
+		    } 
+		}
+		datesT.add(to);
+		
+		List<LocalDate> dates = new ArrayList<LocalDate>(datesT);
+		
+		List<ActivityType> at = getActivityTypes();
+		
+		String[] rowLabels = new String[at.size()];
+		String[] columnLabels = new String[dates.size() - 1];
+		
+		Map<String, Integer> rowLabelMap = new HashMap<String, Integer>();
+		
+		for (int i = 0; i < at.size(); i++) {
+			rowLabels[i] = at.get(i).getType();
+			rowLabelMap.put(rowLabels[i], i);
+		}
+			
+		for (int i = 0; i < dates.size() - 1; i++) {
+			columnLabels[i] = "v." + dates.get(i).get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear());
+		}
+		
+		int[][] data = new int[rowLabels.length][columnLabels.length];
+		
+		for (int i = 1; i < dates.size(); i++) {
+			int col = i - 1;
+			String sql = "SELECT AcT.type, SUM(AR.minutes) AS minutes " + 
+					"FROM ActivityReports AR " + 
+					"JOIN ActivityTypes AcT USING (activityTypeId) " + 
+					"JOIN TimeReports TR USING (timeReportId) " + 
+					"JOIN ProjectUsers PU USING (projectUserId) " + 
+					"WHERE " + 
+					"AR.reportDate >= ? " + 
+					"AND AR.reportDate < ? " + 
+					"AND PU.projectId = ? " + 
+					"AND PU.userId = ? " + 
+					"GROUP BY AcT.activityTypeId";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(1, dates.get(i - 1).toString());
+			ps.setString(2, dates.get(i).toString());
+			ps.setInt(3, projectId);
+			ps.setInt(4, userId);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			while (rs.next()) {
+				String type = rs.getString("type");
+				int minutes = rs.getInt("minutes");
+				
+				data[rowLabelMap.get(type)][col] = minutes;
+		    }
+			
+			ps.close();
+		}
+		
+		return new Statistic(columnLabels, rowLabels, data);
+	}
+	
+	public Statistic getRoleStatistics(int projectId, int roleId, LocalDate from, LocalDate to) throws Exception {
+		Set<LocalDate> datesT = new TreeSet<>();
+		datesT.add(from);
+		
+		for (LocalDate date = from; date.isBefore(to); date = date.plusDays(1)) {
+		    if (date.getDayOfWeek() == DayOfWeek.MONDAY) {
+		    	datesT.add(date);
+		    } 
+		}
+		datesT.add(to);
+		
+		List<LocalDate> dates = new ArrayList<LocalDate>(datesT);
+		
+		List<ActivityType> at = getActivityTypes();
+		
+		String[] rowLabels = new String[at.size()];
+		String[] columnLabels = new String[dates.size() - 1];
+		
+		Map<String, Integer> rowLabelMap = new HashMap<String, Integer>();
+		
+		for (int i = 0; i < at.size(); i++) {
+			rowLabels[i] = at.get(i).getType();
+			rowLabelMap.put(rowLabels[i], i);
+		}
+			
+		for (int i = 0; i < dates.size() - 1; i++) {
+			columnLabels[i] = "v." + dates.get(i).get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear());
+		}
+		
+		int[][] data = new int[rowLabels.length][columnLabels.length];
+		
+		for (int i = 1; i < dates.size(); i++) {
+			int col = i - 1;
+			String sql = "SELECT AcT.type, SUM(AR.minutes) AS minutes " + 
+					"FROM ActivityReports AR " + 
+					"JOIN ActivityTypes AcT USING (activityTypeId) " + 
+					"JOIN TimeReports TR USING (timeReportId) " + 
+					"JOIN ProjectUsers PU USING (projectUserId) " + 
+					"WHERE " + 
+					"AR.reportDate >= ? " + 
+					"AND AR.reportDate < ? " + 
+					"AND PU.projectId = ? " + 
+					"AND PU.roleId = ? " + 
+					"GROUP BY AcT.activityTypeId";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(1, dates.get(i - 1).toString());
+			ps.setString(2, dates.get(i).toString());
+			ps.setInt(3, projectId);
+			ps.setInt(4, roleId);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			while (rs.next()) {
+				String type = rs.getString("type");
+				int minutes = rs.getInt("minutes");
+				
+				data[rowLabelMap.get(type)][col] = minutes;
+		    }
+			
+			ps.close();
+		}
+		
+		return new Statistic(columnLabels, rowLabels, data);
 	}
 }
