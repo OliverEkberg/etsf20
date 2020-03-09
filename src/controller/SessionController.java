@@ -60,18 +60,18 @@ public class SessionController extends servletBase {
 	private String loginRequestForm() {
 			return 	"<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/SessionController.css\">" +
 			
-			    "<div class=\"wrapper\">\r\n" + 
-					"        <div class=\"title\">TimeKeep</div>\r\n" + 
-					"        <div class=\"subTitle\">Keep track of time and stuff.</div>\r\n" + 
-					"        <div class=\"center credentials_form\">\r\n" + 
-					"            <form>\r\n" + 
-					"                <input class=\"credentials_rect\" type=\"text\" name=\"username\" placeholder=\"Username\" required><br>\r\n" + 
-					"                <input class=\"credentials_rect\" type=\"text\" name=\"password\" placeholder=\"Password\" required><br><br>\r\n" + 
-					"                <input class=\"submitBtn\" type=\"submit\" value=\"Submit\">\r\n" + 
-					"              </form> \r\n" + 
-					"        </div>\r\n" + 
-					"        <div class=\"footerText\">Developed by some dudes at LTH.</div>\r\n" + 
-					"    </div>"
+			    "    <div class=\"wrapper\">\r\n" + 
+			    "        <div class=\"title\">TimeKeep</div>\r\n" + 
+			    "        <div class=\"subTitle\">Keep track of time and stuff.</div>\r\n" + 
+			    "        <div class=\"center credentials_form\">\r\n" + 
+			    "            <form onsubmit=\"checkInput()\">\r\n" + 
+			    "                <input class=\"credentials_rect\" type=\"text\" id=\"username\" name=\"username\" pattern=\"^[a-zA-Z0-9]*$\" title=\"Please enter letters and numbers only.\" maxlength=\"10\" placeholder=\"Username\" required><br>\r\n" + 
+			    "                <input class=\"credentials_rect\" type=\"password\" id=\"password\" name=\"password\" pattern=\"^[a-zA-Z0-9]*$\" title=\"Please enter letters and numbers only.\" maxlength=\"10\" placeholder=\"Password\" required><br><br>\r\n" + 
+			    "                <input class=\"submitBtn\" type=\"submit\" value=\"Submit\">\r\n" + 
+			    "              </form> \r\n" + 
+			    "        </div>\r\n" + 
+			    "        <div class=\"footerText\">Developed by some dudes at LTH.</div>\r\n" + 
+			    "    </div>"
 
 			+"</body></html>";
 	}
