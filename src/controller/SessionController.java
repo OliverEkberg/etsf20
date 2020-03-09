@@ -17,7 +17,7 @@ import baseblocksystem.servletBase;
  * 
  * Description of the class.
  * 
- * @author Ferit Bölezek ( Enter name if you've messed around with this file ;) )
+ * @author Ferit Bï¿½lezek ( Enter name if you've messed around with this file ;) )
  * @version 1.0
  * 
  */
@@ -35,7 +35,7 @@ public class SessionController extends servletBase {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		PrintWriter out = resp.getWriter();
-		out.println(getPageIntro());
+		out.println(getHeader());
 		
 
 		String name = req.getParameter("username"); // get the string that the user entered in the form

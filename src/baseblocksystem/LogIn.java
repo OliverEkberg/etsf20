@@ -44,11 +44,11 @@ public class LogIn extends servletBase {
      */
     protected String loginRequestForm() {
     	String html = "<p>Please enter your name and password in order to log in:</p>";
-    	html += "<p> <form name=" + formElement("input");
-    	html += " method=" + formElement("post");
-    	html += "<p> Name: <input type=" + formElement("text") + " name=" + formElement("user") + '>'; 
-    	html += "<p> Password: <input type=" + formElement("password") + " name=" + formElement("password") + '>';  
-    	html += "<p> <input type=" + formElement("submit") + "value=" + formElement("Submit") + '>';
+    	html += "<p> <form name=" + addQuotes("input");
+    	html += " method=" + addQuotes("post");
+    	html += "<p> Name: <input type=" + addQuotes("text") + " name=" + addQuotes("user") + '>'; 
+    	html += "<p> Password: <input type=" + addQuotes("password") + " name=" + addQuotes("password") + '>';  
+    	html += "<p> <input type=" + addQuotes("submit") + "value=" + addQuotes("Submit") + '>';
     	return html;
     }
     
@@ -104,9 +104,9 @@ public class LogIn extends servletBase {
 		int state;
 
 		PrintWriter out = response.getWriter();
-		out.println(getPageIntro());
+		out.println(getHeader());
 		
-		if (loggedIn(request)) {
+		if (isLoggedIn(request)) {
 			session.setAttribute("state", LOGIN_FALSE);
 			out.println("<p>You are now logged out</p>");
 		}

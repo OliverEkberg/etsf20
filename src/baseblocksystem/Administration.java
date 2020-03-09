@@ -44,10 +44,10 @@ public class Administration extends servletBase {
      */
     private String addUserForm() {
     	String html;
-    	html = "<p> <form name=" + formElement("input");
-    	html += " method=" + formElement("get");
-    	html += "<p> Add user name: <input type=" + formElement("text") + " name=" + formElement("addname") + '>';    	
-    	html += "<input type=" + formElement("submit") + "value=" + formElement("Add user") + '>';
+    	html = "<p> <form name=" + addQuotes("input");
+    	html += " method=" + addQuotes("get");
+    	html += "<p> Add user name: <input type=" + addQuotes("text") + " name=" + addQuotes("addname") + '>';    	
+    	html += "<input type=" + addQuotes("submit") + "value=" + addQuotes("Add user") + '>';
     	html += "</form>";
     	return html;
     }
@@ -160,7 +160,7 @@ public class Administration extends servletBase {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		PrintWriter out = response.getWriter();
-		out.println(getPageIntro());
+		out.println(getHeader());
 		
 		String myName = "";
     	HttpSession session = request.getSession(true);
@@ -169,7 +169,7 @@ public class Administration extends servletBase {
     		myName = (String)nameObj;  // if the name exists typecast the name to a string
 		
 		// check that the user is logged in
-		if (!loggedIn(request))
+		if (!isLoggedIn(request))
 			response.sendRedirect("LogIn");
 		else
 			if (myName.equals("admin")) {
@@ -207,20 +207,20 @@ public class Administration extends servletBase {
 					Statement stmt = conn.createStatement();		    
 				    ResultSet rs = stmt.executeQuery("select * from users order by name asc");
 				    out.println("<p>Registered users:</p>");
-				    out.println("<table border=" + formElement("1") + ">");
+				    out.println("<table border=" + addQuotes("1") + ">");
 				    out.println("<tr><td>NAME</td><td>PASSWORD</td><td></td></tr>");
 				    while (rs.next( )) {
 				    	String name = rs.getString("name");
 				    	String pw = rs.getString("password");
 				    	String deleteURL = "Administration?deletename="+name;
-				    	String deleteCode = "<a href=" + formElement(deleteURL) +
-				    			            " onclick="+formElement("return confirm('Are you sure you want to delete "+name+"?')") + 
+				    	String deleteCode = "<a href=" + addQuotes(deleteURL) +
+				    			            " onclick="+addQuotes("return confirm('Are you sure you want to delete "+name+"?')") + 
 				    			            "> delete </a>";
 				    	
 				    	if (!rs.getBoolean("active")) {
 				    		deleteURL = "Administration?undeletename="+name;
-					    	deleteCode = "<a href=" + formElement(deleteURL) +
-					    			            " onclick="+formElement("return confirm('Are you sure you want to undelete "+name+"?')") + 
+					    	deleteCode = "<a href=" + addQuotes(deleteURL) +
+					    			            " onclick="+addQuotes("return confirm('Are you sure you want to undelete "+name+"?')") + 
 					    			            "> undelete </a>";
 				    	}
 				    	
@@ -241,8 +241,8 @@ public class Administration extends servletBase {
 				}
 				out.println(addUserForm());
 				
-				out.println("<p><a href =" + formElement("functionality.html") + "> Functionality selection page </p>");
-				out.println("<p><a href =" + formElement("LogIn") + "> Log out </p>");
+				out.println("<p><a href =" + addQuotes("functionality.html") + "> Functionality selection page </p>");
+				out.println("<p><a href =" + addQuotes("LogIn") + "> Log out </p>");
 				out.println("</body></html>");
 			} else  // name not admin
 				response.sendRedirect("functionality.html");

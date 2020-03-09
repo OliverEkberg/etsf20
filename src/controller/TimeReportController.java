@@ -1,6 +1,11 @@
 package controller;
 
+import java.io.IOException;
+
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import baseblocksystem.servletBase;
 
@@ -11,12 +16,18 @@ import baseblocksystem.servletBase;
  * 
  * Description of the class.
  * 
- * @author Ferit Bölezek ( Enter name if you've messed around with this file ;) )
+ * @author Ferit Bï¿½lezek ( Enter name if you've messed around with this file ;) )
  * @version 1.0
  * 
  */
 
 @WebServlet("/TimeReportPage")
 public class TimeReportController extends servletBase {
+
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

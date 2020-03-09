@@ -1,14 +1,18 @@
 package baseblocksystem;
-import java.sql.Connection;
 
-import java.sql.DriverManager;
-import java.sql.ResultSet;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.sql.Statement;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import database.DatabaseService;
+import database.Role;
+import database.User;
 
 
 /**
@@ -30,40 +34,21 @@ import javax.servlet.http.HttpSession;
  *  @version 1.0
  *  
  */
-public class servletBase extends HttpServlet {
+public abstract class servletBase extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 	
 	// Define states
 	protected static final int LOGIN_FALSE = 0;
 	protected static final int LOGIN_TRUE = 1;	
-	protected Connection conn = null;
-	private static String databaseServerAddress = "vm23.cs.lth.se";
-	private static String databaseUser = "ol8462ek";             // database login user
-	private static String databasePassword = "664uat1j";          // database login password
-	private static String database = "ol8462ek";             // the database to use, i.e. default schema
+	protected DatabaseService dbService;
 	
 	/**
-	 * Constructs a servlet and makes a connection to the database. 
-	 * It also writes all user names on the console for test purpose. 
+	 * Constructs a servlet and makes a connection to the database through databaseService
 	 */
     public servletBase() {
     	try{
-    		conn = DriverManager.getConnection("jdbc:mysql://" + databaseServerAddress + "/" + 
-                    database, databaseUser, databasePassword);		
-			       
-						
-			// Display the contents of the database in the console. 
-			// This should be removed in the final version
-			Statement stmt = conn.createStatement();		    
-		    ResultSet rs = stmt.executeQuery("select * from users"); 
-		    while (rs.next( )) {
-		    	String name = rs.getString("name"); 
-		    	System.out.println("base " + name);
-		    	}
-
-		    stmt.close();
-			
+    		dbService = new DatabaseService();
 		} catch (SQLException ex) {
 		    System.out.println("SQLException: " + ex.getMessage());
 		    System.out.println("SQLState: " + ex.getSQLState());
@@ -76,22 +61,85 @@ public class servletBase extends HttpServlet {
      * @param request The HTTP Servlet request (so that the session can be found)
      * @return true if the user is logged in, otherwise false.
      */
-    protected boolean loggedIn(HttpServletRequest request) {
+    protected boolean isLoggedIn(HttpServletRequest request) {
     	HttpSession session = request.getSession(true);
-    	Object objectState = session.getAttribute("state");
-    	int state = LOGIN_FALSE;
-		if (objectState != null) 
-			state = (Integer) objectState; 
-		return (state == LOGIN_TRUE);
+    	Object objectState = session.getAttribute("loggedIn");
+    	boolean isLoggedIn = false;
+		if (objectState != null) {
+			isLoggedIn = (boolean) objectState; 
+		}
+		return isLoggedIn;
+    }
+    
+    protected void setIsLoggedIn(HttpServletRequest request, boolean loggedIn) {
+		HttpSession session = request.getSession(true);
+		session.setAttribute("loggedIn", loggedIn);
+	}
+    
+    /**
+     * Checks if a user is admin or not.
+     * @param request The HTTP Servlet request (so that the session can be found)
+     * @return true if the user is admin, otherwise false.
+     */
+    protected boolean isAdmin(HttpServletRequest request) {
+    	HttpSession session = request.getSession(true);
+    	Object objectState = session.getAttribute("admin");
+    	boolean isAdmin = false;
+		if (objectState != null) {
+			isAdmin = (boolean) objectState; 
+		}
+		return isAdmin;
+    }
+    
+    protected void setIsAdmin(HttpServletRequest request, boolean admin) {
+		HttpSession session = request.getSession(true);
+		session.setAttribute("admin", admin);
+	}
+    
+    protected int getProjectId(HttpServletRequest request) {
+    	HttpSession session = request.getSession(true);
+    	Object objectState = session.getAttribute("projectId");
+    	int projectId = 0;
+		if (objectState != null) {
+			projectId = (int) objectState; 
+		}
+		return projectId;
+    }
+    
+    protected void setUserId(HttpServletRequest request, int userId) {
+		HttpSession session = request.getSession(true);
+		session.setAttribute("userId", userId);
+	}
+    
+    protected User getLoggedInUser(HttpServletRequest request) throws Exception {
+    	HttpSession session = request.getSession(true);
+    	Object objectState = session.getAttribute("userId");
+    	int userId = 0;
+		if (objectState != null) {
+			userId = (int) objectState; 
+		}
+		
+		return dbService.getUserById(userId);
+    }
+    
+    protected void setProjectId(HttpServletRequest request, int projectId) {
+		HttpSession session = request.getSession(true);
+		session.setAttribute("projectId", projectId);
+	}
+    
+    protected boolean isProjectLeader(HttpServletRequest request, int projectId) throws Exception {
+    	User loggedInUser = getLoggedInUser(request);
+    	Role role = dbService.getRole(loggedInUser.getUserId(), projectId);
+    	return role.getRoleId() == 1;
     }
     
     /**
-     * Can be used to construct form elements.
-     * @param par Input string
-     * @return output string = "par" 
+     * Adds quotes to the given string.
+     * @param str Input string
+     * @return output string = "str" 
      */
-    protected String formElement(String par) {
-    	return '"' + par + '"';
+    protected String addQuotes(String str) {
+    	return '"' + str + '"';
     }
     
     
@@ -99,11 +147,19 @@ public class servletBase extends HttpServlet {
      * Constructs the header of all servlets. 
      * @return String with html code for the header. 
      */
-    protected String getPageIntro() {
-    	String intro = "<html>" +
-                       "<head><title> The Base Block System </title></head>" +
-                       "<body>";
-    	return intro;
+    protected String getHeader() {
+    	String header = "<head><title> The Base Block System (TODO) </title></head>";
+    	return header;
     }
-
+    
+    protected abstract void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException;
+    
+    /**
+	 * All requests are forwarded to the doGet method. 
+	 * 
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
+	}
 }
