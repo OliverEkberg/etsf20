@@ -1,7 +1,6 @@
 package baseblocksystem;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.SQLException;
 
 import javax.servlet.ServletException;
@@ -38,9 +37,6 @@ public abstract class servletBase extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 	
-	// Define states
-	protected static final int LOGIN_FALSE = 0;
-	protected static final int LOGIN_TRUE = 1;	
 	protected DatabaseService dbService;
 	
 	/**

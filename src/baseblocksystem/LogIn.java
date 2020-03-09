@@ -2,14 +2,14 @@ package baseblocksystem;
 import java.io.*;
 
 import java.io.IOException;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpSession;
+
+import database.User;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -60,22 +60,13 @@ public class LogIn extends servletBase {
      * @return true if the user should be accepted
      */
     private boolean checkUser(String name, String password) {
-		
 		boolean userOk = false;
-		boolean userChecked = false;
 		
 		try{
-			Statement stmt = conn.createStatement();		    
-		    ResultSet rs = stmt.executeQuery("select * from users where active = 1"); 
-		    while (rs.next( ) && !userChecked) {
-		    	String nameSaved = rs.getString("name"); 
-		    	String passwordSaved = rs.getString("password");
-		    	if (name.equals(nameSaved)) {
-		    		userChecked = true;
-		    		userOk = password.equals(passwordSaved);
-		    	}
-		    }
-		    stmt.close();
+			User user = dbService.getUserByCredentials(name, password);
+			if (user != null) {
+				userOk = true;
+			}
 		} catch (SQLException ex) {
 		    System.out.println("SQLException: " + ex.getMessage());
 		    System.out.println("SQLState: " + ex.getSQLState());
@@ -84,7 +75,6 @@ public class LogIn extends servletBase {
 		return userOk;
 	}
 
-    
     
 	/**
 	 * Implementation of all input to the servlet. All post-messages are forwarded to this method. 
@@ -97,17 +87,11 @@ public class LogIn extends servletBase {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
-		// Get the session
-		HttpSession session = request.getSession(true);
-		
-		int state;
-
 		PrintWriter out = response.getWriter();
 		out.println(getHeader());
 		
 		if (isLoggedIn(request)) {
-			session.setAttribute("state", LOGIN_FALSE);
+			setIsLoggedIn(request, false);;
 			out.println("<p>You are now logged out</p>");
 		}
 		
@@ -118,9 +102,16 @@ public class LogIn extends servletBase {
         password = request.getParameter("password"); // get the entered password
         if (name != null && password != null) {
         	if (checkUser(name, password)) {
-        		state = LOGIN_TRUE;
-       			session.setAttribute("state", state);  // save the state in the session
-       			session.setAttribute("name", name);  // save the name in the session
+       			setIsLoggedIn(request, true);  // save the state in the session
+       			User u;
+				try {
+					u = dbService.getUserByCredentials(name, password);
+					setUserId(request, u.getUserId());
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+       			
        			response.sendRedirect("functionality.html");
        		}
        		else {

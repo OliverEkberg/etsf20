@@ -3,17 +3,16 @@ package baseblocksystem;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
+import database.User;
+
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -95,18 +94,13 @@ public class Administration extends servletBase {
     private boolean addUser(String name) {
     	boolean resultOk = true;
     	try{
-			Statement stmt = conn.createStatement();
-			String statement = "insert into users (name, password) values('" + name + "', '" + 
-			                     createPassword() + "')";
-			System.out.println(statement);
-		    stmt.executeUpdate(statement); 
-		    stmt.close();
-			
-		} catch (SQLException ex) {
+    		String newPassword = createPassword();
+    		System.out.println(newPassword);
+    		User u = new User(0, name, newPassword, false);
+    		dbService.createUser(u);
+		} catch (Exception err) {
 		    resultOk = false;
-		    // System.out.println("SQLException: " + ex.getMessage());
-		    System.out.println("SQLState: " + ex.getSQLState());
-		    System.out.println("VendorError: " + ex.getErrorCode());
+		    err.printStackTrace();
 		}
     	return resultOk;
     }
@@ -118,34 +112,11 @@ public class Administration extends servletBase {
      */
     private void deleteUser(String name) {
     	try{
-			Statement stmt = conn.createStatement();
-			String statement = "update users set active = 0 where name='" + name + "'"; 
-			System.out.println(statement);
-		    stmt.executeUpdate(statement); 
-		    stmt.close();
-			
-		} catch (SQLException ex) {
-		    System.out.println("SQLException: " + ex.getMessage());
-		    System.out.println("SQLState: " + ex.getSQLState());
-		    System.out.println("VendorError: " + ex.getErrorCode());
+			dbService.deleteUserByUsername(name);
+		} catch (Exception err) {
+		    err.printStackTrace();
 		}
     }
-    
-    private void unDeleteUser(String name) {
-    	try{
-			Statement stmt = conn.createStatement();
-			String statement = "update users set active = 1 where name='" + name + "'"; 
-			System.out.println(statement);
-		    stmt.executeUpdate(statement); 
-		    stmt.close();
-			
-		} catch (SQLException ex) {
-		    System.out.println("SQLException: " + ex.getMessage());
-		    System.out.println("SQLState: " + ex.getSQLState());
-		    System.out.println("VendorError: " + ex.getErrorCode());
-		}
-    }
-
 
 	/**
 	 * Handles input from the user and displays information for administration. 
@@ -163,10 +134,16 @@ public class Administration extends servletBase {
 		out.println(getHeader());
 		
 		String myName = "";
-    	HttpSession session = request.getSession(true);
-    	Object nameObj = session.getAttribute("name");
-    	if (nameObj != null)
-    		myName = (String)nameObj;  // if the name exists typecast the name to a string
+		
+		User loggedInUser;
+		try {
+			loggedInUser = getLoggedInUser(request);
+			if (loggedInUser != null)
+	    		myName = (String)loggedInUser.getUsername();  // if the name exists typecast the name to a string
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}    	
 		
 		// check that the user is logged in
 		if (!isLoggedIn(request))
@@ -195,34 +172,19 @@ public class Administration extends servletBase {
 						out.println("<p>Error: URL wrong</p>");
 				}
 				
-				String unDeleteName = request.getParameter("undeletename");
-				if (unDeleteName != null) {
-					if (checkNewName(unDeleteName)) {
-						unDeleteUser(unDeleteName);
-					}	else
-						out.println("<p>Error: URL wrong</p>");
-				}
-				
-				try {
-					Statement stmt = conn.createStatement();		    
-				    ResultSet rs = stmt.executeQuery("select * from users order by name asc");
+				try {			    
+				    List<User> users = dbService.getAllUsers();
 				    out.println("<p>Registered users:</p>");
 				    out.println("<table border=" + addQuotes("1") + ">");
 				    out.println("<tr><td>NAME</td><td>PASSWORD</td><td></td></tr>");
-				    while (rs.next( )) {
-				    	String name = rs.getString("name");
-				    	String pw = rs.getString("password");
+				    for (User u : users) {
+				    	String name = u.getUsername();
+				    	String pw = u.getPassword();
 				    	String deleteURL = "Administration?deletename="+name;
 				    	String deleteCode = "<a href=" + addQuotes(deleteURL) +
 				    			            " onclick="+addQuotes("return confirm('Are you sure you want to delete "+name+"?')") + 
 				    			            "> delete </a>";
 				    	
-				    	if (!rs.getBoolean("active")) {
-				    		deleteURL = "Administration?undeletename="+name;
-					    	deleteCode = "<a href=" + addQuotes(deleteURL) +
-					    			            " onclick="+addQuotes("return confirm('Are you sure you want to undelete "+name+"?')") + 
-					    			            "> undelete </a>";
-				    	}
 				    	
 				    	if (name.equals("admin")) 
 				    		deleteCode = "";
@@ -233,7 +195,6 @@ public class Administration extends servletBase {
 				    	out.println("</tr>");
 				    }
 				    out.println("</table>");
-				    stmt.close();
 				} catch (SQLException ex) {
 				    System.out.println("SQLException: " + ex.getMessage());
 				    System.out.println("SQLState: " + ex.getSQLState());
