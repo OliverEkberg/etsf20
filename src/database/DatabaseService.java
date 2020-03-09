@@ -661,59 +661,59 @@ public class DatabaseService {
 	
 	/**
 	 * Creates an activityReport
-	 * @param newAR - The activityReport to be persisted
+	 * @param activityReport - The activityReport to be persisted
 	 * @return The persisted activityReport model
 	 * @throws SQLException
 	 */
-	public ActivityReport createActivityReport(ActivityReport newAR) throws SQLException {
+	public ActivityReport createActivityReport(ActivityReport activityReport) throws SQLException {
 		String sql = "INSERT INTO ActivityReports (`activityReportId`, `activityTypeId`, `activitySubTypeId`, `timeReportId`, `reportDate`, `minutes`) " + 
 					 "values (?, ?, ?, ?, ?, ?)";
 		PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-		ps.setInt(1, newAR.getActivityReportId());
-		ps.setInt(2, newAR.getActivityTypeId());
-		ps.setInt(3, newAR.getActivitySubTypeId());
-		ps.setInt(4, newAR.getTimeReportId());
-		ps.setDate(5, Date.valueOf(newAR.getReportDate()));
-		ps.setInt(6, newAR.getMinutes());
+		ps.setInt(1, activityReport.getActivityReportId());
+		ps.setInt(2, activityReport.getActivityTypeId());
+		ps.setInt(3, activityReport.getActivitySubTypeId());
+		ps.setInt(4, activityReport.getTimeReportId());
+		ps.setDate(5, Date.valueOf(activityReport.getReportDate()));
+		ps.setInt(6, activityReport.getMinutes());
 		
 		ps.executeUpdate();
 		ResultSet rs = ps.getGeneratedKeys();
 		
-		ActivityReport activityReport = null;
+		ActivityReport newAR = null;
 		if(rs.next()) {
-			activityReport = getActivityReport(rs.getInt("activityReportId"));
+			newAR = getActivityReport(rs.getInt("activityReportId"));
 		}
 		
 		ps.close();
-		return activityReport;		
+		return newAR;		
 	}
 	
 	/**
 	 * Updates an activityReport
-	 * @param updateAR - The activityReport to be updated. Must exist in the database before running this
+	 * @param activityReport - The activityReport to be updated. Must exist in the database before running this
 	 * @return The updated and persisted activityReport model
 	 * @throws Exception
 	 */
-	public ActivityReport updateActivityReport(ActivityReport updateAR) throws Exception {
+	public ActivityReport updateActivityReport(ActivityReport activityReport) throws Exception {
 		String sql = "UPDATE ActivityReports " + 
 				"SET `activityTypeId` = ?, `activitySubTypeId` = ?, `timeReportId` = ?, `reportDate` = ?, `minutes` = ? " + 
 				"WHERE userId = ?";
 		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, updateAR.getActivityTypeId());
-		ps.setInt(2, updateAR.getActivitySubTypeId());
-		ps.setInt(3, updateAR.getTimeReportId());
-		ps.setDate(4, Date.valueOf(updateAR.getReportDate()));
-		ps.setInt(5, updateAR.getMinutes());
-		ps.setInt(6, updateAR.getActivityReportId());
+		ps.setInt(1, activityReport.getActivityTypeId());
+		ps.setInt(2, activityReport.getActivitySubTypeId());
+		ps.setInt(3, activityReport.getTimeReportId());
+		ps.setDate(4, Date.valueOf(activityReport.getReportDate()));
+		ps.setInt(5, activityReport.getMinutes());
+		ps.setInt(6, activityReport.getActivityReportId());
 		
 		int updated = ps.executeUpdate();		
 	
 		ps.close();
 		
 		if (updated == 0) {
-			return updateAR;
+			return activityReport;
 		} else {
-			return getActivityReport(updateAR.getActivityReportId());
+			return getActivityReport(activityReport.getActivityReportId());
 		}
 	}
 	
@@ -723,7 +723,7 @@ public class DatabaseService {
 	 * @throws Exception - If the activityReport does not exist
 	 */
 	public void deleteActivityReport(int activityReportId) throws Exception {
-		String sql = "DELETE FROM ActivityReport WHERE activityReportId = ?";
+		String sql = "DELETE FROM ActivityReports WHERE activityReportId = ?";
 		PreparedStatement ps = conn.prepareStatement(sql);
 		ps.setInt(1, activityReportId);
 		
@@ -792,7 +792,7 @@ public class DatabaseService {
 	 * @return TimeReport model or null
 	 * @throws SQLException
 	 */
-	public TimeReport getTimeReportsById(int timeReportId) throws SQLException {
+	public TimeReport getTimeReportById(int timeReportId) throws SQLException {
 		TimeReport timeReport = null;
 		
 		String sql = "SELECT * FROM TimeReports WHERE timeReportId = ?";
@@ -809,12 +809,117 @@ public class DatabaseService {
 		return timeReport;
 	}
 	
+	/**
+	 * Checks if a time report exists for the given parameters
+	 * @param week - The specific week the time report applies to
+	 * @param year - The specific year the time report applies to
+	 * @param userId - The unique identifier of the user to find time reports for
+	 * @param projectId - The unique identifier of the project to find time reports for
+	 * @return True if the time report exists, otherwise False
+	 * @throws SQLException
+	 */
 	public boolean hasTimeReport(int week, int year, int userId, int projectId) throws SQLException {
-		int count;
+		int count = 0;
 		
 		String sql = "SELECT COUNT(timeReportId) AS numberOfReports "
 				+ "FROM TimeReports JOIN ProjectUsers USING (projectUserId) "
 				+ "WHERE (week, year, userId, projectId) = (?, ?, ?, ?)";
-		return false;
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, week);
+		ps.setInt(2, year);
+		ps.setInt(3, userId);
+		ps.setInt(4, projectId);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		if (rs.next()) {
+			count = rs.getInt("numberOfReports");
+	    }
+		
+		ps.close();
+		if (count > 0) return true;
+		else return false;
+	}
+	
+	/**
+	 * Creates a time report
+	 * @param timeReport - The TimeReport to be persisted
+	 * @return The persisted TimeReport model
+	 * @throws SQLException
+	 */
+	public TimeReport createTimeReport(TimeReport timeReport) throws SQLException {
+		String sql = "INSERT INTO TimeReports (`timeReportId`, `projectUserId`, `signedById`, `signedAt`, `year`, `week`, `updatedAt`, `finished`) "
+				+ "values (?, ?, ?, ?, ?, ?, ?, ?)";
+		PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+		ps.setInt(1, timeReport.getTimeReportId());
+		ps.setInt(2, timeReport.getProjectUserId());
+		ps.setInt(3, timeReport.getSignedById());
+		ps.setTimestamp(4, Timestamp.valueOf(timeReport.getSignedAt()));
+		ps.setInt(5, timeReport.getYear());
+		ps.setInt(6, timeReport.getWeek());
+		ps.setTimestamp(7, Timestamp.valueOf(timeReport.getUpdatedAt()));
+		ps.setBoolean(8, timeReport.isFinished());
+		
+		ps.executeUpdate();
+		ResultSet rs = ps.getGeneratedKeys();
+		
+		TimeReport newTR = null;
+		if(rs.next()) {
+			newTR = getTimeReportById(rs.getInt("timeReportId"));
+		}
+		
+		ps.close();
+		return newTR;		
+	}
+	
+	/**
+	 * Updates a time report
+	 * @param timeReport - The TimeReport to be updated. Must exist in the database before running this
+	 * @return The updated and persisted TimeReport model
+	 * @throws Exception
+	 */
+	public TimeReport updateTimeReport(TimeReport timeReport) throws Exception {
+		String sql = "UPDATE TimeReports " + 
+				"SET `timeReportId` = ?, `projectUserId` = ?, `signedById` = ?, `signedAt` = ?, "
+				+ "`year` = ?, `week` = ?, `updatedAt` = ?, `finished` = ? "
+				+ "WHERE userId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, timeReport.getTimeReportId());
+		ps.setInt(2, timeReport.getProjectUserId());
+		ps.setInt(3, timeReport.getSignedById());
+		ps.setTimestamp(4, Timestamp.valueOf(timeReport.getSignedAt()));
+		ps.setInt(5, timeReport.getYear());
+		ps.setInt(6, timeReport.getWeek());
+		ps.setTimestamp(7, Timestamp.valueOf(timeReport.getUpdatedAt()));
+		ps.setBoolean(8, timeReport.isFinished());
+		
+		int updated = ps.executeUpdate();		
+	
+		ps.close();
+		
+		if (updated == 0) {
+			return timeReport;
+		} else {
+			return getTimeReportById(timeReport.getTimeReportId());
+		}
+	}
+	
+	/**
+	 * Removes a time report by its unique identifier
+	 * @param timeReportId - Unique identifier of the time report to  remove
+	 * @throws Exception - If the time report does not exist
+	 */
+	public void deleteTimeReport(int timeReportId) throws Exception {
+		String sql = "DELETE FROM TimeReports WHERE timeReportId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, timeReportId);
+		
+		int deleted = ps.executeUpdate();		
+	
+		ps.close();
+		
+		if (deleted == 0) {
+			throw new Exception("Time report does not exist");
+		}
 	}
 }
