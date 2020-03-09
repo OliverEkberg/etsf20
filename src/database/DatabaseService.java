@@ -128,6 +128,19 @@ public class DatabaseService {
 		);
 	}
 	
+	private TimeReport mapTimeReport(ResultSet rs) throws SQLException {
+		return new TimeReport(
+				rs.getInt("timeReportId"),
+				rs.getInt("projectUserId"),
+				rs.getInt("signedById"),
+				rs.getTimestamp("signedAt").toLocalDateTime(),
+				rs.getInt("year"),
+				rs.getInt("week"),
+				rs.getTimestamp("updatedAt").toLocalDateTime(),
+				rs.getBoolean("finished")
+				);
+	}
+	
 	/**
 	 * Gets user by credentials. Will return null if user could not be found 
 	 * @param username - The username of the user
@@ -721,5 +734,87 @@ public class DatabaseService {
 		if (deleted == 0) {
 			throw new Exception("Activity Report does not exist");
 		}
+	}
+	
+	/**
+	 * Gets all time reports that exists in the given project
+	 * @param projectId - The unique identifier of the project to find time reports for
+	 * @return A list of all time reports in a project
+	 * @throws SQLException
+	 */
+	public List<TimeReport> getTimeReportsByProject(int projectId) throws SQLException {
+		List<TimeReport> timeReports = new ArrayList<>();
+		
+		String sql = "SELECT TimeReports.* "
+				+ "FROM TimeReports JOIN ProjectUsers USING (projectUserId) "
+				+ "WHERE projectId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, projectId);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		while (rs.next()) {
+			timeReports.add(mapTimeReport(rs));
+	    }		
+		
+		ps.close();
+		return timeReports;
+	}
+	
+	/**
+	 * Gets all time reports made by a given user
+	 * @param userId - The unique identifier of the user to find time reports for
+	 * @return A list of all time reports made by a user
+	 * @throws SQLException
+	 */
+	public List<TimeReport> getTimeReportsByUser(int userId) throws SQLException {
+		List<TimeReport> timeReports = new ArrayList<>();
+		
+		String sql = "SELECT TimeReports.* "
+				+ "FROM TimeReports JOIN ProjectUsers USING (projectUserId) "
+				+ "WHERE userId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, userId);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		while (rs.next()) {
+			timeReports.add(mapTimeReport(rs));
+	    }		
+		
+		ps.close();
+		return timeReports;
+	}
+	
+	/**
+	 * Gets time report by timeReportId. Will return null if time report could not be found
+	 * @param timeReportId - The unique identifier of the time report
+	 * @return TimeReport model or null
+	 * @throws SQLException
+	 */
+	public TimeReport getTimeReportsById(int timeReportId) throws SQLException {
+		TimeReport timeReport = null;
+		
+		String sql = "SELECT * FROM TimeReports WHERE timeReportId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, timeReportId);
+		
+		ResultSet rs = ps.executeQuery();
+		
+		if (rs.next()) {
+			timeReport = mapTimeReport(rs);
+	    }		
+		
+		ps.close();
+		return timeReport;
+	}
+	
+	public boolean hasTimeReport(int week, int year, int userId, int projectId) throws SQLException {
+		int count;
+		
+		String sql = "SELECT COUNT(timeReportId) AS numberOfReports "
+				+ "FROM TimeReports JOIN ProjectUsers USING (projectUserId) "
+				+ "WHERE (week, year, userId, projectId) = (?, ?, ?, ?)";
+		return false;
 	}
 }

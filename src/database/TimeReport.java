@@ -12,6 +12,19 @@ public class TimeReport {
 	private LocalDateTime updatedAt;
 	private boolean finished;
 	
+	public TimeReport(int timeReportId, int projectUserId, int signedById, LocalDateTime signedAt, int year, int week,
+			LocalDateTime updatedAt, boolean finished) {
+		super();
+		this.timeReportId = timeReportId;
+		this.projectUserId = projectUserId;
+		this.signedById = signedById;
+		this.signedAt = signedAt;
+		this.year = year;
+		this.week = week;
+		this.updatedAt = updatedAt;
+		this.finished = finished;
+	}
+
 	public LocalDateTime getUpdatedAt() {
 		return updatedAt;
 	}
