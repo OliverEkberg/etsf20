@@ -100,10 +100,6 @@ public class TimeReportController extends servletBase {
 		try{
 		
 		//TODO: Datum picker när man skapar rapporter, finns HTML standard grej <input type= "date" > (inget krav)
-			//TODO: numberFormatException, skapa tidrapport utan vecka
-			//TODO: nullpointer, skapa aktivitetsrapport med för stor tid
-			//TODO: vanlig användare kan se SE ALLA UNSIGNED knappen
-			//TODO: vanlig användare kan signera??
 			//TODO: todo i createActivityReport
 			//TODO: ctrl + F "exception" behövs fixas
 				
@@ -130,6 +126,14 @@ public class TimeReportController extends servletBase {
 		String timeReportNotFinishedId = req.getParameter("timeReportNotFinishedId");
 		
 		if(activityType != null && subType != null && timeSpent != null && addReportWeek != null && timeReportId != null) {
+			
+			if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > 1440) {
+				
+				new Exception("Otillåtet värde för antal minuter");
+				out.println(getUserTimeReports(loggedInUser, req));
+				return;
+				
+			}
 			
 			int activityTypeId = 0;
 			int activitySubTypeId = 0;
@@ -242,7 +246,7 @@ public class TimeReportController extends servletBase {
 			
 			if(addReportWeek == "") {
 				new Exception("Veckonummer finns inte i kalendern!");
-				out.println(getUserTimeReports(loggedInUser, req));
+				out.println(getUserTimeReports(loggedInUser, req));  //Kan nog fixa detta + else satsen snyggare
 				return;
 			}
 			
