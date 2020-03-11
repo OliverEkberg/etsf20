@@ -59,10 +59,11 @@ public class TimeReportController extends servletBase {
 	
 	  
 	  private ActivityReport createActivityReport(int activityTypeId, int
-	  activitySubTypeId, LocalDate date, int week, int minutes, int userId, int projectId ) throws SQLException {
+	  activitySubTypeId, LocalDate date, int week, int minutes, int userId, int projectId ) throws Exception {
 	  
 		TimeReport timereport = null;
 		ActivityReport activityReport = null;
+		int projectUserId = dbService.getProjectUserIdByUserIdAndProjectId(userId, projectId);
 		  
 		if(dbService.hasTimeReport(week, date.getYear(), userId, projectId)) {// Does timereport this week exist?
 			
@@ -70,11 +71,15 @@ public class TimeReportController extends servletBase {
 			for(TimeReport tr : allReports) { 
 				if(tr.getWeek() == week) {
 					timereport = tr;
+					
+					if(timereport.isSigned() || timereport.isFinished()) {
+						new Exception("Tidrapport för den här veckan är redan signerad eller markerad som redo för signering och kan inte ändras!"); //TODO: Hjälp med exception, vill hoppa ur metoden.
+					}
 				}
 			}
 		}
 		else {
-			timereport = dbService.createTimeReport(new TimeReport(0, 1/*ska bytas*/, 0, LocalDateTime.now(), date.getYear(), week, LocalDateTime.now(), false)); //TODO: ProjectuserID get samt signedAt (och signedBy?)
+			timereport = dbService.createTimeReport(new TimeReport(0, projectUserId, 0, LocalDateTime.now(), date.getYear(), week, LocalDateTime.now(), false)); //TODO:signedAt (och signedBy?)
 		}
 	  
 	 
@@ -94,22 +99,22 @@ public class TimeReportController extends servletBase {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try{
 		
-		//TODO: Datum picker när man skapar rapporter, finns HTML standard grej <input type= "date" >
-			//TODO: Kan ha flera tidsrapporter under samma vecka
-			//TODO: NullPointer, skapa tidrapport utan vecka
-			//TODO: Vecka över 53 ska inte gå
+		//TODO: Datum picker när man skapar rapporter, finns HTML standard grej <input type= "date" > (inget krav)
+			//TODO: numberFormatException, skapa tidrapport utan vecka
 			//TODO: nullpointer, skapa aktivitetsrapport med för stor tid
+			//TODO: vanlig användare kan se SE ALLA UNSIGNED knappen
+			//TODO: vanlig användare kan signera??
+			//TODO: todo i createActivityReport
+			//TODO: ctrl + F "exception" behövs fixas
 				
 		PrintWriter out = resp.getWriter();
-		setUserId(req,1); //USER ID 19 = PROJECTLEADER
+		setUserId(req,17); //USER ID 19 = PROJECTLEADER
 		this.setIsLoggedIn(req, true);
-		setProjectId(req, 1);		
-	
-	/*	TimeReport tr = dbService.getTimeReportById(4);
-		tr.sign(1);												FOR TESTING TO SIGN TIMEREPORT
-		dbService.updateTimeReport(tr);*/ 
+		setProjectId(req, 1);	
+		User loggedInUser = dbService.getUserById(17); // SKA VARA SEN this.getLoggedInUser(req);
+		System.out.println(this.getLoggedInUser(req).getUserId() + "    " +this.isProjectLeader(req, this.getProjectId(req)));
 		
-		User loggedInUser = dbService.getUserById(1); // SKA VARA SEN this.getLoggedInUser(req);
+		
 
 		String activityType = req.getParameter("activity");
 		String subType = req.getParameter("subType");
@@ -177,6 +182,31 @@ public class TimeReportController extends servletBase {
 			
 		}
 		
+		if(timeReportSignId != null) {
+			
+			if(this.isProjectLeader(req, this.getProjectId(req))) {
+				TimeReport timeReport = dbService.getTimeReportById(Integer.parseInt(timeReportSignId));
+				int projectUserId = dbService.getProjectUserIdByUserIdAndProjectId(this.getLoggedInUser(req).getUserId(), this.getProjectId(req));
+				timeReport.sign(projectUserId);
+				dbService.updateTimeReport(timeReport);
+				out.println(getUserTimeReports(loggedInUser, req));
+				return;
+			}
+			
+			else {
+			 new Exception("Endast användare med rollen projektledare kan signera en tidrapport");
+			}
+		}
+		
+		if(timeReportUnsignId != null) {
+			TimeReport timeReport = dbService.getTimeReportById(Integer.parseInt(timeReportUnsignId));
+			timeReport.unsign();
+			
+			dbService.updateTimeReport(timeReport);
+			out.println(getUserTimeReports(loggedInUser, req));
+			return;
+		}
+		
 		if(showAllUnsignedReports != null) {
 			
 			out.println(getUnsignedTimeReports(req));
@@ -209,9 +239,25 @@ public class TimeReportController extends servletBase {
 		}
 		
 		if(addReportWeek != null) {
-			out.print(activityReportForm(Integer.parseInt(addReportWeek), ""));
+			
+			if(addReportWeek == "") {
+				new Exception("Veckonummer finns inte i kalendern!");
+				out.println(getUserTimeReports(loggedInUser, req));
+				return;
+			}
+			
+			int addReportWeekInt = Integer.parseInt(addReportWeek);
+			
+			if(addReportWeekInt > 0 && addReportWeekInt <= 53) {
+				out.print(activityReportForm(Integer.parseInt(addReportWeek), "")); //add timereport id?
 			return;
+			}
+			else {
+				new Exception("Veckonummer finns inte i kalendern!");
+			}
 		}
+			
+		
 		
 		if(timeReportId != null) {
 		
@@ -264,7 +310,7 @@ public class TimeReportController extends servletBase {
 					+ "<td>" + activitySubType + "</td>\r\n" 
 					+ "<td>" + aReport.getMinutes() + "</td>\r\n";
 			
-			if(!reportIsSigned && reportOwner == this.getLoggedInUser(req)) { //If timereport isn't signed, show button for deleting activity, else dont show it.
+			if(!reportIsSigned && !reportIsFinished && reportOwner.getUserId() == this.getLoggedInUser(req).getUserId()) { //If timereport isn't signed, show button for deleting activity, else dont show it.
 				html += "<td> <form action=\"TimeReportPage?deleteActivityReportId=\""+aReport.getActivityReportId()+"&timeReportId=\"" + timeReportId + "\" method=\"get\">\r\n" + 
 						"		<input name=\"deleteActivityReportId\" type=\"hidden\" value=\""+aReport.getActivityReportId()+"\"></input>\r\n" + 
 						" <input name=\"timeReportId\" type=\"hidden\" value=\""+timeReportId+"\"></input>\r\n" + 
@@ -297,7 +343,7 @@ public class TimeReportController extends servletBase {
 			}
 			
 			
-			if(timeReport.getProjectUserId() == this.getLoggedInUser(req).getUserId() && !timeReport.isFinished()) { //If timereport owner is the one logged in and looking at this screen AND timereport already exists and isnt marked as finished
+			if(reportOwner.getUserId() == this.getLoggedInUser(req).getUserId() && !timeReport.isFinished() && !timeReport.isSigned()) { //If timereport owner is the one logged in and looking at this screen AND isnt marked as finished
 				html += "<form action=\"TimeReportPage?week=\""+timeReport.getWeek()+"&timeReportId=\"" + timeReportId + "\" method=\"get\">\r\n" +  //Show button for adding activity
 						"		<input name=\"addReportWeek\" type=\"hidden\" value=\""+timeReport.getWeek()+"\"></input>\r\n" + 
 						" <input name=\"timeReportId\" type=\"hidden\" value=\""+timeReportId+"\"></input>\r\n" + 
@@ -308,7 +354,7 @@ public class TimeReportController extends servletBase {
 				+ "\"> Markera tidrapport som redo för signering. </button>  </form> \r\n";										//Mark activity report as finished
 			}
 			
-			else if(timeReport.getProjectUserId() == this.getLoggedInUser(req).getUserId() && timeReport.isFinished()) {
+			else if(reportOwner.getUserId() == this.getLoggedInUser(req).getUserId() && timeReport.isFinished() && !timeReport.isSigned()) { //unmark activity report as finished
 				
 				html +=	"<td> <form action = \"TimeReportPage?timeReportNotFinishedId=\""+timeReport.getTimeReportId()+"\" method=\"get\"> <button name=\"timeReportNotFinishedId\" type=\"submit\" value=\"" + timeReport.getTimeReportId() 
 				+ "\"> Avmarkera tidrapport som redo för signering. </button>  </form> \r\n";		
@@ -408,11 +454,11 @@ public class TimeReportController extends servletBase {
 						"</form>";//Add activity report button 
 				}
 			
-			if(isProjectLeader(req)) {
+			if(isProjectLeader(req)) {//Show all unsigned reports button for ProjectLeader
 				
 				html += "<form action=\"TimeReportPage?showAllUnsignedReports\" metod=\"get\">\r\n" + 
 						"  <input name=\"showAllUnsignedReports\" type=\"submit\" value=\"Visa alla osignerade tidrapporter\" >\r\n" + 
-						"</form>";//Add activity report button 
+						"</form>";
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -432,8 +478,8 @@ public class TimeReportController extends servletBase {
 		String html= "";
 		
 		try {
-			if(isProjectLeader(req)) {
-				new Exception("Endast en projekledare har tillgång till denna vyn");
+			if(!isProjectLeader(req)) {
+				new Exception("Endast en projekledare har tillgång till denna vyn"); //TODO: MAn ser inget exception när man trycker
 			}
 		
 		
@@ -473,7 +519,7 @@ public class TimeReportController extends servletBase {
 				signed = "Ej signerad";
 			}
 			
-			User trOwner = dbService.getUserById(tr.getProjectUserId()); //denna är fel
+			User trOwner = dbService.getUserByTimeReportId(tr.getTimeReportId());
 
 			html += "<tr>\r\n" + "<td>" + tr.getWeek() + "</td>\r\n" + // set values into HTML
 					"<td>" + trOwner.getUsername() + "</td>\r\n" +
