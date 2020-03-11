@@ -418,6 +418,33 @@ public class DatabaseService {
 			throw new Exception("Could not update users role in project");
 		}
 	}
+	
+	/**
+	 * Gets projectUserId for for given userId in given project. Will throw if user does not exist in project
+	 * 
+	 * @param userId - Unique identifier of user
+	 * @param projectId - Unique identifier of project
+	 * @return projectUserId
+	 * @throws Exception - If user can not be found in project
+	 */
+	public int getProjectUserIdByUserIdAndProjectId(int userId, int projectId) throws Exception {
+		String sql = "SELECT projectUserId FROM ProjectUsers WHERE (userId, projectId) = (?, ?)";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, userId);
+		ps.setInt(2, projectId);
+
+		ResultSet rs = ps.executeQuery();
+
+		
+		int projectUserId = rs.next() ? rs.getInt("projectUserId") : 0;
+		ps.close();
+		
+		if (projectUserId == 0) {
+			throw new Exception("Could not find given user in given project");
+		}
+		
+		return projectUserId;
+	}
 
 	/**
 	 * Gets all projects
