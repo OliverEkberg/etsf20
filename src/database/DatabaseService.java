@@ -656,22 +656,23 @@ public class DatabaseService {
 	 * @param userId    - Unique identifier of the user
 	 * @param projectId - Unique identifier of the project
 	 * @return role model
-	 * @throws SQLException
+	 * @throws Exception - If the user actually does not belong to given project
 	 */
-	public Role getRole(int userId, int projectId) throws SQLException {
-		Role role = null;
-		String sql = "SELECT Roles.roleId, role FROM Roles, ProjectUsers WHERE (userId, projectId) = (?, ?)";
+	public Role getRole(int userId, int projectId) throws Exception {
+		String sql = "SELECT Roles.* FROM ProjectUsers JOIN Roles USING (roleId) WHERE (userId, projectId) = (?, ?)";
 		PreparedStatement ps = conn.prepareStatement(sql);
 		ps.setInt(1, userId);
 		ps.setInt(2, projectId);
 
 		ResultSet rs = ps.executeQuery();
 
-		if (rs.next()) {
-			role = mapRole(rs);
-		}
-
+		Role role = rs.next() ? mapRole(rs) : null;
 		ps.close();
+		
+		if (role == null) {
+			throw new Exception("User does not belong to project");
+		}
+		
 		return role;
 	}
 

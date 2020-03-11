@@ -64,8 +64,8 @@ public class TimeReport {
 		return signedById != 0;
 	}
 	
-	public void sign(int userId) {
-		signedById = userId;
+	public void sign(int projectUserId) {
+		signedById = projectUserId;
 		signedAt = LocalDateTime.now();
 	}
 	 
