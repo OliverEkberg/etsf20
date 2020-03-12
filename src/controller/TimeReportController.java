@@ -109,21 +109,23 @@ public class TimeReportController extends servletBase {
 		User loggedInUser = dbService.getUserById(19); // SKA VARA SEN this.getLoggedInUser(req);		
 
 		String activityType = req.getParameter("activity");
-		String subType = req.getParameter("subType");
-		String timeSpent = req.getParameter("timeSpent");
-		String timeReportSignId = req.getParameter("timeReportIdToSign");
-		String deleteActivityReportId = req.getParameter("deleteActivityReportId");
-		String timeReportUnsignId = req.getParameter("timeReportIdToUnsign");
-		String timeReportId = req.getParameter("timeReportId");
 		String addReportWeek = req.getParameter("addReportWeek");
-		String timeReportFinishedId = req.getParameter("timeReportFinishedId");
+		String addReportYear = req.getParameter("addReportYear");
+		String dateOfReport = req.getParameter("dateOfReport");
+		String deleteActivityReportId = req.getParameter("deleteActivityReportId");
 		String deleteTimeReportId = req.getParameter("deleteTimeReportId");
+		String getReportsWeek = req.getParameter("getReportsWeek");	
+		String getReportsYear = req.getParameter("getReportsYear");
 		String showAllUnsignedReports = req.getParameter("showAllUnsignedReports");
-		String timeReportNotFinishedId = req.getParameter("timeReportNotFinishedId");
 		String showAllUsers = req.getParameter("showAllUsers");
 		String showUserPage = req.getParameter("showUserPage");
-		String getReportsWeek = req.getParameter("getReportsWeek");		
-		String dateOfReport = req.getParameter("dateOfReport");
+		String subType = req.getParameter("subType");
+		String timeReportFinishedId = req.getParameter("timeReportFinishedId");
+		String timeReportId = req.getParameter("timeReportId");
+		String timeReportNotFinishedId = req.getParameter("timeReportNotFinishedId");
+		String timeReportSignId = req.getParameter("timeReportIdToSign");
+		String timeReportUnsignId = req.getParameter("timeReportIdToUnsign");
+		String timeSpent = req.getParameter("timeSpent");
 		
 		if(activityType != null && subType != null && timeSpent != null && addReportWeek != null && timeReportId != null && dateOfReport != null) {			
 			
@@ -152,10 +154,6 @@ public class TimeReportController extends servletBase {
 				}
 			}
 			
-			
-			
-			//activitySubTypeId = 1; //TODO: Denna är konstig
-			
 			activityReport = createActivityReport( activityTypeId, activitySubTypeId, date,  Integer.parseInt(addReportWeek),  
 					Integer.parseInt(timeSpent),  this.getLoggedInUser(req).getUserId(),  this.getProjectId(req) ); //TODO: LocalDate.now() ska bytas mot en datepicker som skickas med från activityreport meotden
 																																//TODO: Finns som dateOfReport nu ---
@@ -180,8 +178,8 @@ public class TimeReportController extends servletBase {
 		if(deleteActivityReportId != null && timeReportId != null) {
 			
 			try {
-				dbService.deleteActivityReport(Integer.parseInt(deleteActivityReportId));	//TODO: Kan crasha om man trycker snabbt, rapporten redan borttagen (try catch?)
-			}
+				dbService.deleteActivityReport(Integer.parseInt(deleteActivityReportId));
+				}
 			catch(Exception e) {
 				
 			}
@@ -565,30 +563,74 @@ public class TimeReportController extends servletBase {
 		html += "</tr>\r\n" + "</table>";
 		
 		try {
+			
+			LocalDate d = LocalDate.now();
+			
 			if(user.getUserId() == this.getLoggedInUser(req).getUserId()) { // IF the logged in user is the one browsing this page, give the option to create a new timereport.
-				html += "<form action=\"TimeReportPage?addReportWeek\" metod=\"get\">\r\n" + 
-						"  <label for=\"week\">Vecko nummer:</label>\r\n" + 
-						"  <input type=\"text\" id=\"addReportWeek\" name=\"addReportWeek\" pattern= \"[0-9]+\" maxlength=\"2\" title=\"Skriv endast siffror\" ><br><br>\r\n" + 
-						"  <label for=\"lname\">Skapa tidrapport:</label>\r\n" + 
-						"  <input type=\"submit\" value=\"Skicka in\" >\r\n" + 
-						"</form>";//Add activity report button 
+				html += "<!--square.html-->\r\n" + 
+						"<!DOCTYPE html>\r\n" + 
+						"<html>\r\n"	
+						+ " <form id=\"filter_form\" method=\"get\">\r\n" 
+						+ "             Skapa tidrapport för: \r\n"
+						+ "                <div id=\"selectWeek\">\r\n"
+						+ "                    <select id=\"addReportWeek\" name=\"addReportWeek\" form=\"filter_form\">\r\n";
+				
+				for(int i = 1; i < 54; i++) {
+					
+					html += "<option value=" + i + ">Vecka: " + i + " </option>\r\n";
+				}
+				
+					   html += "</select>\r\n  </div>\r\n"
+					   		+ "<div id=\"selectYear\">\r\n"
+						+ "                    <select id=\"addReportYear\" name=\"addReportYear\" form=\"filter_form\">\r\n";
+				for(int i = 2020; i <= d.getYear(); i++) {	
+					   html += "                        <option value="+i+">År: "+i+"</option>\r\n";
+				}
+						html += "            </select>\r\n" 
+						+ "              </div>\r\n"						
+						+ "            </div>\r\n"
+						+ "			  <input type=\"submit\" value=\"Skapa tidrapport\" >\r\n"
+						+ "           </form>"
+						+ "          </html>";
 				}
 			
 			if(isProjectLeader(req)) {//Show all unsigned reports button and all userslist button for ProjectLeader
 				
-				html += "<form action=\"TimeReportPage?showAllUnsignedReports\" metod=\"get\">\r\n" + 
+				
+				
+				html += "<!--square.html-->\r\n" + //Get reports for week and year
+						"<!DOCTYPE html>\r\n" + 
+						"<html>\r\n"	
+						+ " <form id=\"getAllReports\" method=\"get\">\r\n" 
+						+ "             Hämta alla tidsrapporter för detta projektet för: \r\n"
+						+ "                <div id=\"selectWeek\">\r\n"
+						+ "                    <select id=\"getReportsWeek\" name=\"getReportsWeek\" form=\"getAllReports\">\r\n";
+				
+				for(int i = 1; i < 54; i++) {
+					
+					html += "<option value=" + i + ">Vecka: " + i + " </option>\r\n";
+				}
+				
+					   html += "</select>\r\n  </div>\r\n"
+					   		+ "<div id=\"selectYear\">\r\n"
+						+ "                    <select id=\"getReportsYear\" name=\"getReportsYear\" form=\"getAllReports\">\r\n";
+				for(int i = 2020; i <= d.getYear(); i++) {	
+					   html += "                        <option value="+i+">År: "+i+"</option>\r\n";
+				}
+						html += "            </select>\r\n" 
+						+ "              </div>\r\n"						
+						+ "            </div>\r\n"
+						+ "			  <input type=\"submit\" value=\"Hämta tidsrapporter\" >\r\n"
+						+ "           </form>"
+						+ "          </html>";
+						
+						html += "<form action=\"TimeReportPage?showAllUnsignedReports\" metod=\"get\">\r\n" + 
 						"  <input name=\"showAllUnsignedReports\" type=\"submit\" value=\"Visa alla osignerade tidrapporter\" >\r\n" + 
 						"</form>\r\n"+
 						"<form action=\"TimeReportPage?showAllUsers\" metod=\"get\">\r\n" + 
 						"  <input name=\"showAllUsers\" type=\"submit\" value=\"Visa alla användare\" >\r\n" + 
 						"</form>"
 						+ "<br>";
-				
-				html +=  "<form action=\"TimeReportPage?getReportsWeek\" metod=\"get\">\r\n" +  //Get all timereports for a given week
-						"  <label for=\"week\">Hämta alla tidrapporter för vecka:</label>\r\n" + 
-						"  <input type=\"text\" id=\"getReportsWeek\" name=\"getReportsWeek\" pattern= \"[0-9]+\" maxlength=\"2\" title=\"Skriv endast siffror\" ><br><br>\r\n" + 
-						"  <input type=\"submit\" value=\"Hämta\" >\r\n" +
-						"</form>";
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -733,7 +775,6 @@ public class TimeReportController extends servletBase {
 				+ "            <div id=\"subTypes\">\r\n" + "                <p class=\"descriptors\">Aktivitet subtyp</p>\r\n"
 				+ "                <div id=\"activity_picker\">\r\n"
 				+ "                    <select id=\"act_picker_2\" name=\"subType\" form=\"filter_form\">\r\n"
-				+ "						  <option value=\"\"></option>\r\n\""
 				+ "                        <option value=\"U\">U</option>\r\n"
 				+ "                        <option value=\"O\">O</option>\r\n"
 				+ "                        <option value=\"I\">I</option>\r\n"
@@ -763,89 +804,7 @@ public class TimeReportController extends servletBase {
 				+ "              </html>";
 
 
-	}
-	
-/*private String activityReportForm(int week, String timeReportId, String activitySelected) throws SQLException { //Kallas på efter en aktivitet har blivit vald.
-		
-	List<ActivityType> typeList = dbService.getActivityTypes();
-	ActivityType activityType = null;
-	
-	
-	for(ActivityType aType: typeList) { //Get activity type for current activity report
-		   
-		   if(activitySelected.equals(aType.getType())) {
-			   activityType = aType;
-		   }
-	   }
-	
-	System.out.println(activityType.getType());
-	
-	List<ActivitySubType> subTypeList = dbService.getActivitySubTypes(activityType.getActivityTypeId());
-	
-		String html = "";
-		html += "<!--square.html-->\r\n" + 
-				"<!DOCTYPE html>\r\n" + 
-				"<html>\r\n"
-				+ "<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/SessionController.css\">"
-				+ " <form id=\"filter_form\" method=\"get\">\r\n" + "                 Aktivitetstyp\r\n"
-				+ "                <div id=\"activity_picker\">\r\n"
-				+ "                    <select id=\"act_picker\" name=\"activity\" onchange =\"this.form.submit()\" form=\"filter_form\">\r\n"
-				+ "                        <option value =\"\" selected>" + activitySelected + "</option> "
-				+ "                        <option value=\"SDP\">SDP</option>\r\n"
-				+ "                        <option value=\"SRS\">SRS</option>\r\n"
-				+ "                        <option value=\"SVVS\">SVVS</option>\r\n"
-				+ "                        <option value=\"STLDD\">STLDD</option>\r\n"
-				+ "                        <option value=\"SVVI\">SVVI</option>\r\n"
-				+ "                        <option value=\"SDDD\">SDDD</option>\r\n"
-				+ "                        <option value=\"SVVR\">SVVR</option>\r\n"
-				+ "                        <option value=\"SSD\">SSD</option>\r\n"
-				+ "                        <option value=\"Slutrapport\">Slutrapport</option>\r\n"
-				+ "                        <option value=\"Funktionstest\">Funktionstest</option>\r\n"
-				+ "                        <option value=\"Systemtest\">Systemtest</option>\r\n"
-				+ "                        <option value=\"Regressionstest\">Regressionstest</option>\r\n"
-				+ "                        <option value=\"Möte\">Möte</option>\r\n"
-				+ "                        <option value=\"Föreläsning\">Föreläsning</option>\r\n"
-				+ "                        <option value=\"Övning\">Övning</option>\r\n"
-				+ "                        <option value=\"Terminalövning\">Terminalövning</option>\r\n"
-				+ "                        <option value=\"Självstudier\">Självstudier</option>\r\n"
-				+ "                        <option value=\"Övrigt\">Övrigt</option>\r\n"
-				+ "                      </select>\r\n" + "                </div>\r\n" + "            </div>\r\n"
-				+ "            <div>\r\n" + "                <p class=\"descriptors\">Aktivitet subtyp</p>\r\n"
-				+ "                <div id=\"activity_picker\">\r\n"
-				+ "                    <select id=\"act_picker\" name=\"subType\" form=\"filter_form\">\r\n";
-		
-		for(ActivitySubType ast : subTypeList) {
-			
-			if(ast.getSubType() == null) {
-				
-				//html += "  <option value=\"\"></option>\r\n"; 
-			}
-			else {
-				
-				html += "  <option value=\""+ ast.getSubType()+"\">"+ ast.getSubType() +"</option>\r\n"; 
-			}
-		}
-		   
-		   
-				
-		   html	+= "                      </select>\r\n" + "                </div>\r\n" + "            </div>\r\n"
-				+ "                <p class=\"descriptors\">Tid spenderad (i minuter) </p>\r\n"
-				+ "                <div id=\"activity_picker\">\r\n" + "				</div>"
-				+ "              <input class=\"credentials_rect\" type=\"text\" id=\"timeSpent\" name=\"timeSpent\" pattern=\"^[0-9]*$\" title=\"Please enter numbers only.\" maxlength=\"4\" placeholder=\"Tid Spenderad\" required><br>\r\n"
-				+ "		<input name=\"addReportWeek\" type=\"hidden\" value=\""+ week + "\"></input>\r\n"
-				+ " <input name=\"timeReportId\" type=\"hidden\" value=\""+ timeReportId + "\"></input>\r\n"
-				+ "              <input class=\"submitBtn\" type=\"submit\" value=\"Skicka in\">\r\n" 				
-				+ "                </div>\r\n"
-				+ "              </form>"
-				+ "              </html>";
-		
-		
-		return html;
-		
-}
-
-*/
-		
+	}		
 	
 	private boolean isProjectLeader(HttpServletRequest req) throws Exception {
 		return this.isProjectLeader(req, this.getProjectId(req));
