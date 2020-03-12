@@ -7,6 +7,7 @@ import java.sql.Statement;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +36,8 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * Description of the class.
  * 
- * @author Ferit B�lezek ( Enter name if you've messed around with this file ;)
- *         )
+ * @author Linus, Sebastian, André
+ *         
  * @version 1.0
  * 
  */
@@ -53,7 +54,6 @@ public class TimeReportController extends servletBase {
 		try {
 			this.dbService = new DatabaseService();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -61,29 +61,44 @@ public class TimeReportController extends servletBase {
 	
 	  
 	  private ActivityReport createActivityReport(int activityTypeId, int
-	  activitySubTypeId, LocalDate date, int week, int minutes, int userId, int projectId ) throws Exception {
+	  activitySubTypeId, LocalDate date, int year, int week, int minutes, int userId, int projectId, HttpServletResponse resp) throws Exception {
 	  
 		TimeReport timereport = null;
 		ActivityReport activityReport = null;
 		int projectUserId = dbService.getProjectUserIdByUserIdAndProjectId(userId, projectId);
 		  
-		if(dbService.hasTimeReport(week, date.getYear(), userId, projectId)) {// Does timereport this week exist?
+		if(dbService.hasTimeReport(week, year, userId, projectId)) {// Does timereport this week exist?
 			
-			List<TimeReport> allReports = dbService.getTimeReportsByUserAndProject(userId, projectId);	//TODO: Ska ändras till getTimeReportByuserANdProject
+			List<TimeReport> allReports = dbService.getTimeReportsByUserAndProject(userId, projectId);	
 			for(TimeReport tr : allReports) { 
-				if(tr.getWeek() == week) {
+				if(tr.getWeek() == week && tr.getYear() == year) {
 					timereport = tr;
 					
+					List<ActivityReport> activityReports = dbService.getActivityReports(tr.getTimeReportId());	//TODO: Använd smidigare databasfunktion 				
+					int totalDateTime = 0;
+					
+					for(ActivityReport ar : activityReports) {
+						
+						if(ar.getReportDate().equals(date)) {
+							totalDateTime += ar.getMinutes();
+						}
+					}
+					
+					if(totalDateTime + minutes > 1440) {
+						resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=antal-minuter-passerar-daglig-maximal-inmatning");
+						return null;
+					}
+					
 					if(tr.isFinished() || tr.isSigned()) {
-						new Exception("Tidrapport är signerad eller markerad som färdig och kan inte ändras!"); //TODO: Exception
+						new Exception("Tidrapport är signerad eller markerad som färdig och kan inte ändras!"); 
 						return null;
 					}
 				}
 			}
 		}
 		else {
-			timereport = dbService.createTimeReport(new TimeReport(0, projectUserId, 0, null, date.getYear(), week, LocalDateTime.now(), false)); //TODO:signedAt (och signedBy?)
-		}
+			timereport = dbService.createTimeReport(new TimeReport(0, projectUserId, 0, null, year, week, LocalDateTime.now(), false)); 
+			}
 
 			activityReport = dbService.createActivityReport(new ActivityReport(0, activityTypeId, activitySubTypeId, timereport.getTimeReportId(), date, minutes));
  
@@ -96,17 +111,15 @@ public class TimeReportController extends servletBase {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try{
 		
-		//TODO: Datum picker när man skapar rapporter, finns HTML standard grej <input type= "date" > (inget krav)
-			//TODO: todo i createActivityReport
+
 			//TODO: ctrl + F "exception" behövs fixas
-			//TODO: Fixa subtyp till aktivitet
-			//TODO: Dropdown till vecka
+			//TODO: Ändra så att vi inte sätter den inloggade användaren själva
 				
 		PrintWriter out = resp.getWriter();
-		setUserId(req,19); //USER ID 19 = PROJECTLEADER
+		setUserId(req,15); //USER ID 19 = PROJECTLEADER
 		this.setIsLoggedIn(req, true);
 		setProjectId(req, 1);	
-		User loggedInUser = dbService.getUserById(19); // SKA VARA SEN this.getLoggedInUser(req);		
+		User loggedInUser = dbService.getUserById(15); // SKA VARA SEN this.getLoggedInUser(req);		
 
 		String activityType = req.getParameter("activity");
 		String addReportWeek = req.getParameter("addReportWeek");
@@ -114,6 +127,7 @@ public class TimeReportController extends servletBase {
 		String dateOfReport = req.getParameter("dateOfReport");
 		String deleteActivityReportId = req.getParameter("deleteActivityReportId");
 		String deleteTimeReportId = req.getParameter("deleteTimeReportId");
+		String error = req.getParameter("error");
 		String getReportsWeek = req.getParameter("getReportsWeek");	
 		String getReportsYear = req.getParameter("getReportsYear");
 		String showAllUnsignedReports = req.getParameter("showAllUnsignedReports");
@@ -127,7 +141,24 @@ public class TimeReportController extends servletBase {
 		String timeReportUnsignId = req.getParameter("timeReportIdToUnsign");
 		String timeSpent = req.getParameter("timeSpent");
 		
-		if(activityType != null && subType != null && timeSpent != null && addReportWeek != null && timeReportId != null && dateOfReport != null) {			
+		
+		LocalDate d = LocalDate.now();
+		TemporalField woy = WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear(); 
+		int weekNumber = d.get(woy);
+		
+		if(error != null) {
+			out.println("<script> "
+					+ "		alert('"+ error + " ')"
+					+ "</script>");
+		}
+		
+		if(addReportWeek != null && addReportYear != null && Integer.parseInt(addReportYear) == LocalDate.now().getYear() && Integer.parseInt(addReportWeek) > weekNumber) {
+			
+			resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=kan-inte-skapa-raport-i-framtiden");
+			return;
+		}
+		
+		if(activityType != null && subType != null && timeSpent != null && addReportWeek != null && addReportYear != null && timeReportId != null && dateOfReport != null) {			
 			
 			if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > 1440) { //Time spent måste vara värde mellan 1 och 1440 
 				
@@ -152,11 +183,11 @@ public class TimeReportController extends servletBase {
 				{
 					activitySubTypeId = ast.getActivitySubTypeId();
 				}
-			}
+			}			
 			
-			activityReport = createActivityReport( activityTypeId, activitySubTypeId, date,  Integer.parseInt(addReportWeek),  
-					Integer.parseInt(timeSpent),  this.getLoggedInUser(req).getUserId(),  this.getProjectId(req) ); //TODO: LocalDate.now() ska bytas mot en datepicker som skickas med från activityreport meotden
-																																//TODO: Finns som dateOfReport nu ---
+			activityReport = createActivityReport( activityTypeId, activitySubTypeId, date, Integer.parseInt(addReportYear),  Integer.parseInt(addReportWeek),  
+					Integer.parseInt(timeSpent),  this.getLoggedInUser(req).getUserId(),  this.getProjectId(req), resp); 
+																													
 			if(activityReport == null) {
 				new Exception("Aktivitetrapport kunde inte skapas! (Signerad tidsrapport)");
 				out.println(getUserTimeReports(loggedInUser, req)); //Standard case
@@ -170,8 +201,8 @@ public class TimeReportController extends servletBase {
 			return;
 		}
 		
-		if(addReportWeek != null && timeReportId != null && activityType == null && subType == null) {
-			out.print(activityReportForm(Integer.parseInt(addReportWeek), timeReportId));
+		if(addReportYear != null && addReportWeek != null && timeReportId != null && activityType == null && subType == null) {
+			out.print(activityReportForm(Integer.parseInt(addReportWeek), Integer.parseInt(addReportYear), timeReportId));
 			return;
 		}
 		
@@ -189,13 +220,9 @@ public class TimeReportController extends servletBase {
 			
 		}
 		
-		if(getReportsWeek != null) {
-			if(getReportsWeek == "") {
-				new Exception("Ingen vecka inmatad!");
-				out.println(getUserTimeReports(loggedInUser, req));
-				return;
-			}
-			out.print(this.getTimereportsByWeek(Integer.parseInt(getReportsWeek), req));
+		if(getReportsWeek != null && getReportsYear != null) {
+			
+			out.print(this.getTimereportsByWeekAndYear(Integer.parseInt(getReportsWeek), Integer.parseInt(getReportsYear), req));
 			return;
 		}
 		
@@ -271,23 +298,15 @@ public class TimeReportController extends servletBase {
 			return;
 		}
 		
-		if(addReportWeek != null) {
-			
-			if(addReportWeek == "") {
-				new Exception("Veckonummer finns inte i kalendern!");
-				out.println(getUserTimeReports(loggedInUser, req));  //Kan nog fixa detta + else satsen snyggare
-				return;
-			}
+		if(addReportWeek != null && addReportYear != null) {
 			
 			int addReportWeekInt = Integer.parseInt(addReportWeek);
 			
 			if(addReportWeekInt > 0 && addReportWeekInt <= 53) {
-				out.print(activityReportForm(Integer.parseInt(addReportWeek), ""));
+				out.print(activityReportForm(Integer.parseInt(addReportWeek), Integer.parseInt(addReportYear), ""));
 			return;
 			}
-			else {
-				new Exception("Veckonummer finns inte i kalendern!");
-			}
+			
 		}
 			
 		
@@ -308,7 +327,6 @@ public class TimeReportController extends servletBase {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 
 	}
 	
@@ -334,7 +352,7 @@ public class TimeReportController extends servletBase {
 		
 	}
 	
-	private String getTimereportsByWeek(int week, HttpServletRequest req) throws SQLException {
+	private String getTimereportsByWeekAndYear(int week, int year, HttpServletRequest req) throws SQLException {
 		
 		String html = "";
 		
@@ -352,7 +370,7 @@ public class TimeReportController extends servletBase {
 		
 		for (TimeReport tr : timeReportList) {
 
-			if(tr.getWeek() == week) {
+			if(tr.getWeek() == week && tr.getYear() == year) {
 			
 			int timeReportTotalTime = getTotalTimeReportTime(tr);
 			String signed;
@@ -455,9 +473,10 @@ public class TimeReportController extends servletBase {
 			
 			
 			if(reportOwner.getUserId() == this.getLoggedInUser(req).getUserId() && !timeReport.isFinished() && !timeReport.isSigned()) { //If timereport owner is the one logged in and looking at this screen AND isnt marked as finished
-				html += "<form action=\"TimeReportPage?week=\""+timeReport.getWeek()+"&timeReportId=\"" + timeReportId + "\" method=\"get\">\r\n" +  //Show button for adding activity
+				html += "<form action=\"TimeReportPage?week=\""+timeReport.getWeek()+"&timeReportId=\"" + timeReportId + "\"&addReportYear=\"" + timeReport.getYear() + "\" method=\"get\">\r\n" +  //Show button for adding activity
 						"		<input name=\"addReportWeek\" type=\"hidden\" value=\""+timeReport.getWeek()+"\"></input>\r\n" + 
 						" <input name=\"timeReportId\" type=\"hidden\" value=\""+timeReportId+"\"></input>\r\n" + 
+						" <input name=\"addReportYear\" type=\"hidden\" value=\""+timeReport.getYear()+"\"></input>\r\n" + 
 						"		<input type=\"submit\" value=\"Lägg till ny aktivitet.\"></input>\r\n" + 
 						"	</form>";
 				
@@ -501,8 +520,8 @@ public class TimeReportController extends servletBase {
 				return aSubType.getSubType();
 			}
 		}
-		return ""; //TODO: Det mesta som har med subtypes verkar gå sönder --
-		//throw new Exception("Kunde inte hitta aktivitetssubtyp");
+		return "";
+		//throw new Exception("Kunde inte hitta aktivitetssubtyp"); //should always find a subType in loop above.
 	}
 	
 
@@ -523,7 +542,7 @@ public class TimeReportController extends servletBase {
 		
 		else {
 			
-			 html += "<table width=\"400\" border=\"2\">\r\n" 
+			 html += "<table width=\"600\" border=\"2\">\r\n" 
 					+ "<tr>\r\n" 
 					+ "<td> År </td>\r\n"
 					+ "<td> Vecka </td>\r\n"
@@ -650,7 +669,7 @@ public class TimeReportController extends servletBase {
 		
 		try {
 			if(!isProjectLeader(req)) {
-				new Exception("Endast en projekledare har tillgång till denna vyn"); //TODO: MAn ser inget exception när man trycker
+				new Exception("Endast en projekledare har tillgång till denna vyn");
 			}
 		
 		
@@ -724,8 +743,7 @@ public class TimeReportController extends servletBase {
 		return totalTime;
 	}
 
-	private String activityReportForm(int week, String timeReportId) { //Kallas på först -- - onchange =\"this.form.submit()\"
-		int year = 2020; // Fallback
+	private String activityReportForm(int week, int year, String timeReportId) { //Kallas på först -- - onchange =\"this.form.submit()\"
 		
 		try {
 			TimeReport tr = dbService.getTimeReportById(Integer.parseInt(timeReportId));
@@ -748,8 +766,7 @@ public class TimeReportController extends servletBase {
 		
 		return "<!--square.html-->\r\n" + 
 				"<!DOCTYPE html>\r\n" + 
-				"<html>\r\n"
-				+ "<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/SessionController.css\">"		
+				"<html>\r\n"	
 				+ " <form id=\"filter_form\" method=\"get\">\r\n" + "                 Aktivitetstyp\r\n"
 				+ "                <div id=\"activity_picker\">\r\n"
 				+ "                    <select id=\"act_picker_1\" name=\"activity\" form=\"filter_form\">\r\n"
@@ -793,9 +810,10 @@ public class TimeReportController extends servletBase {
 				+ "</script>"
 				+ "                <p class=\"descriptors\">Tid spenderad (i minuter) </p>\r\n"
 				+ "                <div id=\"activity_picker\">\r\n" + "				</div>"
-				+ "              <input class=\"credentials_rect\" type=\"text\" id=\"timeSpent\" name=\"timeSpent\" pattern=\"^[0-9]*$\" title=\"Please enter numbers only.\" maxlength=\"4\" placeholder=\"Tid Spenderad\" required><br>\r\n"
+				+ "              <input class=\"credentials_rect\" type=\"number\" id=\"timeSpent\" name=\"timeSpent\" min=\"1\" max=\"1440\" pattern=\"^[0-9]*$\" title=\"Please enter numbers only.\" maxlength=\"4\" placeholder=\"Tid Spenderad\" required><br>\r\n"
 				+ "		<input name=\"addReportWeek\" type=\"hidden\" value=\""+ week + "\"></input>\r\n"
-				+ "  <label for=\"dateInfo\">Mata in datum för aktivitet.:</label>\r\n"  
+				+"<input name=\"addReportYear\" type=\"hidden\" value=\""+ year + "\"> </input>\r\n"
+				+ "  <label for=\"dateInfo\">Mata in datum för aktivitet: </label>\r\n"  
 				+ "<input type=\"date\" id=\"dateOfReport\" name=\"dateOfReport\" value=\"" + p + "\" min=\""+ s +"\" max=\""+ e+ "\">\r\n"	
 				+ " <input name=\"timeReportId\" type=\"hidden\" value=\""+ timeReportId + "\"></input>\r\n"
 				+ "              <input class=\"submitBtn\" type=\"submit\" value=\"Skicka in\">\r\n" 				
