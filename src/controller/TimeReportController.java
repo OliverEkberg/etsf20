@@ -80,7 +80,7 @@ public class TimeReportController extends servletBase {
 			}
 		}
 		else {
-			timereport = dbService.createTimeReport(new TimeReport(0, projectUserId, 0, LocalDateTime.now(), date.getYear(), week, LocalDateTime.now(), false)); //TODO:signedAt (och signedBy?)
+			timereport = dbService.createTimeReport(new TimeReport(0, projectUserId, 0, null, date.getYear(), week, LocalDateTime.now(), false)); //TODO:signedAt (och signedBy?)
 		}
 
 			activityReport = dbService.createActivityReport(new ActivityReport(0, activityTypeId, activitySubTypeId, timereport.getTimeReportId(), date, minutes));
