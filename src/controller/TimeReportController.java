@@ -74,6 +74,7 @@ public class TimeReportController extends servletBase {
 					
 					if(timereport.isSigned() || timereport.isFinished()) {
 						new Exception("Tidrapport för den här veckan är redan signerad eller markerad som redo för signering och kan inte ändras!"); //TODO: Hjälp med exception, vill hoppa ur metoden.
+						return null;
 					}
 				}
 			}
@@ -102,12 +103,14 @@ public class TimeReportController extends servletBase {
 		//TODO: Datum picker när man skapar rapporter, finns HTML standard grej <input type= "date" > (inget krav)
 			//TODO: todo i createActivityReport
 			//TODO: ctrl + F "exception" behövs fixas
+			//TODO: Fixa subtyp till aktivitet
+			//TODO: Se signerade rapporter (PL)
 				
 		PrintWriter out = resp.getWriter();
-		setUserId(req,17); //USER ID 19 = PROJECTLEADER
+		setUserId(req,19); //USER ID 19 = PROJECTLEADER
 		this.setIsLoggedIn(req, true);
 		setProjectId(req, 1);	
-		User loggedInUser = dbService.getUserById(17); // SKA VARA SEN this.getLoggedInUser(req);
+		User loggedInUser = dbService.getUserById(19); // SKA VARA SEN this.getLoggedInUser(req);
 		System.out.println(this.getLoggedInUser(req).getUserId() + "    " +this.isProjectLeader(req, this.getProjectId(req)));
 		
 		
@@ -133,6 +136,12 @@ public class TimeReportController extends servletBase {
 				out.println(getUserTimeReports(loggedInUser, req));
 				return;
 				
+			}
+			
+			if(timeReportId == "" || dbService.getTimeReportById(Integer.parseInt(timeReportId)).isFinished() ||dbService.getTimeReportById(Integer.parseInt(timeReportId)).isSigned()) {
+				new Exception("En tidrapport för den inmatade veckan finns redan, eller så är den signerad/markerad som färdig och kan inte editeras!");
+				out.println(getUserTimeReports(loggedInUser, req));
+				return;
 			}
 			
 			int activityTypeId = 0;
@@ -163,7 +172,6 @@ public class TimeReportController extends servletBase {
 			
 			activityReport = createActivityReport( activityTypeId, activitySubTypeId, LocalDate.now(),  Integer.parseInt(addReportWeek),  
 					Integer.parseInt(timeSpent),  this.getLoggedInUser(req).getUserId(),  this.getProjectId(req) ); //TODO: LocalDate.now() ska bytas mot en datepicker som skickas med från activityreport meotden
-			
 			
 			
 			TimeReport timereport = dbService.getTimeReportById(activityReport.getTimeReportId()); //get timereport		
