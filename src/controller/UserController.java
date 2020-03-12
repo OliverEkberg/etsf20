@@ -71,6 +71,7 @@ public class UserController extends servletBase {
 		else {
 
 			if (loggedInUser.isAdmin()) {
+				// Admin page
 				out.println("<h1>User Page - Admin" + "</h1>");
 
 				// check if the administrator wants to add a new user in the form
@@ -86,7 +87,6 @@ public class UserController extends servletBase {
 
 				// check if the administrator wants to delete a user by clicking the URL in the
 				// list
-
 				String deleteName = req.getParameter("deletename");
 				if (deleteName != null) {
 					if (checkNewName(deleteName)) {
@@ -133,7 +133,6 @@ public class UserController extends servletBase {
 					System.out.println("VendorError: " + ex.getErrorCode());
 				}
 				out.println(addUserForm());
-				// out.println(assignUserForm());
 
 				out.println("<p><a href =" + addQuotes("functionality.html") + "> Functionality selection page </p>");
 				out.println("<p><a href =" + addQuotes("SessionPage") + "> Log out </p>");
@@ -145,12 +144,11 @@ public class UserController extends servletBase {
 					try {
 						out.print(resetPassword(reset));
 					} catch (Exception e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
 			} else if (isLeader) {
-				// projektledarsida
+				// Project leader
 
 				out.println("<h1>User Page - Project Leader" + "</h1>");
 
@@ -172,7 +170,6 @@ public class UserController extends servletBase {
 					System.out.println("VendorError: " + ex.getErrorCode());
 				}
 				out.println(changePasswordForm());
-				// out.println(assignUserForm());
 
 				out.println("<p><a href =" + addQuotes("functionality.html") + "> Functionality selection page </p>");
 				out.println("<p><a href =" + addQuotes("SessionPage") + "> Log out </p>");
@@ -184,35 +181,35 @@ public class UserController extends servletBase {
 						try {
 							changePassword(newPassword, loggedInUser);
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-					}
-					else {
+					} else {
 						out.println("<!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "<script>\n"
-								+ "  alert(\"Invalid password\");\n" + "</script>\n" + "\n" + "</body>\n"
-								+ "</html>\n" + "");
+								+ "  alert(\"Invalid password...\");\n" + "</script>\n" + "\n" + "</body>\n"
+								+ "</html>\n");
 					}
 				}
 
 			} else {
-				// vanlig användare
+				// Normal user
 				out.println("<h1>User Page" + "</h1>");
 				out.println(changePasswordForm());
+				out.println("<p><a href =" + addQuotes("SessionPage") + "> Log out </p>");
 				String newPassword = req.getParameter("password");
 				if (newPassword != null) {
 					if (checkPassword(newPassword)) {
 						try {
 							changePassword(newPassword, loggedInUser);
+							out.println("<!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "<script>\n"
+									+ "  alert(\"Password changed!\");\n" + "</script>\n" + "\n" + "</body>\n"
+									+ "</html>\n");
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-					}
-					else {
+					} else {
 						out.println("<!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "<script>\n"
-								+ "  alert(\"Invalid password\");\n" + "</script>\n" + "\n" + "</body>\n"
-								+ "</html>\n" + "");
+								+ "  alert(\"Invalid password...\");\n" + "</script>\n" + "\n" + "</body>\n"
+								+ "</html>\n");
 					}
 				}
 			}
@@ -254,45 +251,12 @@ public class UserController extends servletBase {
 		return html;
 	}
 
-//	public String assignUserForm() throws SQLException {
-//		List<User> users = dbService.getAllUsers();
-//		List<Project> projects = dbService.getAllProjects();
-//		List<Role> roles = dbService.getAllRoles();
-//		String html;
-//		html = "<p> Assign user to project. <form name="+addQuotes("assign")+" method ="+addQuotes("get")+
-//				"<p> Name: <select name="+addQuotes("selname")+">";
-//		for(User u:users) {
-//			html += "<option value ="+ u.getUserId() + ">"+u.getUsername()+"</option>";
-//		}
-//		html += "</select> Project: <select name="+addQuotes("selproject")+">";
-//		for(Project p:projects) {
-//			html += "<option value =" + p.getProjectId() + ">"+p.getName()+"</option>";
-//		}
-//		html += "</select> Role: <select name="+addQuotes("selrole")+">";
-//		for(Role r:roles) {
-//			html += "<option value =" + r.getRoleId() + ">"+r.getRole()+"</option>";
-//		}
-//		html += "<input type="+ addQuotes("submit") + "value=" +addQuotes("Assign")+"> </form>";
-//		return html;
-//	}
-
 	private boolean addUser(String name) {
 		boolean resultOk = true;
 		try {
 			String newPassword = generatePassword();
 			User u = new User(0, name, newPassword, false);
 			dbService.createUser(u);
-		} catch (Exception err) {
-			resultOk = false;
-			err.printStackTrace();
-		}
-		return resultOk;
-	}
-
-	private boolean addUserToProject(int userId, int projectId, int roleId) {
-		boolean resultOk = true;
-		try {
-			dbService.addUserToProject(userId, projectId, roleId);
 		} catch (Exception err) {
 			resultOk = false;
 			err.printStackTrace();

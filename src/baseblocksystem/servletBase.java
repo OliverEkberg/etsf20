@@ -64,7 +64,7 @@ public abstract class servletBase extends HttpServlet {
 		if (objectState != null) {
 			isLoggedIn = (boolean) objectState; 
 		}
-		return true;
+		return isLoggedIn;
     }
     
     protected void setIsLoggedIn(HttpServletRequest request, boolean loggedIn) {
