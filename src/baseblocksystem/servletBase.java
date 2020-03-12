@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import database.DatabaseService;
+import database.Project;
 import database.Role;
 import database.User;
 
@@ -143,9 +144,43 @@ public abstract class servletBase extends HttpServlet {
      * Constructs the header of all servlets. 
      * @return String with html code for the header. 
      */
-    protected String getHeader() {
+    protected String getHeader(HttpServletRequest req) {
     	String header = "<head><title> The Base Block System (TODO) </title></head>";
+		
+		header += " <html><link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/layout.css\">\n"+
+				"<div id=\"headerBar\">\r\n";
+		
+		if (isLoggedIn(req)) {
+			String userName = "";
+			String project = "";
+			try {
+				User u = getLoggedInUser(req);
+				Project p = dbService.getProject(getProjectId(req));
+				project = p.getName();
+				
+				userName = u.getUsername();
+			} catch (Exception e) {
+				
+			}
+			header += "<p id=\"sessionInfo\">"+ userName +" : "+project+"</p>\r\n" + 
+					"<a id=\"logoutbtn\" href=\"SessionPage\">Logout</a>\r\n"; // TODO: Add correct link for logging out
+		}
+		header += "</div>\r\n";			
     	return header;
+    }
+    
+    protected String getNav(HttpServletRequest req) { // TODO: Update this based on roles and admin?
+    	String nav = "            <div id=\"navigation\">\r\n" + 
+				"                <ul id=\"menu\">\r\n" + 
+				"                    <li><a class=\"linkBtn\" href=\"TimeReportPage\">My Reports</a></li>\r\n" + 
+				"                    <li><a class=\"linkBtn\" href=\"projects\">Projects</a></li>\r\n" + 
+				"                    <li><a class=\"linkBtn\" href=\"TimeReportPage\">New report</a></li>\r\n" + 
+				"                    <li><a class=\"linkBtn\" href=\"statistics\">Statistics</a></li>\r\n" + 
+				"                    <li><a class=\"linkBtn\" href=\"#\" disabled>More</a></li>\r\n" + 
+				"                </ul>\r\n" + 
+				"            </div>\r\n";
+		
+		return nav;
     }
     
     protected abstract void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException;
