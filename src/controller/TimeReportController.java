@@ -7,8 +7,10 @@ import java.sql.Statement;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -681,6 +683,27 @@ public class TimeReportController extends servletBase {
 	}
 
 	private String activityReportForm(int week, String timeReportId) { //Kallas på först -- - onchange =\"this.form.submit()\"
+		int year = 2020; // Fallback
+		
+		try {
+			TimeReport tr = dbService.getTimeReportById(Integer.parseInt(timeReportId));
+			year = tr.getYear();
+		} catch (Exception e) {}
+		
+		WeekFields weekFields = WeekFields.of(Locale.getDefault());
+		LocalDate d = LocalDate.now().withYear(year).with(weekFields.weekOfYear(), week);
+		LocalDate s = d.minusDays(d.getDayOfWeek().getValue() - 1);
+		LocalDate e = d.plusDays(7 - d.getDayOfWeek().getValue());
+		LocalDate p = LocalDate.now();
+		
+		if (e.compareTo(LocalDate.now()) > 0) {
+			e = LocalDate.now();
+		}
+		
+		if (e.compareTo(LocalDate.now()) < 0) {
+			p = e;
+		}
+		
 		return "<!--square.html-->\r\n" + 
 				"<!DOCTYPE html>\r\n" + 
 				"<html>\r\n"
@@ -732,7 +755,7 @@ public class TimeReportController extends servletBase {
 				+ "              <input class=\"credentials_rect\" type=\"text\" id=\"timeSpent\" name=\"timeSpent\" pattern=\"^[0-9]*$\" title=\"Please enter numbers only.\" maxlength=\"4\" placeholder=\"Tid Spenderad\" required><br>\r\n"
 				+ "		<input name=\"addReportWeek\" type=\"hidden\" value=\""+ week + "\"></input>\r\n"
 				+ "  <label for=\"dateInfo\">Mata in datum för aktivitet.:</label>\r\n"  
-				+ "<input type=\"date\" id=\"dateOfReport\" name=\"dateOfReport\" value=\"" + LocalDate.now() + "\" min=\"2020-01-01\" max=\""+ LocalDate.now()+ "\">\r\n"	
+				+ "<input type=\"date\" id=\"dateOfReport\" name=\"dateOfReport\" value=\"" + p + "\" min=\""+ s +"\" max=\""+ e+ "\">\r\n"	
 				+ " <input name=\"timeReportId\" type=\"hidden\" value=\""+ timeReportId + "\"></input>\r\n"
 				+ "              <input class=\"submitBtn\" type=\"submit\" value=\"Skicka in\">\r\n" 				
 				+ "                </div>\r\n"
