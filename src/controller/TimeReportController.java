@@ -71,25 +71,16 @@ public class TimeReportController extends servletBase {
 			for(TimeReport tr : allReports) { 
 				if(tr.getWeek() == week) {
 					timereport = tr;
-					
-					if(timereport.isSigned() || timereport.isFinished()) {
-						new Exception("Tidrapport för den här veckan är redan signerad eller markerad som redo för signering och kan inte ändras!"); //TODO: Hjälp med exception, vill hoppa ur metoden.
-						return null;
-					}
+
 				}
 			}
 		}
 		else {
 			timereport = dbService.createTimeReport(new TimeReport(0, projectUserId, 0, LocalDateTime.now(), date.getYear(), week, LocalDateTime.now(), false)); //TODO:signedAt (och signedBy?)
 		}
-	  
-	 
-		if(minutes > 1440) {
-			new Exception("För många minuter rapporterade under ett dygn"); 
-		}
-		else {
+
 			activityReport = dbService.createActivityReport(new ActivityReport(0, activityTypeId, activitySubTypeId, timereport.getTimeReportId(), date, minutes));
-		}
+
  
 		return activityReport;
 		
@@ -110,10 +101,7 @@ public class TimeReportController extends servletBase {
 		setUserId(req,19); //USER ID 19 = PROJECTLEADER
 		this.setIsLoggedIn(req, true);
 		setProjectId(req, 1);	
-		User loggedInUser = dbService.getUserById(19); // SKA VARA SEN this.getLoggedInUser(req);
-		System.out.println(this.getLoggedInUser(req).getUserId() + "    " +this.isProjectLeader(req, this.getProjectId(req)));
-		
-		
+		User loggedInUser = dbService.getUserById(19); // SKA VARA SEN this.getLoggedInUser(req);		
 
 		String activityType = req.getParameter("activity");
 		String subType = req.getParameter("subType");
@@ -127,10 +115,12 @@ public class TimeReportController extends servletBase {
 		String deleteTimeReportId = req.getParameter("deleteTimeReportId");
 		String showAllUnsignedReports = req.getParameter("showAllUnsignedReports");
 		String timeReportNotFinishedId = req.getParameter("timeReportNotFinishedId");
+		String showAllUsers = req.getParameter("showAllUsers");
+		String showUserPage = req.getParameter("showUserPage");
 		
 		if(activityType != null && subType != null && timeSpent != null && addReportWeek != null && timeReportId != null) {
 			
-			if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > 1440) {
+			if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > 1440) { //Time spent måste vara värde mellan 1 och 1440 
 				
 				new Exception("Otillåtet värde för antal minuter");
 				out.println(getUserTimeReports(loggedInUser, req));
@@ -138,8 +128,9 @@ public class TimeReportController extends servletBase {
 				
 			}
 			
-			if(timeReportId == "" || dbService.getTimeReportById(Integer.parseInt(timeReportId)).isFinished() ||dbService.getTimeReportById(Integer.parseInt(timeReportId)).isSigned()) {
+			if(dbService.getTimeReportById(Integer.parseInt(timeReportId)).isFinished() ||dbService.getTimeReportById(Integer.parseInt(timeReportId)).isSigned()) {
 				new Exception("En tidrapport för den inmatade veckan finns redan, eller så är den signerad/markerad som färdig och kan inte editeras!");
+				System.out.println("id = :" + timeReportId + " -En tidrapport för den inmatade veckan finns redan, eller så är den signerad/markerad som färdig och kan inte editeras!");
 				out.println(getUserTimeReports(loggedInUser, req));
 				return;
 			}
@@ -192,6 +183,17 @@ public class TimeReportController extends servletBase {
 			
 			return;
 			
+		}
+		
+		if(showUserPage != null) {
+			User user = dbService.getUserById(Integer.parseInt(showUserPage));
+			out.print(getUserTimeReports(user, req));
+			return;
+		}
+		
+		if(showAllUsers != null) {
+			out.print(showAllUsers(req));
+			return;
 		}
 		
 		if(timeReportSignId != null) {
@@ -290,16 +292,43 @@ public class TimeReportController extends servletBase {
 
 
 	}
+	
+	private String showAllUsers(HttpServletRequest req) throws SQLException {
+		
+		List<User> userList = dbService.getAllUsers(this.getProjectId(req));
+		
+		String html = "<table width=\"600\" border=\"2\">\r\n" + "<tr>\r\n" + "<td> Användarnamn </td>\r\n"
+				+ "<td> Se användares tidrapporter </td>\r\n"+ 
+				"</td>\r\n";
+		
+		for(User u : userList) {
+			
+			html +=   "<tr>\r\n" 
+				+ "<td>" + u.getUsername()+ "</td>\r\n"+
+				"<td> <form action=\"TimeReportPage?showUserPage="+u.getUserId()+"\" method=\"get\"> "
+				+ "<button name=\"showUserPage\" type=\"submit\" value=\"" +u.getUserId() + "\"> Välj </button> </form> </td> \r\n";
+		}
+		
+		html += "</tr>\r\n" + "</table>"; //Ends the HTML table
+		
+		return html;
+		
+	}
 
 	private String getActivityReports(int timeReportId, HttpServletRequest req) throws Exception {
 
+		String html = "";
+		
 		TimeReport timeReport = dbService.getTimeReportById(timeReportId);
 		User reportOwner = dbService.getUserByTimeReportId(timeReportId);
 		boolean isProjectLeader = isProjectLeader(req);
 		boolean reportIsSigned = timeReport.isSigned();
 		boolean reportIsFinished = timeReport.isFinished();
 		
-		String html = "<table width=\"600\" border=\"2\">\r\n" + "<tr>\r\n" + "<td> Datum </td>\r\n"
+		if(this.isProjectLeader(req) && reportOwner.getUserId() != this.getLoggedInUser(req).getUserId()) {
+			html += "<body> <b> "+ reportOwner.getUsername() + "</b> <br> </body>\r\n";
+		}
+		 html +=  "<table width=\"600\" border=\"2\">\r\n" + "<tr>\r\n" + "<td> Datum </td>\r\n"
 				+ "<td> Aktivitetstyp </td>\r\n" + "<td> Subtyp </td>\r\n" + "<td> Minuter </td>\r\n"
 				+ "<td> Ta bort aktivitetsrapport </td>\r\n";
 
@@ -407,19 +436,24 @@ public class TimeReportController extends servletBase {
 	}
 	
 
-	private String getUserTimeReports(User user, HttpServletRequest req) throws SQLException {
+	private String getUserTimeReports(User user, HttpServletRequest req) throws Exception {
 		
 		String html = "";
 
 		List<TimeReport> userTimeReports = dbService.getTimeReportsByUser(user.getUserId()); //TODO:  Get all timereports for logged in user
 
+
+		if(this.isProjectLeader(req) && user.getUserId() != this.getLoggedInUser(req).getUserId()) {
+			html += "<body> <b> "+ user.getUsername() + "</b> <br> </body>\r\n";
+		}
+			
 		if(userTimeReports.isEmpty()) {
-			html += "<body> Inga tidsrapporter finns för den valda användaren </body>";
+			html += "<body> Inga tidsrapporter finns för den valda användaren </body>\r\n";
 		}
 		
 		else {
 			
-			 html = "<table width=\"400\" border=\"2\">\r\n" 
+			 html += "<table width=\"400\" border=\"2\">\r\n" 
 					+ "<tr>\r\n" 
 					+ "<td> Week </td>\r\n"
 					+ "<td> Timespent(minutes) </td>\r\n" 
@@ -444,7 +478,7 @@ public class TimeReportController extends servletBase {
 					+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() 
 					+ "\"> Välj </button>  </form> </td> \r\n";
 			
-			if(!tr.isSigned()) { //If timereport isn't signed, a button for deleting it should be visible
+			if(!tr.isSigned() && user.getUserId() == this.getLoggedInUser(req).getUserId()) { //If timereport isn't signed, a button for deleting it should be visible
 					html += "<td> <form action=\"TimeReportPage?deleteTimeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
 					+ "<button name=\"deleteTimeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() + "\"> Ta bort </button> </form> </td> \r\n";
 			}
@@ -466,10 +500,13 @@ public class TimeReportController extends servletBase {
 						"</form>";//Add activity report button 
 				}
 			
-			if(isProjectLeader(req)) {//Show all unsigned reports button for ProjectLeader
+			if(isProjectLeader(req)) {//Show all unsigned reports button and all userslist button for ProjectLeader
 				
 				html += "<form action=\"TimeReportPage?showAllUnsignedReports\" metod=\"get\">\r\n" + 
 						"  <input name=\"showAllUnsignedReports\" type=\"submit\" value=\"Visa alla osignerade tidrapporter\" >\r\n" + 
+						"</form>\r\n"+
+						"<form action=\"TimeReportPage?showAllUsers\" metod=\"get\">\r\n" + 
+						"  <input name=\"showAllUsers\" type=\"submit\" value=\"Visa alla användare\" >\r\n" + 
 						"</form>";
 			}
 		} catch (Exception e) {
