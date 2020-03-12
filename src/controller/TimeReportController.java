@@ -138,16 +138,10 @@ public class TimeReportController extends servletBase {
 			ActivityReport activityReport;
 			LocalDate date = LocalDate.parse(dateOfReport);
 			
-			List<ActivityType> typeList = dbService.getActivityTypes();			//get activity typeID
-			for(ActivityType at : typeList) {
-				
-				if(at.getType().equals(activityType))
-				{
-					activityTypeId = at.getActivityTypeId();
-				}
-			}
+
+			activityTypeId = Integer.parseInt(activityType);
 			
-			List<ActivitySubType> subTypeList = dbService.getActivitySubTypes();		//get activity subtypeID
+			List<ActivitySubType> subTypeList = dbService.getActivitySubTypes(activityTypeId);		//get activity subtypeID
 			for(ActivitySubType ast : subTypeList) {
 				
 				if(ast.getSubType().equals(subType))
@@ -693,35 +687,46 @@ public class TimeReportController extends servletBase {
 				+ "<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/SessionController.css\">"		
 				+ " <form id=\"filter_form\" method=\"get\">\r\n" + "                 Aktivitetstyp\r\n"
 				+ "                <div id=\"activity_picker\">\r\n"
-				+ "                    <select id=\"act_picker\" name=\"activity\" form=\"filter_form\">\r\n"
-				+ "                        <option value=\"SDP\">SDP</option>\r\n"
-				+ "                        <option value=\"SRS\">SRS</option>\r\n"
-				+ "                        <option value=\"SVVS\">SVVS</option>\r\n"
-				+ "                        <option value=\"STLDD\">STLDD</option>\r\n"
-				+ "                        <option value=\"SVVI\">SVVI</option>\r\n"
-				+ "                        <option value=\"SDDD\">SDDD</option>\r\n"
-				+ "                        <option value=\"SVVR\">SVVR</option>\r\n"
-				+ "                        <option value=\"SSD\">SSD</option>\r\n"
-				+ " 					   <option value=\"Slutrapport\">Slutrapport</option>\r\n"
-				+ "                        <option value=\"Funktionstest\">Funktionstest</option>\r\n"
-				+ "                        <option value=\"Systemtest\">Systemtest</option>\r\n"
-				+ "                        <option value=\"Regressionstest\">Regressionstest</option>\r\n"
-				+ "                        <option value=\"Möte\">Möte</option>\r\n"
-				+ "                        <option value=\"Föreläsning\">Föreläsning</option>\r\n"
-				+ "                        <option value=\"Övning\">Övning</option>\r\n"
-				+ "                        <option value=\"Terminalövning\">Terminalövning</option>\r\n"
-				+ "                        <option value=\"Självstudier\">Självstudier</option>\r\n"
-				+ "                        <option value=\"Övrigt\">Övrigt</option>\r\n"
+				+ "                    <select id=\"act_picker_1\" name=\"activity\" form=\"filter_form\">\r\n"
+				+ "                        <option value=11>SDP</option>\r\n"
+				+ "                        <option value=12>SRS</option>\r\n"
+				+ "                        <option value=13>SVVS</option>\r\n"
+				+ "                        <option value=14>STLDD</option>\r\n"
+				+ "                        <option value=15>SVVI</option>\r\n"
+				+ "                        <option value=16>SDDD</option>\r\n"
+				+ "                        <option value=17>SVVR</option>\r\n"
+				+ "                        <option value=18>SSD</option>\r\n"
+				+ " 					   <option value=19>Slutrapport</option>\r\n"
+				+ "                        <option value=21>Funktionstest</option>\r\n"
+				+ "                        <option value=22>Systemtest</option>\r\n"
+				+ "                        <option value=23>Regressionstest</option>\r\n"
+				+ "                        <option value=30>Möte</option>\r\n"
+				+ "                        <option value=41>Föreläsning</option>\r\n"
+				+ "                        <option value=42>Övning</option>\r\n"
+				+ "                        <option value=43>Terminalövning</option>\r\n"
+				+ "                        <option value=44>Självstudier</option>\r\n"
+				+ "                        <option value=100>Övrigt</option>\r\n"
 				+ "                      </select>\r\n" + "                </div>\r\n" + "            </div>\r\n"
-				+ "            <div>\r\n" + "                <p class=\"descriptors\">Aktivitet subtyp</p>\r\n"
+				+ "            <div id=\"subTypes\">\r\n" + "                <p class=\"descriptors\">Aktivitet subtyp</p>\r\n"
 				+ "                <div id=\"activity_picker\">\r\n"
-				+ "                    <select id=\"act_picker\" name=\"subType\" form=\"filter_form\">\r\n"
+				+ "                    <select id=\"act_picker_2\" name=\"subType\" form=\"filter_form\">\r\n"
 				+ "						  <option value=\"\"></option>\r\n\""
 				+ "                        <option value=\"U\">U</option>\r\n"
 				+ "                        <option value=\"O\">O</option>\r\n"
 				+ "                        <option value=\"I\">I</option>\r\n"
 				+ "                        <option value=\"F\">F</option>\r\n"
 				+ "                      </select>\r\n" + "                </div>\r\n" + "            </div>\r\n"
+				+ "<script>"
+				+ "const one = document.querySelector('#act_picker_1');const two = document.querySelector('#subTypes');"
+				+ "one.addEventListener('change', (event) => {"
+				+ "const pickedValue = event.target.value;"
+				+ "if (pickedValue > 19) {"
+				+ "two.style.visibility = 'hidden';"
+				+ "} else {"
+				+ "two.style.visibility = 'visible';"
+				+"}"
+				+ "});"
+				+ "</script>"
 				+ "                <p class=\"descriptors\">Tid spenderad (i minuter) </p>\r\n"
 				+ "                <div id=\"activity_picker\">\r\n" + "				</div>"
 				+ "              <input class=\"credentials_rect\" type=\"text\" id=\"timeSpent\" name=\"timeSpent\" pattern=\"^[0-9]*$\" title=\"Please enter numbers only.\" maxlength=\"4\" placeholder=\"Tid Spenderad\" required><br>\r\n"
