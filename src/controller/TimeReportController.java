@@ -67,7 +67,7 @@ public class TimeReportController extends servletBase {
 		  
 		if(dbService.hasTimeReport(week, date.getYear(), userId, projectId)) {// Does timereport this week exist?
 			
-			List<TimeReport> allReports = dbService.getTimeReportsByUser(userId);	//TODO: Ska ändras till getTimeReportByuserANdProject
+			List<TimeReport> allReports = dbService.getTimeReportsByUserAndProject(userId, projectId);	//TODO: Ska ändras till getTimeReportByuserANdProject
 			for(TimeReport tr : allReports) { 
 				if(tr.getWeek() == week) {
 					timereport = tr;
@@ -84,7 +84,6 @@ public class TimeReportController extends servletBase {
 		}
 
 			activityReport = dbService.createActivityReport(new ActivityReport(0, activityTypeId, activitySubTypeId, timereport.getTimeReportId(), date, minutes));
-
  
 		return activityReport;
 		
@@ -99,6 +98,7 @@ public class TimeReportController extends servletBase {
 			//TODO: todo i createActivityReport
 			//TODO: ctrl + F "exception" behövs fixas
 			//TODO: Fixa subtyp till aktivitet
+			//TODO: Dropdown till vecka
 				
 		PrintWriter out = resp.getWriter();
 		setUserId(req,19); //USER ID 19 = PROJECTLEADER
@@ -121,15 +121,9 @@ public class TimeReportController extends servletBase {
 		String showAllUsers = req.getParameter("showAllUsers");
 		String showUserPage = req.getParameter("showUserPage");
 		String getReportsWeek = req.getParameter("getReportsWeek");		
+		String dateOfReport = req.getParameter("dateOfReport");
 		
-		if(activityType != null && subType != null && timeSpent != null && addReportWeek != null && timeReportId != null) {
-			
-			if(timeSpent == "") {
-				
-				out.print(activityReportForm(Integer.parseInt(addReportWeek), timeReportId, activityType));
-				return;
-			}
-			
+		if(activityType != null && subType != null && timeSpent != null && addReportWeek != null && timeReportId != null && dateOfReport != null) {			
 			
 			if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > 1440) { //Time spent måste vara värde mellan 1 och 1440 
 				
@@ -142,6 +136,7 @@ public class TimeReportController extends servletBase {
 			int activityTypeId = 0;
 			int activitySubTypeId = 0;
 			ActivityReport activityReport;
+			LocalDate date = LocalDate.parse(dateOfReport);
 			
 			List<ActivityType> typeList = dbService.getActivityTypes();			//get activity typeID
 			for(ActivityType at : typeList) {
@@ -165,9 +160,9 @@ public class TimeReportController extends servletBase {
 			
 			//activitySubTypeId = 1; //TODO: Denna är konstig
 			
-			activityReport = createActivityReport( activityTypeId, activitySubTypeId, LocalDate.now(),  Integer.parseInt(addReportWeek),  
+			activityReport = createActivityReport( activityTypeId, activitySubTypeId, date,  Integer.parseInt(addReportWeek),  
 					Integer.parseInt(timeSpent),  this.getLoggedInUser(req).getUserId(),  this.getProjectId(req) ); //TODO: LocalDate.now() ska bytas mot en datepicker som skickas med från activityreport meotden
-			
+																																//TODO: Finns som dateOfReport nu ---
 			if(activityReport == null) {
 				new Exception("Aktivitetrapport kunde inte skapas! (Signerad tidsrapport)");
 				out.println(getUserTimeReports(loggedInUser, req)); //Standard case
@@ -188,14 +183,24 @@ public class TimeReportController extends servletBase {
 		
 		if(deleteActivityReportId != null && timeReportId != null) {
 			
-			dbService.deleteActivityReport(Integer.parseInt(deleteActivityReportId));
+			try {
+				dbService.deleteActivityReport(Integer.parseInt(deleteActivityReportId));	//TODO: Kan crasha om man trycker snabbt, rapporten redan borttagen (try catch?)
+			}
+			catch(Exception e) {
+				
+			}
 			out.print(getActivityReports(Integer.parseInt(timeReportId), req));
-			
 			return;
+
 			
 		}
 		
 		if(getReportsWeek != null) {
+			if(getReportsWeek == "") {
+				new Exception("Ingen vecka inmatad!");
+				out.println(getUserTimeReports(loggedInUser, req));
+				return;
+			}
 			out.print(this.getTimereportsByWeek(Integer.parseInt(getReportsWeek), req));
 			return;
 		}
@@ -262,7 +267,12 @@ public class TimeReportController extends servletBase {
 		
 		if(deleteTimeReportId != null) {
 			
-			dbService.deleteTimeReport(Integer.parseInt(deleteTimeReportId));
+			try{
+				dbService.deleteTimeReport(Integer.parseInt(deleteTimeReportId));
+			}
+			catch(Exception e) {
+				
+			}
 			out.print(getUserTimeReports(loggedInUser, req));
 			return;
 		}
@@ -523,7 +533,7 @@ public class TimeReportController extends servletBase {
 					+ "<tr>\r\n" 
 					+ "<td> År </td>\r\n"
 					+ "<td> Vecka </td>\r\n"
-					+ "<td> Timespent(minutes) </td>\r\n" 
+					+ "<td> Tidspenderad (minuter) </td>\r\n" 
 					+ "<td> Status </td>\r\n" 
 					+ "<td> Välj tidrapport </td>\r\n"
 					+ "<td> Ta bort tidrapport </td>\r\n";
@@ -676,14 +686,14 @@ public class TimeReportController extends servletBase {
 		return totalTime;
 	}
 
-	private String activityReportForm(int week, String timeReportId) { //Kallas på först
+	private String activityReportForm(int week, String timeReportId) { //Kallas på först -- - onchange =\"this.form.submit()\"
 		return "<!--square.html-->\r\n" + 
 				"<!DOCTYPE html>\r\n" + 
 				"<html>\r\n"
-				+ "<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/SessionController.css\">"
+				+ "<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/SessionController.css\">"		
 				+ " <form id=\"filter_form\" method=\"get\">\r\n" + "                 Aktivitetstyp\r\n"
 				+ "                <div id=\"activity_picker\">\r\n"
-				+ "                    <select id=\"act_picker\" name=\"activity\" onchange =\"this.form.submit()\" form=\"filter_form\">\r\n"
+				+ "                    <select id=\"act_picker\" name=\"activity\" form=\"filter_form\">\r\n"
 				+ "                        <option value=\"SDP\">SDP</option>\r\n"
 				+ "                        <option value=\"SRS\">SRS</option>\r\n"
 				+ "                        <option value=\"SVVS\">SVVS</option>\r\n"
@@ -692,7 +702,7 @@ public class TimeReportController extends servletBase {
 				+ "                        <option value=\"SDDD\">SDDD</option>\r\n"
 				+ "                        <option value=\"SVVR\">SVVR</option>\r\n"
 				+ "                        <option value=\"SSD\">SSD</option>\r\n"
-				+ " 						<option value=\"Slutrapport\">Slutrapport</option>\r\n"
+				+ " 					   <option value=\"Slutrapport\">Slutrapport</option>\r\n"
 				+ "                        <option value=\"Funktionstest\">Funktionstest</option>\r\n"
 				+ "                        <option value=\"Systemtest\">Systemtest</option>\r\n"
 				+ "                        <option value=\"Regressionstest\">Regressionstest</option>\r\n"
@@ -706,26 +716,28 @@ public class TimeReportController extends servletBase {
 				+ "            <div>\r\n" + "                <p class=\"descriptors\">Aktivitet subtyp</p>\r\n"
 				+ "                <div id=\"activity_picker\">\r\n"
 				+ "                    <select id=\"act_picker\" name=\"subType\" form=\"filter_form\">\r\n"
-				+ "					     <option value=\"\"></option>\r\n"
-				+ "                        <option value=\"Utveckling\">Utveckling</option>\r\n"
-				+ "                        <option value=\"Omarbete\">Omarbete</option>\r\n"
-				+ "                        <option value=\"Informellgranskning\">Informellgranskning</option>\r\n"
-				+ "                        <option value=\"Formellgranskning\">Formellgranskning</option>\r\n"
+				+ "						  <option value=\"\"></option>\r\n\""
+				+ "                        <option value=\"U\">U</option>\r\n"
+				+ "                        <option value=\"O\">O</option>\r\n"
+				+ "                        <option value=\"I\">I</option>\r\n"
+				+ "                        <option value=\"F\">F</option>\r\n"
 				+ "                      </select>\r\n" + "                </div>\r\n" + "            </div>\r\n"
 				+ "                <p class=\"descriptors\">Tid spenderad (i minuter) </p>\r\n"
 				+ "                <div id=\"activity_picker\">\r\n" + "				</div>"
 				+ "              <input class=\"credentials_rect\" type=\"text\" id=\"timeSpent\" name=\"timeSpent\" pattern=\"^[0-9]*$\" title=\"Please enter numbers only.\" maxlength=\"4\" placeholder=\"Tid Spenderad\" required><br>\r\n"
 				+ "		<input name=\"addReportWeek\" type=\"hidden\" value=\""+ week + "\"></input>\r\n"
+				+ "  <label for=\"dateInfo\">Mata in datum för aktivitet.:</label>\r\n"  
+				+ "<input type=\"date\" id=\"dateOfReport\" name=\"dateOfReport\" value=\"" + LocalDate.now() + "\" min=\"2020-01-01\" max=\""+ LocalDate.now()+ "\">\r\n"	
 				+ " <input name=\"timeReportId\" type=\"hidden\" value=\""+ timeReportId + "\"></input>\r\n"
 				+ "              <input class=\"submitBtn\" type=\"submit\" value=\"Skicka in\">\r\n" 				
 				+ "                </div>\r\n"
 				+ "              </form>"
 				+ "              </html>";
 
-		// html += activitysubtype.getId...
+
 	}
 	
-private String activityReportForm(int week, String timeReportId, String activitySelected) throws SQLException { //Kallas på efter en aktivitet har blivit vald.
+/*private String activityReportForm(int week, String timeReportId, String activitySelected) throws SQLException { //Kallas på efter en aktivitet har blivit vald.
 		
 	List<ActivityType> typeList = dbService.getActivityTypes();
 	ActivityType activityType = null;
@@ -772,8 +784,7 @@ private String activityReportForm(int week, String timeReportId, String activity
 				+ "                      </select>\r\n" + "                </div>\r\n" + "            </div>\r\n"
 				+ "            <div>\r\n" + "                <p class=\"descriptors\">Aktivitet subtyp</p>\r\n"
 				+ "                <div id=\"activity_picker\">\r\n"
-				+ "                    <select id=\"act_picker\" name=\"subType\" form=\"filter_form\">\r\n"
-				+ "					     <option value=\"\"></option>\r\n";
+				+ "                    <select id=\"act_picker\" name=\"subType\" form=\"filter_form\">\r\n";
 		
 		for(ActivitySubType ast : subTypeList) {
 			
@@ -783,7 +794,7 @@ private String activityReportForm(int week, String timeReportId, String activity
 			}
 			else {
 				
-				html += "  <option value=\""+ ast.getSubType()+"\"> "+ ast.getSubType() + "</option>\r\n"; 
+				html += "  <option value=\""+ ast.getSubType()+"\">"+ ast.getSubType() +"</option>\r\n"; 
 			}
 		}
 		   
@@ -805,6 +816,7 @@ private String activityReportForm(int week, String timeReportId, String activity
 		
 }
 
+*/
 		
 	
 	private boolean isProjectLeader(HttpServletRequest req) throws Exception {
