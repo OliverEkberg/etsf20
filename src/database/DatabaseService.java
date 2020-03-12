@@ -856,6 +856,33 @@ public class DatabaseService {
 		ps.close();
 		return timeReports;
 	}
+	
+	/**
+	 * Gets all time reports made by a given user in given project
+	 * 
+	 * @param userId - The unique identifier of the user to find time reports for
+	 * @param projectId - The unique identifier of the project to find time reports
+	 * @return A list of all time reports made by a in project
+	 * @throws SQLException
+	 */
+	public List<TimeReport> getTimeReportsByUserAndProject(int userId, int projectId) throws SQLException {
+		List<TimeReport> timeReports = new ArrayList<>();
+
+		String sql = "SELECT TimeReports.* " + "FROM TimeReports JOIN ProjectUsers USING (projectUserId) "
+				+ "WHERE userId = ? AND projectId = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, userId);
+		ps.setInt(2, projectId);
+
+		ResultSet rs = ps.executeQuery();
+
+		while (rs.next()) {
+			timeReports.add(mapTimeReport(rs));
+		}
+
+		ps.close();
+		return timeReports;
+	}
 
 	/**
 	 * Gets time report by timeReportId. Will return null if time report could not
