@@ -38,6 +38,13 @@ import java.util.TreeSet;
 @WebServlet("/statistics")
 public class StatisticController extends servletBase {
 	private static final long serialVersionUID = 1L;
+	
+	enum StatisticType {
+		ALL,
+		USER,
+		ROLE
+	}
+	
 	List<Project> activeProjects;
 	List<User> projectUsers;
 
@@ -126,16 +133,16 @@ public class StatisticController extends servletBase {
 
 			Statistic statistic = null;
 			switch (statsToGet(query, req)) {
-			case 3:
+			case USER:
 				statistic = dbService.getActivityStatistics(projectId, getIdForUser(query), from, to);
 				break;
-			case 2:
+			case ALL:
 				statistic = dbService.getActivityStatistics(projectId, from, to);
 				break;
-			case 1:
+			case ROLE:
 				statistic = dbService.getRoleStatistics(projectId, getRoleIdFor(query, roles), from, to);
 				break;
-			case -1:
+			default:
 				return null;
 
 			}
@@ -186,27 +193,27 @@ public class StatisticController extends servletBase {
 		return -1;
 	}
 
-	private int statsToGet(String query, HttpServletRequest req) {
+	private StatisticType statsToGet(String query, HttpServletRequest req) {
 		try {
 			if (query != null) {
 				if (query.equals("*")) {
-					return 2;
+					return StatisticType.ALL;
 				}
 				for (Role r : dbService.getAllRoles()) {
 					if (r.getRole().equals(query)) {
-						return 1;
+						return StatisticType.ROLE;
 					}
 				}
 				for (User u : dbService.getAllUsers(getProjectId(req))) {
 					if (u.getUsername().equals(query)) {
-						return 3;
+						return StatisticType.USER;
 					}
 				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return -1;		
+		return StatisticType.ALL;		
 	}
 
 	private String statisticsPageForm(List<Statistic> statistics, HttpServletRequest req) {
