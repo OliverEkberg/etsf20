@@ -224,45 +224,57 @@ public class StatisticController extends servletBase {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("<body>");
-		sb.append("  <link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/StatisticsController.css\">\r\n");
+		sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/StatisticsController.css\">");
 		sb.append(getHeader(req));
-		sb.append("        <div id=\"wrapper\">\r\n" + getNav(req) + "            <div id=\"bodyContent\">"
-				+ "    <div class=\"wrapper\">\r\n" + "        <div class=\"\">\r\n"
-				+ "            <form id=\"filter_form\" >\r\n" + "                <div id=\"stat_title\">\r\n"
-				+ "                    <p id=\"stat_title_text\">STATISTICS</p>\r\n" + "                </div>\r\n"
-				+ "\r\n" + "                <div class=\"filter_row\">\r\n" + "                    <div>\r\n"
-				+ "                    </div>\r\n" + "                    <div>\r\n"
-				+ "                        <div>\r\n" + "                        <p class=\"descriptors\">From</p>\r\n"
-				+ "                        <p class=\"descriptors\" style=\"margin-left: 140px;\">To</p>\r\n"
-				+ "                    </div>\r\n" + "                    <div id=\"stat_date_picker\">\r\n"
-				+ "                    <input type=\"date\" id=\"from\" value=\""+ startOfWeek +"\" name=\"from\">\r\n"
-				+ "                    <input type=\"date\" id=\"to\" value=\""+ endOfWeek +"\" name=\"to\">\r\n" + "                </div>\r\n"
-				+ "            </div>\r\n" + "            <div>\r\n");
-		sb.append("            </div>\r\n" + "            <div>\r\n"
-				+ "                <p class=\"descriptors\">Statistic Type</p>\r\n"
-				+ "                <div id=\"activity_picker\">\r\n"
-				+ "                    <select id=\"rol_picker\" name=\"statType\" form=\"filter_form\" onclick=\"if (this.selectedIndex) disableBoxes(this);\">");
+		sb.append("<div id=\"wrapper\">");
+		sb.append(getNav(req));
+		sb.append("<div id=\"bodyContent\">");
+		sb.append("<div class=\"wrapper\">");
+		sb.append("<div class=\"\">");
+		sb.append("<form id=\"filter_form\" >");
+		sb.append("<div id=\"stat_title\">");
+		sb.append("<p id=\"stat_title_text\">STATISTICS</p>");
+		sb.append("</div>");
+		sb.append("<div class=\"filter_row\">");
+		sb.append("<div>");
+		sb.append("</div>");
+		sb.append("<div>");
+		sb.append("<div>");
+		sb.append("<p class=\"descriptors\">From</p>"); // DONE
+		sb.append("<p class=\"descriptors\" style=\"margin-left: 140px;\">To</p>\r\n");
+		sb.append("</div>");
+		sb.append("<div id=\"stat_date_picker\">\r\n");
+		sb.append("<input type=\"date\" id=\"from\" value=\""+ startOfWeek +"\" name=\"from\">");
+		sb.append("         <input type=\"date\" id=\"to\" value=\""+ endOfWeek +"\" name=\"to\">"); // TODO: Fix proper spacing
+		sb.append("</div>");
+		sb.append("</div>");
+		sb.append("<div>");
+		sb.append("</div>");
+		sb.append("<div>");
+		sb.append("<p class=\"descriptors\">Statistic Type</p>");
+		sb.append("<div id=\"activity_picker\">");
+		sb.append("<select id=\"rol_picker\" name=\"statType\" form=\"filter_form\" onclick=\"if (this.selectedIndex) disableBoxes(this);\">");
 		sb.append(getSelectOptions(req));
-		sb.append("</select>");
-		sb.append("                </div>\r\n" + "            </div>\r\n" + "            <div>\r\n");
-		sb.append("            </div>\r\n"
-				+ "                <input class=\"submitBtn\" type=\"submit\" value=\"Search\">\r\n"
-				+ "                </div>\r\n" + "              </form> \r\n" + "        </div>\r\n");
+		sb.append("</select>");		
+		sb.append("</div>");
+		sb.append("</div>");
+		sb.append("<div>");
+		sb.append("</div>");
+		sb.append("<input class=\"submitBtn\" type=\"submit\" value=\"Search\">");
+		sb.append("</div>");
+		sb.append("</form>");
+		sb.append("</div>");
 
 		sb.append("<div>"); // Table goes here or nothingness goes here :(
 		if (statistics == null) {
 			sb.append("<p id=\"nothing\">There seems to be nothing here :(</p><br>");
-			sb.append(
-					"<p id=\"nothingSub\"> That could be because filter options are empty/incorrect or your filter options has yielded no results.</p>");
+			sb.append("<p id=\"nothingSub\"> That could be because filter options are empty/incorrect or your filter options has yielded no results.</p>");
 		} else {
-
 			for (int i = 0; i < statistics.size(); i++) {
 				sb.append(getStatisticsDataTable(statistics.get(i)));
 			}
-
 		}
 		sb.append("</div>");
-
 		sb.append("</div>");
 		sb.append("</div>");
 		sb.append("</div>");
