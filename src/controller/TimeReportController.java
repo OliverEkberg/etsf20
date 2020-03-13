@@ -641,12 +641,12 @@ public class TimeReportController extends servletBase {
 			//Html table start and header
 			html += "<table width=\"600\" border=\"2\">\r\n" 
 					+ "<tr>\r\n" 
-					+ "<td> Year </td>\r\n"
-					+ "<td> Week </td>\r\n"
-					+ "<td> Timespent (minuter) </td>\r\n" 
-					+ "<td> Status </td>\r\n" 
-					+ "<td> Select timereport </td>\r\n"
-					+ "<td> Remove timereport </td>\r\n";
+					+ "<th> Year </th>\r\n"
+					+ "<th> Week </th>\r\n"
+					+ "<th> Timespent (minuter) </th>\r\n" 
+					+ "<th> Status </th>\r\n" 
+					+ "<th> Select timereport </th>\r\n"
+					+ "<th> Remove timereport </th>\r\n";
 
 			//Adds all timereports into the table
 			for (TimeReport tr : userTimeReports) {
@@ -674,6 +674,8 @@ public class TimeReportController extends servletBase {
 				if(!tr.isSigned() && isUserLoggedInUser(user, req)) { 
 					html += "<td> <form action=\"TimeReportPage?deleteTimeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
 							+ "<button name=\"deleteTimeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() + "\"> Remove </button> </form> </td> \r\n";
+				} else {
+					html += "<td>";
 				}
 
 				html += "</tr>\r\n";
