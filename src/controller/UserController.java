@@ -1,6 +1,7 @@
 package controller;
 
 import java.io.IOException;
+import java.io.PipedInputStream;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.List;
@@ -34,6 +35,8 @@ public class UserController extends servletBase {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		PrintWriter out = resp.getWriter();
 		out.println(getHeader(req));
+		out.println("<body>");
+		out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/usercontroller.css\">\n");
 		out.println(getNav(req));
 
 		String myName = "";
@@ -97,8 +100,11 @@ public class UserController extends servletBase {
 					List<Project> projects = dbService.getAllProjects();
 					List<Role> roles = dbService.getAllRoles();
 					out.println("<p>Registered users:</p>");
-					out.println("<table border=" + addQuotes("1") + ">");
-					out.println("<tr><td>NAME</td><td></td><td></td></tr>");
+					out.println("<table id=\"userTable\" border=" + addQuotes("1") + ">");
+					out.println("<tr>\r\n" + 
+							"    <th>Name</th>\r\n" + 
+							"    <th colspan=\"2\">Settings</th>\r\n" + 
+							"</tr>");
 					for (User u : users) {
 						String name = u.getUsername();
 						String deleteURL = "UserPage?deletename=" + name;
