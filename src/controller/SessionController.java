@@ -27,31 +27,21 @@ import database.User;
 
 @WebServlet("/SessionPage")
 public class SessionController extends servletBase {
-
-	public SessionController() {
-		super();
-
-	}
-
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		PrintWriter out = resp.getWriter();
-		out.println(getHeader(req));
 
-
-		String name = req.getParameter("username"); // get the string that the user entered in the form
-		String password = req.getParameter("password"); // get the entered password
-
+		String name = req.getParameter("username");
+		String password = req.getParameter("password");
 
 		if (name != null && password != null) {
 			if (login(name, password)) {
-				setIsLoggedIn(req, true); // save the state in the session
-				User u;
+				setIsLoggedIn(req, true);
 				try {
-					u = dbService.getUserByCredentials(name, password);
+					User u = dbService.getUserByCredentials(name, password);
 					setUserId(req, u.getUserId());
+					setIsAdmin(req, u.isAdmin());
 				} catch (SQLException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
@@ -61,58 +51,56 @@ public class SessionController extends servletBase {
 				out.println("<p><!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "\n" + "\n" + "<script> {\n"
 						+ "  alert(\"That was not a valid user name / password.\");\n" + "}\n" + "</script>\n" + "\n"
 						+ "</body>\n" + "</html>\n" + " </p>");
-
-				out.println(loginRequestForm());
 			}
 
 		} else {
-			out.println(loginRequestForm());
+			logout(req);
 		}
-
+		
+		out.println(getHeader(req));
+		out.println(loginRequestForm());
 	}
 
 	private boolean login(String name, String password) {
-
-		boolean userOk = false;
-
 		try {
-			User user = dbService.getUserByCredentials(name, password);
-			if (user != null) {
-				userOk = true;
-			}
+			return dbService.getUserByCredentials(name, password) != null;
 		} catch (SQLException ex) {
 			System.out.println("SQLException: " + ex.getMessage());
 			System.out.println("SQLState: " + ex.getSQLState());
 			System.out.println("VendorError: " + ex.getErrorCode());
 		}
-		return userOk;
+		return false;
 	}
 
-	private boolean logout(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+	private boolean logout(HttpServletRequest req) throws IOException {
 		if (isLoggedIn(req) == true) {
 			setIsLoggedIn(req, false);
-			resp.sendRedirect("SessionPage");
+			setUserId(req, 0);
+			setProjectId(req, 0);
+			setIsAdmin(req, false);
 			return true;
-
 		}
 		return false;
-
 	}
 
 	private String loginRequestForm() {
-		return "<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/SessionController.css\">" +
-
-				"    <div class=\"wrapper\">\r\n" + "        <div class=\"title\">TimeKeep</div>\r\n"
-				+ "        <div class=\"subTitle\">Keep track of time and stuff.</div>\r\n"
-				+ "        <div class=\"center credentials_form\">\r\n"
-				+ "            <form onsubmit=\"checkInput()\">\r\n"
-				+ "                <input class=\"credentials_rect\" type=\"text\" id=\"username\" name=\"username\" pattern=\"^[a-zA-Z0-9]*$\" title=\"Please enter letters and numbers only.\" maxlength=\"10\" placeholder=\"Username\" required><br>\r\n"
-				+ "                <input class=\"credentials_rect\" type=\"password\" id=\"password\" name=\"password\" pattern=\"^[a-zA-Z0-9]*$\" title=\"Please enter letters and numbers only.\" maxlength=\"10\" placeholder=\"Password\" required><br><br>\r\n"
-				+ "                <input class=\"submitBtn\" type=\"submit\" value=\"Submit\">\r\n"
-				+ "              </form> \r\n" + "        </div>\r\n"
-				+ "        <div class=\"footerText\">Developed by some dudes at LTH.</div>\r\n" + "    </div>"
-
-				+ "</body></html>";
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/SessionController.css\">");
+		sb.append("<div class=\"wrapper\">");
+		sb.append("<div class=\"title\">TimeKeep</div>");
+		sb.append("<div class=\"subTitle\">Keep track of time and stuff.</div>");
+		sb.append("<div class=\"center credentials_form\">");
+		sb.append("<form onsubmit=\"checkInput()\">"); // TODO: Add JS?
+		sb.append("<input class=\"credentials_rect\" type=\"text\" id=\"username\" name=\"username\" pattern=\"^[a-zA-Z0-9]*$\" title=\"Please enter letters and numbers only.\" maxlength=\"10\" placeholder=\"Username\" required><br>");
+		sb.append("<input class=\"credentials_rect\" type=\"password\" id=\"password\" name=\"password\" pattern=\"^[a-zA-Z0-9]*$\" title=\"Please enter letters and numbers only.\" maxlength=\"10\" placeholder=\"Password\" required><br><br>");
+		sb.append("<input class=\"submitBtn\" type=\"submit\" value=\"Submit\">");
+		sb.append("</form>");
+		sb.append("</div>");
+		sb.append("<div class=\"footerText\">Developed by some dudes at LTH.</div>");
+		sb.append("</body>");
+		sb.append("</html>");
+		
+		return sb.toString();
 	}
-
 }
