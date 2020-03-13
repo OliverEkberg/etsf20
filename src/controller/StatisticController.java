@@ -69,7 +69,6 @@ public class StatisticController extends servletBase {
 			try {
 				LocalDate fromDate = LocalDate.parse(from);
 				LocalDate toDate = LocalDate.parse(to);
-				System.out.println(fromDate.toString());
 
 				if (actionIsAllowed(req, getProjectId(req)) || getLoggedInUser(req) != null)
 					out.println(statisticsPageForm(
@@ -211,6 +210,9 @@ public class StatisticController extends servletBase {
 	}
 
 	private String statisticsPageForm(List<Statistic> statistics, HttpServletRequest req) {
+		LocalDate now = LocalDate.now();
+		LocalDate startOfWeek = now.minusDays(now.getDayOfWeek().getValue() - 1);
+		LocalDate endOfWeek = now.plusDays(7 - now.getDayOfWeek().getValue());
 
 		StringBuilder sb = new StringBuilder();
 
@@ -226,8 +228,8 @@ public class StatisticController extends servletBase {
 				+ "                        <div>\r\n" + "                        <p class=\"descriptors\">From</p>\r\n"
 				+ "                        <p class=\"descriptors\" style=\"margin-left: 140px;\">To</p>\r\n"
 				+ "                    </div>\r\n" + "                    <div id=\"stat_date_picker\">\r\n"
-				+ "                    <input type=\"date\" id=\"from\" name=\"from\">\r\n"
-				+ "                    <input type=\"date\" id=\"to\" name=\"to\">\r\n" + "                </div>\r\n"
+				+ "                    <input type=\"date\" id=\"from\" value=\""+ startOfWeek +"\" name=\"from\">\r\n"
+				+ "                    <input type=\"date\" id=\"to\" value=\""+ endOfWeek +"\" name=\"to\">\r\n" + "                </div>\r\n"
 				+ "            </div>\r\n" + "            <div>\r\n");
 		sb.append("            </div>\r\n" + "            <div>\r\n"
 				+ "                <p class=\"descriptors\">Statistic Type</p>\r\n"
