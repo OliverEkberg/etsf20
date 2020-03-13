@@ -232,9 +232,7 @@ public class StatisticController extends servletBase {
 		sb.append("<div class=\"wrapper\">");
 		sb.append("<div class=\"\">");
 		sb.append("<form id=\"filter_form\" >");
-		sb.append("<div id=\"stat_title\">");
-		sb.append("<p id=\"stat_title_text\">STATISTICS</p>");
-		sb.append("</div>");
+		sb.append("<p id=\"head_text\">STATISTICS</p>");
 		sb.append("<div class=\"filter_row\">");
 		sb.append("<div>");
 		sb.append("</div>");

@@ -6,7 +6,6 @@ body {
 .filter_row {
     display: flex;
     vertical-align: middle;
-    margin-left: 36px;
 }
 
 .filter_descriptors_row {
@@ -38,17 +37,6 @@ p {
     box-sizing: border-box;
     font-size: large;
     text-align: center;
-}
-
-#stat_title {
-    width: 300px;
-    margin: 36px;
-}
-
-#stat_title_text {
-    font-size: 3rem;
-    color: #2c3e50;
-    letter-spacing: 0.2rem;
 }
 
 #stat_date_picker {
@@ -121,7 +109,6 @@ p {
     font-family: Arial;
     border-collapse: collapse;
     width: 60%;
-    margin-left: 36px;
     margin-bottom: 36px;
   }
   
