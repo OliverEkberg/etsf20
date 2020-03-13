@@ -18,7 +18,6 @@ import database.User;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -260,28 +259,6 @@ public class StatisticController extends servletBase {
 		sb.append("</div>");
 		sb.append("</body>");
 		return sb.toString();
-	}
-
-	private String getProjectSelectOptions(HttpServletRequest req) {
-		StringBuilder sbBuilder = new StringBuilder();
-
-		try {
-			if (getLoggedInUser(req) == null)
-				return sbBuilder.toString();
-
-			activeProjects = dbService.getAllProjects(getLoggedInUser(req).getUserId());
-
-			for (Project project : activeProjects) {
-				sbBuilder.append("<option value=\"");
-				sbBuilder.append(project.getName());
-				sbBuilder.append("\">");
-				sbBuilder.append(project.getName());
-				sbBuilder.append("</option>\n");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return sbBuilder.toString();
 	}
 
 	/**
