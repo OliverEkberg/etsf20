@@ -55,6 +55,15 @@ public class StatisticController extends servletBase {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		PrintWriter out = resp.getWriter();
 	
+		try {
+			if (getLoggedInUser(req) == null) {
+				resp.sendRedirect("/BaseBlockSystem/SessionPage");
+				return;
+			}
+		} catch (Exception e) {
+			resp.sendRedirect("/BaseBlockSystem/SessionPage");
+			return;
+		}
 
 		String username = req.getParameter("username");
 		String from = req.getParameter("from");

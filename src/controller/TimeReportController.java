@@ -148,6 +148,10 @@ public class TimeReportController extends servletBase {
 			out.println(getHeader(req));
 			out.println(getNav(req));
 			
+			if (loggedInUser == null) {
+				resp.sendRedirect("/BaseBlockSystem/SessionPage");
+			}
+			
 			if (getProjectId(req) == 0) {
 				out.print("<p>Vänligen välj ett projekt först!</p>");
 				return;	
