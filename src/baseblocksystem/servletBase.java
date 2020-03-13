@@ -125,9 +125,13 @@ public abstract class servletBase extends HttpServlet {
 	}
     
     protected boolean isProjectLeader(HttpServletRequest request, int projectId) throws Exception {
-    	User loggedInUser = getLoggedInUser(request);
-    	Role role = dbService.getRole(loggedInUser.getUserId(), projectId);
-    	return role.getRoleId() == 1;
+    	try {
+    		User loggedInUser = getLoggedInUser(request);
+        	Role role = dbService.getRole(loggedInUser.getUserId(), projectId);
+        	return role.getRoleId() == 1;
+    	} catch (Exception e) {
+			return false;
+		}
     }
     
     /**
