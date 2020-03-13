@@ -59,7 +59,7 @@ public class StatisticController extends servletBase {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		PrintWriter out = resp.getWriter();
-		out.println(getHeader());
+		out.println(getHeader(req));
 		
 
 		String username = req.getParameter("username");

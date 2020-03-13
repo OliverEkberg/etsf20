@@ -40,7 +40,8 @@ public class UserController extends servletBase {
 		// TODO Auto-generated method stub
 		setProjectId(req, 1);
 		PrintWriter out = resp.getWriter();
-		out.println(getHeader());
+		out.println(getHeader(req));
+		out.println(getNav(req));
 
 		String myName = "";
 
@@ -160,7 +161,14 @@ public class UserController extends servletBase {
 					for (User u : users) {
 						out.println("<tr>");
 						out.println("<td>" + u.getUsername() + "</td>");
-						out.println("<td>" + dbService.getRole(u.getUserId(), selectedProject).getRole() + "</td>");
+						String role = "";
+						
+						try {
+							role = dbService.getRole(u.getUserId(), selectedProject).getRole();	
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						out.println("<td>" + role + "</td>");
 						out.println("</tr>");
 					}
 					out.println("</table>");
