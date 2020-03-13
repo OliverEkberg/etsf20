@@ -161,7 +161,10 @@ public class StatisticController extends servletBase {
 			if (user.isAdmin())
 				return true;
 			else {
-				int val = dbService.getProjectUserIdByUserIdAndProjectId(user.getUserId(), projectId);
+				Role r = dbService.getRole(user.getUserId(), projectId);
+				if (r.getRoleId() == 1) {
+					return true;
+				}
 				
 			}
 			
@@ -196,14 +199,21 @@ public class StatisticController extends servletBase {
     
     
     private int statsToGet(String username, String activity, String role) {
-    	if (username != null && !username.isBlank())
+    	if (username != null && !isBlank(username))
     		return 1;
     	else if(activity != null && activity.equals("yes"))
     		return 2;
-    	else if (role != null && !role.isBlank())
+    	else if (role != null && !isBlank(role))
     		return 3;
     	else
     		return -1;
+    }
+    
+    private Boolean isBlank(String s) {
+    	if (s.length() == 0) {
+    		return true;
+    	}
+    	return false;
     }
 
 		
@@ -344,11 +354,11 @@ public class StatisticController extends servletBase {
 		StringBuilder sbBuilder = new StringBuilder();
 		
 		try {
-			//if(getLoggedInUser(req) == null)
-				//return sbBuilder.toString();
+			if(getLoggedInUser(req) == null)
+				return sbBuilder.toString();
 			
-			//List<Project> projects = dbService.getAllProjects(getLoggedInUser(req).getUserId()); // TODO: TEST FOR ID 1
-			activeProjects = dbService.getAllProjects(1);
+			activeProjects = dbService.getAllProjects(getLoggedInUser(req).getUserId());
+
 			for (Project project : activeProjects) {
 				sbBuilder.append("<option value=\"");
 				sbBuilder.append(project.getName());
