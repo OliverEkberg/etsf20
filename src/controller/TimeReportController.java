@@ -116,10 +116,7 @@ public class TimeReportController extends servletBase {
 			//TODO: Ändra så att vi inte sätter den inloggade användaren själva
 				
 		PrintWriter out = resp.getWriter();
-		setUserId(req,15); //USER ID 19 = PROJECTLEADER // TODO: Remove this
-		this.setIsLoggedIn(req, true);// TODO: Remove this
-		setProjectId(req, 1);	// TODO: Remove this
-		User loggedInUser = dbService.getUserById(15); // SKA VARA SEN this.getLoggedInUser(req); // TODO: Remove this	
+		User loggedInUser = this.getLoggedInUser(req);
 
 		String activityType = req.getParameter("activity");
 		String addReportWeek = req.getParameter("addReportWeek");
