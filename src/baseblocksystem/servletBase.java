@@ -14,26 +14,6 @@ import database.Project;
 import database.Role;
 import database.User;
 
-
-/**
- *  This class is the superclass for all servlets in the application. 
- *  It includes basic functionality required by many servlets, like for example a page head 
- *  written by all servlets, and the connection to the database. 
- *  
- *  This application requires a database.
- *  For username and password, see the constructor in this class.
- *  
- *  <p>The database can be created with the following SQL command: 
- *  mysql> create database base;
- *  <p>The required table can be created with created with:
- *  mysql> create table users(name varchar(10), password varchar(10), primary key (name));
- *  <p>The administrator can be added with:
- *  mysql> insert into users (name, password) values('admin', 'adminp'); 
- *  
- *  @author Martin Host
- *  @version 1.0
- *  
- */
 public abstract class servletBase extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
@@ -41,7 +21,7 @@ public abstract class servletBase extends HttpServlet {
 	protected DatabaseService dbService;
 	
 	/**
-	 * Constructs a servlet and makes a connection to the database through databaseService
+	 * Constructs a Servlet and makes a connection to the database through databaseService
 	 */
     public servletBase() {
     	try{
@@ -151,8 +131,8 @@ public abstract class servletBase extends HttpServlet {
     protected String getHeader(HttpServletRequest req) {
     	StringBuilder sb = new StringBuilder();
     	sb.append("<head><title>TimeKeep</title></head>");
-    	sb.append("<html><link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/layout.css\">\n");
-    	sb.append("<div id=\"headerBar\">\r\n");
+    	sb.append("<html><link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/layout.css\">");
+    	sb.append("<div id=\"headerBar\">");
 		
 		if (isLoggedIn(req)) {
 			String userName = "";
@@ -166,51 +146,48 @@ public abstract class servletBase extends HttpServlet {
 				}
 	
 				userName = u.getUsername();
-				sb.append("<div id=\"sessionInfo\">");
+				sb.append("<div id=\"sessionInfo\">"); // TODO: Make this look better
 				sb.append("<label><b>User: </b>" + userName + "		</label>");
 				sb.append("<label><b>Project: </b>" + projectName + "</label>");
 				sb.append("</div>");
 
 			} catch (Exception e) {
 			}
-			sb.append("<a id=\"logoutbtn\" href=\"SessionPage\">Logout</a>\r\n");
+			sb.append("<a id=\"logoutbtn\" href=\"SessionPage\">Logout</a>");
 		}
-		sb.append("</div>\r\n");
+		sb.append("</div>");
     	return sb.toString();
     }
     
-    protected String getNav(HttpServletRequest req) { // TODO: Update this based on roles and admin?
-    	String nav = "            <div id=\"navigation\">\r\n" + 
-				"                <ul id=\"menu\">\r\n";
+    protected String getNav(HttpServletRequest req) {
+    	StringBuilder sb = new StringBuilder();
     	
-    	boolean isPl = false;
-    	boolean isA = false;
-    	int pickedP = 0;
+    	sb.append("<div id=\"navigation\">");
+    	sb.append("<ul id=\"menu\">");
+    	sb.append("<li><a class=\"linkBtn\" href=\"projects\">Projects</a></li>");
+    	
+    	boolean isAdmin = false;
+    	int projectId = 0;
     	
     	try {
-    		isPl = isProjectLeader(req, getProjectId(req));
-    		isA = isAdmin(req);
-    		pickedP = getProjectId(req);
+    		isAdmin = isAdmin(req);
+    		projectId = getProjectId(req);
     	} catch (Exception e) {
     		e.printStackTrace();
     	}
     	
-    	if (isA) {
-			nav += "<li><a class=\"linkBtn\" href=\"UserPage\">Users</a></li>\r\n";
+    	if (isAdmin) {
+			sb.append("<li><a class=\"linkBtn\" href=\"UserPage\">Users</a></li>");
 		}
     	
-    		
-    	if (pickedP != 0 && !isA) {
-    		nav += "                    <li><a class=\"linkBtn\" href=\"TimeReportPage\">Reports</a></li>\r\n" +
-    				
-    				"                    <li><a class=\"linkBtn\" href=\"statistics\">Statistics</a></li>\r\n";
+    	if (projectId != 0 && !isAdmin) {
+    		sb.append("<li><a class=\"linkBtn\" href=\"TimeReportPage\">Reports</a></li>");
+    		sb.append("<li><a class=\"linkBtn\" href=\"statistics\">Statistics</a></li>");
     	}
-  
-    	nav +="                    <li><a class=\"linkBtn\" href=\"projects\">Projects</a></li>\r\n" + 
-				"                </ul>\r\n" + 
-				"            </div>\r\n";
-		
-		return nav;
+    	sb.append("</ul>");
+    	sb.append("</div>");
+    	
+		return sb.toString();
     }
     
     protected String alert(String text) {
