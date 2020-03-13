@@ -200,8 +200,8 @@ public abstract class servletBase extends HttpServlet {
 		}
     	
     		
-    	if (pickedP != 0) {
-    		nav += "                    <li><a class=\"linkBtn\" href=\"TimeReportPage\">Reports</a></li>\r\n" + 
+    	if (pickedP != 0 && !isA) {
+    		nav += "                    <li><a class=\"linkBtn\" href=\"TimeReportPage\">Reports</a></li>\r\n" +
     				
     				"                    <li><a class=\"linkBtn\" href=\"statistics\">Statistics</a></li>\r\n";
     	}
