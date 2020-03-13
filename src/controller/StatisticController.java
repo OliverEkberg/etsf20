@@ -126,13 +126,13 @@ public class StatisticController extends servletBase {
 
 			Statistic statistic = null;
 			switch (statsToGet(query, req)) {
-			case 1:
+			case 3:
 				statistic = dbService.getActivityStatistics(projectId, getIdForUser(query), from, to);
 				break;
 			case 2:
 				statistic = dbService.getActivityStatistics(projectId, from, to);
 				break;
-			case 3:
+			case 1:
 				statistic = dbService.getRoleStatistics(projectId, getRoleIdFor(query, roles), from, to);
 				break;
 			case -1:
@@ -175,7 +175,7 @@ public class StatisticController extends servletBase {
 				return role.getRoleId();
 		}
 
-		return 1;
+		return 0;
 	}
 
 	private int getIdForUser(String username) {
