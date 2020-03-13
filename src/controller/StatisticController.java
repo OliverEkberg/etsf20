@@ -187,14 +187,21 @@ public class StatisticController extends servletBase {
     
     
     private int statsToGet(String username, String activity, String role) {
-    	if (username != null && !username.isBlank())
+    	if (username != null && !isBlank(username))
     		return 1;
     	else if(activity != null && activity.equals("yes"))
     		return 2;
-    	else if (role != null && !role.isBlank())
+    	else if (role != null && !isBlank(role))
     		return 3;
     	else
     		return -1;
+    }
+    
+    private Boolean isBlank(String s) {
+    	if (s.length() == 0) {
+    		return true;
+    	}
+    	return false;
     }
 
 		

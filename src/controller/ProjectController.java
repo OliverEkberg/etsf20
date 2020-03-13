@@ -15,8 +15,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sun.beans.introspect.PropertyInfo.Name;
-
 import baseblocksystem.servletBase;
 import database.ActivityType;
 import database.DatabaseService;
@@ -83,9 +81,11 @@ public class ProjectController extends servletBase {
 		String pname = req.getParameter("pname");
 		String delete = req.getParameter("deleteProjectId");
 		String deleteUser = req.getParameter("deleteUserId");
-		String projId = req.getParameter("projectId");
 		String newRole = req.getParameter("newRole");
+		
+		String projId = req.getParameter("projectId");
 		String userId = req.getParameter("userId");
+		
 		String initRole = req.getParameter("role");
 		String projectSelected = req.getParameter("projectSelected");
 		
@@ -99,7 +99,7 @@ public class ProjectController extends servletBase {
 		}
 		
 		
-		if (pname != null && !pname.isEmpty()) {
+		if (pname != null && !isBlank(pname)) {
 		
 			Project project = new Project(1, pname);
 			project = createProject(project);
@@ -114,7 +114,7 @@ public class ProjectController extends servletBase {
 		
 		}
 		
-		if ( delete != null && !delete.isEmpty() && (deleteUser == null || deleteUser.isEmpty())) {
+		if ( delete != null && !isBlank(delete) && (deleteUser == null || isBlank(deleteUser))) {
 			Project projToDelete = plist.stream().filter(p -> p.getName().equals(delete)).findAny().orElse(null);
 			if(projToDelete != null && actionIsAllowed(req, Integer.valueOf(projToDelete.getProjectId()))) {
 				deleteProject(projToDelete.getProjectId());
@@ -125,18 +125,18 @@ public class ProjectController extends servletBase {
 			}
 		}
 		
-		if ((delete != null && !delete.isEmpty()) && (deleteUser != null && !deleteUser.isEmpty()) ) {
+		if ((delete != null && !isBlank(delete)) && (deleteUser != null && !isBlank(deleteUser)) ) {
 			dbService.removeUserFromProject(Integer.parseInt(deleteUser), Integer.parseInt(delete));
 			out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY DELETED USER</p>");
 		}
 		
-		if ( (userId != null && !userId.isEmpty()) && (projId != null && !projId.isEmpty()) && (newRole != null && !newRole.isEmpty()) ) {
+		if ( (userId != null && !isBlank(userId)) && (projId != null && !isBlank(projId)) && (newRole != null && !isBlank(newRole)) ) {
 			int roleId = getRoleIdFor(newRole, roles);
 			dbService.updateUserProjectRole(Integer.parseInt(userId), Integer.parseInt(projId), roleId);
 			out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY UPDATED ROLE TO: " + newRole +  "</p>");
 		}
 		
-		if ((userId != null && !userId.isEmpty()) && (projId != null && !projId.isEmpty()) && (initRole != null && !initRole.isEmpty())) {
+		if ((userId != null && !isBlank(userId)) && (projId != null && !isBlank(projId)) && (initRole != null && !isBlank(initRole))) {
 			List<User> allUsers = dbService.getAllUsers();
 			User user = allUsers.stream().filter(u -> u.getUsername().equals(userId)).findAny().orElse(null);
 			
@@ -164,7 +164,7 @@ public class ProjectController extends servletBase {
 			currentProject = p;
 			out.println("<a href=\"projects\" style=\"padding:36px\">BACK</a>"
 					+ "<h2>Add new user to project:</h2>\r\n" + 
-					"<form>\r\n" + 
+					"<form id=\"user_form\">\r\n" + 
 					"<table id=\"table\">\r\n" + 
 					"<tr>\r\n" + 
 					"<td><label for=\"pname\">enter username:</label>\r\n" + 
@@ -172,7 +172,7 @@ public class ProjectController extends servletBase {
 					"</td>\r\n" +
 					"<td>\r\n" + 
 					"<label for=\"rol_picker\">Pick role:<label>\r\n" + 
-					"<select id=\"rol_picker\" name=\"role\" form=\"user_form1\">\r\n" + 
+					"<select id=\"rol_picker\" name=\"role\" form=\"user_form\">\r\n" + 
 					 getRoleSelectOptions() +
 					"                    </select>\r\n" + 
 					"</td>\r\n" +
@@ -282,6 +282,13 @@ public class ProjectController extends servletBase {
 		}
 		return false;
 	}
+	
+    private Boolean isBlank(String s) {
+    	if (s.length() == 0) {
+    		return true;
+    	}
+    	return false;
+    }
 	
 	private String getUserFormsForProject(Project project) {
 		StringBuilder sbBuilder = new StringBuilder();
