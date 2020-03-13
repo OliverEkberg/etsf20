@@ -29,7 +29,7 @@ import database.User;
  * 
  * Description of the class.
  * 
- * @author Ferit B�lezek ( Enter name if you've messed around with this file ;) )
+ * @author Ferit B�lezek and Dominik Gashi
  * @version 1.0
  * 
  */
