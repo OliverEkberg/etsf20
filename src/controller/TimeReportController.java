@@ -147,7 +147,12 @@ public class TimeReportController extends servletBase {
 
 			out.println(getHeader(req));
 			out.println(getNav(req));
-
+			
+			if (getProjectId(req) == 0) {
+				out.print("<p>Vänligen välj ett projekt först!</p>");
+				return;	
+			}
+			
 			LocalDate d = LocalDate.now();
 			TemporalField woy = WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear(); 
 			int weekNumber = d.get(woy);
