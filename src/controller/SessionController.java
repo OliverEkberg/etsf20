@@ -38,6 +38,7 @@ public class SessionController extends servletBase {
 		PrintWriter out = resp.getWriter();
 		out.println(getHeader(req));
 
+
 		String name = req.getParameter("username"); // get the string that the user entered in the form
 		String password = req.getParameter("password"); // get the entered password
 

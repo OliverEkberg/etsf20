@@ -1,0 +1,161 @@
+
+body {
+    font-family: Arial;
+}
+
+.filter_row {
+    display: flex;
+    vertical-align: middle;
+    margin-left: 36px;
+}
+
+.filter_descriptors_row {
+    display: flex;
+    vertical-align: middle;
+    margin-left: 48px;
+}
+
+.descriptors {
+    opacity: 0.3;
+    font-weight: bold;
+    display: inline;
+    margin-left: 16px;
+}
+
+p {
+    margin: 0;
+}
+
+.credentials_rect {
+    padding: 4px 4px;
+    margin: 4px 0;
+    margin-right: 16px;
+    width: 15vw;
+    height: 34px;
+    display: block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: large;
+    text-align: center;
+}
+
+#stat_title {
+    width: 300px;
+    margin: 36px;
+}
+
+#stat_title_text {
+    font-size: 3rem;
+    color: #2c3e50;
+    letter-spacing: 0.2rem;
+}
+
+#stat_date_picker {
+    width: 400px;
+}
+
+
+#from {
+    padding: 4px 4px;
+    margin: 4px 0;
+    height: 34px;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: large;
+    text-align: center;
+}
+
+#to {
+    padding: 4px 4px;
+    margin: 4px 0;
+    height: 34px;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: large;
+    text-align: center;
+}
+
+.submitBtn {
+    width: 10vw;
+    height: 34px;
+    margin: 22px 16px 4px 4px;
+    background-color: #34495e;
+    color: white;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+}
+
+#act_picker {
+    padding: 5px 4px;
+    margin: 4px 16px 4px 4px;
+    width: 10vw;
+    cursor: pointer;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: large;
+    text-align: center;
+}
+
+#rol_picker {
+    padding: 5px 4px;
+    margin: 4px 16px 4px 4px;
+    width: 10vw;
+    cursor: pointer;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: large;
+    text-align: center;
+}
+
+#stats {
+    font-family: Arial;
+    border-collapse: collapse;
+    width: 60%;
+    margin-left: 7%;
+    margin-bottom: 36px;
+  }
+  
+  #stats td, #stats th {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  
+#stats tr:nth-child(even){
+	background-color: #f2f2f2;
+	}
+  
+  #stats tr:hover {
+  background-color: #ddd;
+  }
+  
+  #stats th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #2c3e50;
+    color: white;
+  }
+  
+ #nothing {
+      text-align: center;
+      margin-top: 10vh;
+      font-size: 40px;
+      opacity: 0.87;
+  }
+  
+ #nothingSub {
+    text-align: center;
+    margin-top: 2vh;
+    font-size: 20px;
+    opacity: 0.4;
+}
