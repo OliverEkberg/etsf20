@@ -45,27 +45,24 @@ public class ProjectController extends servletBase {
 	
 	public ProjectController() {
 		super();
+
 	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		PrintWriter out = resp.getWriter();
-		String sessionInfoUserName = "null";
-		String sessionInfoProjectName = "null";
-		try {
-			sessionInfoUserName = getLoggedInUser(req) == null ? "null" : getLoggedInUser(req).getUsername();
-			int sessionInfoProject = getProjectId(req);
-			Project p = dbService.getProject(sessionInfoProject);
-			if(sessionInfoProject != 0 && p != null)
-				sessionInfoProjectName = p.getName();
-			else
-				sessionInfoProjectName = "null";
 
+		try {
+			if (roles == null)
+				roles = dbService.getAllRoles();
 			
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		
+		
+		
 		
 		out.println("<body>" + "<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/ProjectController.css\">\n");
 		out.println(getHeader(req));
@@ -75,8 +72,13 @@ public class ProjectController extends servletBase {
 				"            <div id=\"bodyContent\">");
 		
 		try {
+			List<Project> plist;
 			
-		List<Project> plist = dbService.getAllProjects(getLoggedInUser(req).getUserId());
+			if (getLoggedInUser(req).isAdmin())
+				plist = dbService.getAllProjects();
+			else
+				plist = dbService.getAllProjects(getLoggedInUser(req).getUserId());
+			
 		
 		String pname = req.getParameter("pname");
 		String delete = req.getParameter("deleteProjectId");
@@ -99,19 +101,16 @@ public class ProjectController extends servletBase {
 		}
 		
 		
-		if (pname != null && !isBlank(pname)) {
+		if (pname != null && !isBlank(pname) && isAdmin(req)) {
 		
 			Project project = new Project(1, pname);
 			project = createProject(project);
-			
-			Role project_leader = dbService.getAllRoles().stream().filter(r -> r.getRole().equals("Projektledare")).findAny().orElse(null);
-			
-			if (project_leader != null) {
-				dbService.addUserToProject(1, project.getProjectId(),project_leader.getRoleId());
+
 				out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY CREATED PROJECT: " + pname + "</p>");
 				plist.add(project);
-			}
 		
+		} else if (pname != null && !isBlank(pname) && !isAdmin(req)) {
+			out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">FAILED TO CREATE PROJECT: REASON: You are not allowed to perform this action. (Only Admins are allowed to create projects)" +  "</p>");
 		}
 		
 		if ( delete != null && !isBlank(delete) && (deleteUser == null || isBlank(deleteUser))) {
@@ -149,8 +148,13 @@ public class ProjectController extends servletBase {
 				if (sameUser == null) {
 					User findUser = allUsers.stream().filter(u -> u.getUsername().equals(userId)).findAny().orElse(null);
 					
-					dbService.addUserToProject(findUser.getUserId(), Integer.parseInt(projId), getRoleIdFor(initRole, roles));
-					out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">ADDED USER: " + userId +  "</p>");
+					if(findUser.isAdmin()) {
+						out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">FAILED TO ADD USER: " + userId + ", reason: Admin users can not be added to projects.</p>");
+					} else {
+						dbService.addUserToProject(findUser.getUserId(), Integer.parseInt(projId), getRoleIdFor(initRole, roles));
+						out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">ADDED USER: " + userId +  "</p>");
+					}
+					
 				} else {
 					out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">FAILED TO ADD USER: " + userId + ", reason: user is already in the project.</p>");
 				}
@@ -168,7 +172,9 @@ public class ProjectController extends servletBase {
 					"<table id=\"table\">\r\n" + 
 					"<tr>\r\n" + 
 					"<td><label for=\"pname\">enter username:</label>\r\n" + 
-					"<input type=\"text\" id=\"pname\" name=\"userId\" pattern=\"^[a-zA-Z0-9]*$\" title=\"Please enter letters and numbers only.\" minlength=\"3\" maxlength=\"20\" required><br><br>\r\n" + 
+					"<select id=\"rol_picker\" name=\"userId\" form=\"user_form\">\r\n" + 
+					getUserSelectOptions() +
+					"                    </select>\r\n" + 
 					"</td>\r\n" +
 					"<td>\r\n" + 
 					"<label for=\"rol_picker\">Pick role:<label>\r\n" + 
@@ -199,16 +205,16 @@ public class ProjectController extends servletBase {
 		}
 		
 		
-		boolean allowed = isProjectLeader(req, getProjectId(req)) || isAdmin(req);
 		
 		out.println("<h2>Projects</h2>\n" +
         "<table id=\"table\">\n" +
           "<tr>\n" +
             "<th>Project Name</th>\n" +
-            (!allowed ? "" :"<th colspan=\"2\"> Settings </th>\n") +
+            ("<th colspan=\"2\"> Settings </th>\n") +
           "</tr>");
 		
 		for(int i = 0; i < plist.size(); i++) {
+			boolean allowed = actionIsAllowed(req, plist.get(i).getProjectId());
 			out.print("<tr>\n" + 
 						"<td><a href=\"projects?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n" + 
 						(!allowed ? "" :"<td><a href=\"projects?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
@@ -271,7 +277,10 @@ public class ProjectController extends servletBase {
 			if (user.isAdmin())
 				return true;
 			else {
-				int val = dbService.getProjectUserIdByUserIdAndProjectId(user.getUserId(), projectId);
+				Role r = dbService.getRole(user.getUserId(), projectId);
+				if (r.getRoleId() == 1) {
+					return true;
+				}
 				
 			}
 			
@@ -289,7 +298,10 @@ public class ProjectController extends servletBase {
     	}
     	return false;
     }
-	
+    
+
+    
+
 	private String getUserFormsForProject(Project project) {
 		StringBuilder sbBuilder = new StringBuilder();
 		try {
@@ -370,6 +382,32 @@ public class ProjectController extends servletBase {
 		return sbBuilder.toString();
 	}
 
+	
+	/**
+	 * Gets the options in HTML format for the roles.
+	 * @return the HTML code for select options.
+	 */
+	private String getUserSelectOptions() {
+		StringBuilder sbBuilder = new StringBuilder();
+		try {
+			List<User> users = dbService.getAllUsers();
+			for (User user : users) {
+				sbBuilder.append("<option value=\"");
+				sbBuilder.append(user.getUsername());
+				sbBuilder.append("\">");
+				sbBuilder.append(user.getUsername());
+				sbBuilder.append("</option>\n");
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+		return sbBuilder.toString();
+	}
 	
 	
 	/**
