@@ -412,7 +412,7 @@ public class StatisticController extends servletBase {
 		
 		sbBuilder.append("<table style=\"margin-bottom:36px\" id=\"stats\">\n");
 		sbBuilder.append("<tr>\n");
-		sbBuilder.append("<th>Total</th>");
+		sbBuilder.append("<th></th>");
 		for (String lbl : statistic.getColumnLabels()) {
 			sbBuilder.append("<th>");
 			sbBuilder.append(lbl);
