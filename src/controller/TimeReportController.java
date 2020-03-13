@@ -53,68 +53,6 @@ public class TimeReportController extends servletBase {
 	}
 
 
-	/**
-	 * Creates a new Activityreport and links it to an existing Timereport for the same week. If no Timereport exists for the given week, one is created
-	 * 
-	 * @param activityTypeId - The int value of the activity type
-	 * @param activitySubTypeId - The int value of the activity subtype
-	 * @param date - The date the activityreport was created
-	 * @param year - The year of the activity
-	 * @param week - The week of the activity
-	 * @param minutes - The amount of minutes spent on the activity
-	 * @param userId - The id of the user who creates the activityreport
-	 * @param projectId - The id of the project in which the activityreport was created.
-	 * @param resp - HttpServletResponse
-	 * @return - The newly created activityreport
-	 * @throws Exception
-	 */
-	private ActivityReport createActivityReport(int activityTypeId, int
-			activitySubTypeId, LocalDate date, int year, int week, int minutes, int userId, int projectId, HttpServletResponse resp) throws Exception {
-
-		TimeReport timereport = null;
-		ActivityReport activityReport = null;
-		int projectUserId = dbService.getProjectUserIdByUserIdAndProjectId(userId, projectId);
-
-		if(dbService.hasTimeReport(week, year, userId, projectId)) {// Does timereport this week and year exist?
-
-			List<TimeReport> allReports = dbService.getTimeReportsByUserAndProject(userId, projectId);	
-			for(TimeReport tr : allReports) { 
-				if(tr.getWeek() == week && tr.getYear() == year) { //Find timereport for this week and year amongst all timereports
-					timereport = tr;
-
-					List<ActivityReport> activityReports = dbService.getActivityReports(tr.getTimeReportId());	//TODO: Använd smidigare databasfunktion 				
-					int totalDateTime = 0;
-
-					for(ActivityReport ar : activityReports) { // Calculate if the activity will overstep the amount of minutes in a day. 
-
-						if(ar.getReportDate().equals(date)) {
-							totalDateTime += ar.getMinutes();
-						}
-					}
-
-					if(totalDateTime + minutes > 1440) {
-						resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
-						return null;
-					}
-
-					if(tr.isFinished() || tr.isSigned()) {
-						resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=timereport-is-signed-or-marked-as-ready-for-signing,-and-cant-be-edited.");
-						return null;
-					}
-				}
-			}
-		}
-		else { //Else - timereport this week and year didnt exist, create one!
-			timereport = dbService.createTimeReport(new TimeReport(0, projectUserId, 0, null, year, week, LocalDateTime.now(), false)); 
-		}
-
-		activityReport = dbService.createActivityReport(new ActivityReport(0, activityTypeId, activitySubTypeId, timereport.getTimeReportId(), date, minutes));
-
-		return activityReport;
-
-	}
-
-
 	@Override
 	/**
 	 * Handles all logic for sending the user between different timereporting pages.	 * 
@@ -124,6 +62,8 @@ public class TimeReportController extends servletBase {
 		try{
 			PrintWriter out = resp.getWriter();
 			User loggedInUser = this.getLoggedInUser(req);	
+			
+			
 
 			String activityType = req.getParameter("activity");
 			String addReportWeek = req.getParameter("addReportWeek");
@@ -149,6 +89,10 @@ public class TimeReportController extends servletBase {
 			out.println(getNav(req));
 			
 			if (loggedInUser == null) {
+				resp.sendRedirect("/BaseBlockSystem/SessionPage");
+			}
+			
+			else if(loggedInUser.isAdmin()) {
 				resp.sendRedirect("/BaseBlockSystem/SessionPage");
 			}
 			
@@ -355,6 +299,69 @@ public class TimeReportController extends servletBase {
 		}
 
 	}
+	
+	
+	/**
+	 * Creates a new Activityreport and links it to an existing Timereport for the same week. If no Timereport exists for the given week, one is created
+	 * 
+	 * @param activityTypeId - The int value of the activity type
+	 * @param activitySubTypeId - The int value of the activity subtype
+	 * @param date - The date the activityreport was created
+	 * @param year - The year of the activity
+	 * @param week - The week of the activity
+	 * @param minutes - The amount of minutes spent on the activity
+	 * @param userId - The id of the user who creates the activityreport
+	 * @param projectId - The id of the project in which the activityreport was created.
+	 * @param resp - HttpServletResponse
+	 * @return - The newly created activityreport
+	 * @throws Exception
+	 */
+	private ActivityReport createActivityReport(int activityTypeId, int
+			activitySubTypeId, LocalDate date, int year, int week, int minutes, int userId, int projectId, HttpServletResponse resp) throws Exception {
+
+		TimeReport timereport = null;
+		ActivityReport activityReport = null;
+		int projectUserId = dbService.getProjectUserIdByUserIdAndProjectId(userId, projectId);
+
+		if(dbService.hasTimeReport(week, year, userId, projectId)) {// Does timereport this week and year exist?
+
+			List<TimeReport> allReports = dbService.getTimeReportsByUserAndProject(userId, projectId);	
+			for(TimeReport tr : allReports) { 
+				if(tr.getWeek() == week && tr.getYear() == year) { //Find timereport for this week and year amongst all timereports
+					timereport = tr;
+
+					List<ActivityReport> activityReports = dbService.getActivityReports(tr.getTimeReportId());	//TODO: Använd smidigare databasfunktion 				
+					int totalDateTime = 0;
+
+					for(ActivityReport ar : activityReports) { // Calculate if the activity will overstep the amount of minutes in a day. 
+
+						if(ar.getReportDate().equals(date)) {
+							totalDateTime += ar.getMinutes();
+						}
+					}
+
+					if(totalDateTime + minutes > 1440) {
+						resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
+						return null;
+					}
+
+					if(tr.isFinished() || tr.isSigned()) {
+						resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=timereport-is-signed-or-marked-as-ready-for-signing,-and-cant-be-edited.");
+						return null;
+					}
+				}
+			}
+		}
+		else { //Else - timereport this week and year didnt exist, create one!
+			timereport = dbService.createTimeReport(new TimeReport(0, projectUserId, 0, null, year, week, LocalDateTime.now(), false)); 
+		}
+
+		activityReport = dbService.createActivityReport(new ActivityReport(0, activityTypeId, activitySubTypeId, timereport.getTimeReportId(), date, minutes));
+
+		return activityReport;
+
+	}
+	
 	/**
 	 * Creates a String containing a HTML page with all users with a link to their corresponding timereport lists
 	 * 
