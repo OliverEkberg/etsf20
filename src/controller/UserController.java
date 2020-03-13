@@ -131,8 +131,6 @@ public class UserController extends servletBase {
 				}
 				out.println(addUserForm());
 
-				out.println("<p><a href =" + addQuotes("functionality.html") + "> Functionality selection page </p>");
-				out.println("<p><a href =" + addQuotes("SessionPage") + "> Log out </p>");
 				out.println("</body></html>");
 
 				String resetName = req.getParameter("resetName");
@@ -173,8 +171,6 @@ public class UserController extends servletBase {
 				}
 				out.println(changePasswordForm());
 
-				out.println("<p><a href =" + addQuotes("functionality.html") + "> Functionality selection page </p>");
-				out.println("<p><a href =" + addQuotes("SessionPage") + "> Log out </p>");
 				out.println("</body></html>");
 
 				String newPassword = req.getParameter("password");
@@ -196,7 +192,6 @@ public class UserController extends servletBase {
 				// Normal user
 				out.println("<h1>User Page" + "</h1>");
 				out.println(changePasswordForm());
-				out.println("<p><a href =" + addQuotes("SessionPage") + "> Log out </p>");
 				String newPassword = req.getParameter("password");
 				if (newPassword != null) {
 					if (checkPassword(newPassword)) {
