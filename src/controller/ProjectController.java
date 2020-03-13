@@ -199,22 +199,25 @@ public class ProjectController extends servletBase {
 		}
 		
 		
+		boolean allowed = isProjectLeader(req, getProjectId(req)) || isAdmin(req);
+		
 		out.println("<h2>Projects</h2>\n" +
         "<table id=\"table\">\n" +
           "<tr>\n" +
             "<th>Project Name</th>\n" +
-          "<th colspan=\"2\"> Settings </th>\n" +
+            (!allowed ? "" :"<th colspan=\"2\"> Settings </th>\n") +
           "</tr>");
 		
 		for(int i = 0; i < plist.size(); i++) {
 			out.print("<tr>\n" + 
 						"<td><a href=\"projects?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n" + 
-						"<td><a href=\"projects?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n" + 
-						"<td><a href=\"projects?deleteProjectId=" + plist.get(i).getName() + "\">delete</a></td>\n" +
+						(!allowed ? "" :"<td><a href=\"projects?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
+						(!allowed ? "" :"<td><a href=\"projects?deleteProjectId=" + plist.get(i).getName() + "\">delete</a></td>\n") +
 					"</tr>\n");
 		}
 		
-		out.println("<button type=\"button\" id=\"myBtn\">create new project</button>\n" + 
+		if (isAdmin(req)) {
+			out.println("<button type=\"button\" id=\"myBtn\">create new project</button>\n" + 
 				"        \n" + 
 				"        \n" + 
 				"        <!-- create-new-project btn popup window -->\n" + 
@@ -247,7 +250,7 @@ public class ProjectController extends servletBase {
 				"            }\n" + 
 				"\n" + 
 				"        </script>");
-		
+		}
 		
 		} catch (Exception e) {
 			e.printStackTrace();

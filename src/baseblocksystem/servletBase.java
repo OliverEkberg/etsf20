@@ -125,9 +125,13 @@ public abstract class servletBase extends HttpServlet {
 	}
     
     protected boolean isProjectLeader(HttpServletRequest request, int projectId) throws Exception {
-    	User loggedInUser = getLoggedInUser(request);
-    	Role role = dbService.getRole(loggedInUser.getUserId(), projectId);
-    	return role.getRoleId() == 1;
+    	try {
+    		User loggedInUser = getLoggedInUser(request);
+        	Role role = dbService.getRole(loggedInUser.getUserId(), projectId);
+        	return role.getRoleId() == 1;
+    	} catch (Exception e) {
+			return false;
+		}
     }
     
     /**
@@ -145,42 +149,66 @@ public abstract class servletBase extends HttpServlet {
      * @return String with html code for the header. 
      */
     protected String getHeader(HttpServletRequest req) {
-    	String header = "<head><title> The Base Block System (TODO) </title></head>";
-		
-		header += " <html><link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/layout.css\">\n"+
-				"<div id=\"headerBar\">\r\n";
+    	StringBuilder sb = new StringBuilder();
+    	sb.append("<head><title>TimeKeep</title></head>");
+    	sb.append("<html><link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/layout.css\">\n");
+    	sb.append("<div id=\"headerBar\">\r\n");
 		
 		if (isLoggedIn(req)) {
 			String userName = "";
-			String project = "";
+
 			try {
 				User u = getLoggedInUser(req);
-				Project p = dbService.getProject(getProjectId(req));
-				project = p.getName();
-				
+				Project project = dbService.getProject(getProjectId(req));
+				String projectName = "none";
+				if (project != null) {
+					projectName = project.getName();
+				}
+	
 				userName = u.getUsername();
+				sb.append("<div id=\"sessionInfo\">");
+				sb.append("<label><b>User: </b>" + userName + "		</label>");
+				sb.append("<label><b>Project: </b>" + projectName + "</label>");
+				sb.append("</div>");
+
 			} catch (Exception e) {
-				
 			}
-			header += "<p id=\"sessionInfo\">"+ userName +" : "+project+"</p>\r\n" + 
-					"<a id=\"logoutbtn\" href=\"SessionPage\">Logout</a>\r\n"; // TODO: Add correct link for logging out
+			sb.append("<a id=\"logoutbtn\" href=\"SessionPage\">Logout</a>\r\n");
 		}
-		header += "</div>\r\n";			
-    	return header;
+		sb.append("</div>\r\n");
+    	return sb.toString();
     }
     
     protected String getNav(HttpServletRequest req) { // TODO: Update this based on roles and admin?
     	String nav = "            <div id=\"navigation\">\r\n" + 
-				"                <ul id=\"menu\">\r\n" + 
-				"                    <li><a class=\"linkBtn\" href=\"TimeReportPage\">My Reports</a></li>\r\n" + 
+				"                <ul id=\"menu\">\r\n";
+    	
+    	try {
+    		if (isProjectLeader(req, getProjectId(req)) || isAdmin(req)) {
+    			nav += "<li><a class=\"linkBtn\" href=\"UserPage\">Users</a></li>\r\n";
+    		}
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    		
+  
+    	nav +=	"                    <li><a class=\"linkBtn\" href=\"TimeReportPage\">Reports</a></li>\r\n" + 
 				"                    <li><a class=\"linkBtn\" href=\"projects\">Projects</a></li>\r\n" + 
-				"                    <li><a class=\"linkBtn\" href=\"TimeReportPage\">New report</a></li>\r\n" + 
 				"                    <li><a class=\"linkBtn\" href=\"statistics\">Statistics</a></li>\r\n" + 
-				"                    <li><a class=\"linkBtn\" href=\"#\" disabled>More</a></li>\r\n" + 
 				"                </ul>\r\n" + 
 				"            </div>\r\n";
 		
 		return nav;
+    }
+    
+    protected String alert(String text) {
+    	StringBuilder sb = new StringBuilder();
+    	sb.append("<script>");
+    	sb.append("alert(\"");
+    	sb.append(text);
+    	sb.append("\");");
+    	sb.append("</script>");
+    	return sb.toString();
     }
     
     protected abstract void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException;

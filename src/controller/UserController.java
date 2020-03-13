@@ -26,19 +26,12 @@ import database.*;
  * @version 1.0
  * 
  */
-//typklar
 @WebServlet("/UserPage")
 public class UserController extends servletBase {
 	private static final int PASSWORD_LENGTH = 6;
 
-	public UserController() {
-		super();
-	}
-
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		// TODO Auto-generated method stub
-		setProjectId(req, 1);
 		PrintWriter out = resp.getWriter();
 		out.println(getHeader(req));
 		out.println(getNav(req));
@@ -79,9 +72,12 @@ public class UserController extends servletBase {
 				String newName = req.getParameter("addname");
 				if (newName != null) {
 					if (checkNewName(newName)) {
-						boolean addPossible = addUser(newName);
-						if (!addPossible)
+						String password = addUser(newName);
+						if (password == null) {
 							out.println("<p>Error: Suggested user name not possible to add</p>");
+						} else {
+							out.println(alert("User added with password: " + password));
+						}
 					} else
 						out.println("<p>Error: Suggested name not allowed</p>");
 				}
@@ -149,8 +145,6 @@ public class UserController extends servletBase {
 					}
 				}
 			} else if (isLeader) {
-				// Project leader
-
 				out.println("<h1>User Page - Project Leader" + "</h1>");
 
 				try {
@@ -229,16 +223,21 @@ public class UserController extends servletBase {
 		User user = dbService.getUserById(reset);
 		String newPassword = generatePassword();
 		user.setPassword(newPassword);
-		String html = "<!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "<script>\n"
-				+ "  alert(\"Password changed to: " + newPassword + " \");\n" + "</script>\n" + "\n" + "</body>\n"
-				+ "</html>\n" + "";
 		dbService.updateUser(user);
-		return html;
-
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("<!DOCTYPE html>");
+		sb.append("<html>");
+		sb.append("<body>");
+		sb.append(alert("Password changed to: " + newPassword));
+		sb.append("</body>");
+		sb.append("</html>");
+		sb.append("<!DOCTYPE html>");
+		sb.append("<!DOCTYPE html>");
+		return sb.toString();
 	}
 
 	public String addUserForm() {
-
 		String html;
 		html = "<p> <form name=" + addQuotes("input");
 		html += " method=" + addQuotes("get");
@@ -249,7 +248,6 @@ public class UserController extends servletBase {
 	}
 
 	public String changePasswordForm() {
-
 		String html;
 		html = "<p> <form name=" + addQuotes("input");
 		html += " method=" + addQuotes("get");
@@ -259,17 +257,16 @@ public class UserController extends servletBase {
 		return html;
 	}
 
-	private boolean addUser(String name) {
-		boolean resultOk = true;
+	private String addUser(String name) {
 		try {
 			String newPassword = generatePassword();
 			User u = new User(0, name, newPassword, false);
 			dbService.createUser(u);
+			return u.getPassword();
 		} catch (Exception err) {
-			resultOk = false;
 			err.printStackTrace();
 		}
-		return resultOk;
+		return null;
 	}
 
 	private void changePassword(String newPassword, User u) throws Exception {
@@ -317,5 +314,4 @@ public class UserController extends servletBase {
 			}
 		return isOk;
 	}
-
 }
