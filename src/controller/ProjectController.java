@@ -204,7 +204,7 @@ public class ProjectController extends servletBase {
 			out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">ACTION NOT ALLOWED: " + ", reason: You are not an admin or a projectleader for this project.</p>");
 		}
 		
-		
+		boolean allowed;
 		
 		out.println("<h2>Projects</h2>\n" +
         "<table id=\"table\">\n" +
@@ -214,11 +214,11 @@ public class ProjectController extends servletBase {
           "</tr>");
 		
 		for(int i = 0; i < plist.size(); i++) {
-			boolean allowed = actionIsAllowed(req, plist.get(i).getProjectId());
+			allowed = actionIsAllowed(req, plist.get(i).getProjectId());
 			out.print("<tr>\n" + 
 						"<td><a href=\"projects?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n" + 
-						(!allowed ? "" :"<td><a href=\"projects?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
-						(!allowed ? "" :"<td><a href=\"projects?deleteProjectId=" + plist.get(i).getName() + "\">delete</a></td>\n") +
+						(!allowed ? "<td></td>" :"<td><a href=\"projects?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
+						(!allowed ? "<td></td>" :"<td><a href=\"projects?deleteProjectId=" + plist.get(i).getName() + "\">delete</a></td>\n") +
 					"</tr>\n");
 		}
 		
@@ -298,9 +298,6 @@ public class ProjectController extends servletBase {
     	}
     	return false;
     }
-    
-
-    
 
 	private String getUserFormsForProject(Project project) {
 		StringBuilder sbBuilder = new StringBuilder();

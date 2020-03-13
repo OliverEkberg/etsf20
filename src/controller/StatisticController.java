@@ -152,7 +152,10 @@ public class StatisticController extends servletBase {
 			if (user.isAdmin())
 				return true;
 			else {
-				int val = dbService.getProjectUserIdByUserIdAndProjectId(user.getUserId(), projectId);
+				Role r = dbService.getRole(user.getUserId(), projectId);
+				if (r.getRoleId() == 1) {
+					return true;
+				}
 				
 			}
 			
@@ -342,11 +345,11 @@ public class StatisticController extends servletBase {
 		StringBuilder sbBuilder = new StringBuilder();
 		
 		try {
-			//if(getLoggedInUser(req) == null)
-				//return sbBuilder.toString();
+			if(getLoggedInUser(req) == null)
+				return sbBuilder.toString();
 			
-			//List<Project> projects = dbService.getAllProjects(getLoggedInUser(req).getUserId()); // TODO: TEST FOR ID 1
-			activeProjects = dbService.getAllProjects(1);
+			activeProjects = dbService.getAllProjects(getLoggedInUser(req).getUserId());
+
 			for (Project project : activeProjects) {
 				sbBuilder.append("<option value=\"");
 				sbBuilder.append(project.getName());
