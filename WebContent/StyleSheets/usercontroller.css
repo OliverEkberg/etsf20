@@ -3,6 +3,12 @@ body {
     font-family: Arial;
 }
 
+#user_title_text {
+    font-size: 3rem;
+    color: #2c3e50;
+    letter-spacing: 0.2rem;
+}
+
 #submitBtn {
     width: 10vw;
     height: 34px;

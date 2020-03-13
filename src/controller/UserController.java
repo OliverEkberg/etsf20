@@ -69,7 +69,7 @@ public class UserController extends servletBase {
 
 			if (loggedInUser.isAdmin()) {
 				// Admin page
-				out.println("<h1>User Page - Admin" + "</h1>");
+				out.println("<p id=\"user_title_text\">Users</p>");
 
 				// check if the administrator wants to add a new user in the form
 				String newName = req.getParameter("addname");

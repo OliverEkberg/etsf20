@@ -6,6 +6,13 @@ table {
     width: 80%;
     position: relative;
 }
+
+#report_title_text {
+    font-size: 3rem;
+    color: #2c3e50;
+    letter-spacing: 0.2rem;
+}
+
 #report-table th {
     padding-top: 12px;
     padding-bottom: 12px;

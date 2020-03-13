@@ -1,6 +1,13 @@
 body{
 	font-family: arial;
 }
+
+#project_title_text {
+    font-size: 3rem;
+    color: #2c3e50;
+    letter-spacing: 0.2rem;
+}
+
 h2 {
   font-family: arial;
 }

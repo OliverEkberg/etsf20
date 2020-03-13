@@ -215,7 +215,7 @@ public class ProjectController extends servletBase {
 		
 		boolean allowed;
 		
-		out.println("<h2>Projects</h2>\n" +
+		out.println("<p id=\"project_title_text\">Projects</p>\n" +
         "<table id=\"table\">\n" +
           "<tr>\n" +
             "<th>Project Name</th>\n" +

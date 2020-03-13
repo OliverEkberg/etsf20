@@ -89,6 +89,7 @@ public class TimeReportController extends servletBase {
 			out.println("<body>");
 			out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/TimeReportController.css\">\n");
 			out.println(getNav(req));
+			out.println("<p id=\"report_title_text\">Reports</p>");
 			
 			if (loggedInUser == null) {
 				resp.sendRedirect("/BaseBlockSystem/SessionPage");
