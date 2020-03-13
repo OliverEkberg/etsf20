@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * Description of the class.
  * 
- * @author Linus, Sebastian, André
+ * @author Linus, Sebastian, Andr�
  *         
  * @version 1.0
  * 
@@ -53,68 +53,6 @@ public class TimeReportController extends servletBase {
 	}
 
 
-	/**
-	 * Creates a new Activityreport and links it to an existing Timereport for the same week. If no Timereport exists for the given week, one is created
-	 * 
-	 * @param activityTypeId - The int value of the activity type
-	 * @param activitySubTypeId - The int value of the activity subtype
-	 * @param date - The date the activityreport was created
-	 * @param year - The year of the activity
-	 * @param week - The week of the activity
-	 * @param minutes - The amount of minutes spent on the activity
-	 * @param userId - The id of the user who creates the activityreport
-	 * @param projectId - The id of the project in which the activityreport was created.
-	 * @param resp - HttpServletResponse
-	 * @return - The newly created activityreport
-	 * @throws Exception
-	 */
-	private ActivityReport createActivityReport(int activityTypeId, int
-			activitySubTypeId, LocalDate date, int year, int week, int minutes, int userId, int projectId, HttpServletResponse resp) throws Exception {
-
-		TimeReport timereport = null;
-		ActivityReport activityReport = null;
-		int projectUserId = dbService.getProjectUserIdByUserIdAndProjectId(userId, projectId);
-
-		if(dbService.hasTimeReport(week, year, userId, projectId)) {// Does timereport this week and year exist?
-
-			List<TimeReport> allReports = dbService.getTimeReportsByUserAndProject(userId, projectId);	
-			for(TimeReport tr : allReports) { 
-				if(tr.getWeek() == week && tr.getYear() == year) { //Find timereport for this week and year amongst all timereports
-					timereport = tr;
-
-					List<ActivityReport> activityReports = dbService.getActivityReports(tr.getTimeReportId());	//TODO: Använd smidigare databasfunktion 				
-					int totalDateTime = 0;
-
-					for(ActivityReport ar : activityReports) { // Calculate if the activity will overstep the amount of minutes in a day. 
-
-						if(ar.getReportDate().equals(date)) {
-							totalDateTime += ar.getMinutes();
-						}
-					}
-
-					if(totalDateTime + minutes > 1440) {
-						resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=antal-minuter-passerar-daglig-maximal-inmatning");
-						return null;
-					}
-
-					if(tr.isFinished() || tr.isSigned()) {
-						new Exception("Tidrapport är signerad eller markerad som färdig och kan inte ändras!"); 
-						return null;
-					}
-				}
-			}
-		}
-		else { //Else - timereport this week and year didnt exist, create one!
-			timereport = dbService.createTimeReport(new TimeReport(0, projectUserId, 0, null, year, week, LocalDateTime.now(), false)); 
-		}
-
-		activityReport = dbService.createActivityReport(new ActivityReport(0, activityTypeId, activitySubTypeId, timereport.getTimeReportId(), date, minutes));
-
-		return activityReport;
-
-	}
-
-
 	@Override
 	/**
 	 * Handles all logic for sending the user between different timereporting pages.	 * 
@@ -124,6 +62,8 @@ public class TimeReportController extends servletBase {
 		try{
 			PrintWriter out = resp.getWriter();
 			User loggedInUser = this.getLoggedInUser(req);	
+			
+			
 
 			String activityType = req.getParameter("activity");
 			String addReportWeek = req.getParameter("addReportWeek");
@@ -152,8 +92,12 @@ public class TimeReportController extends servletBase {
 				resp.sendRedirect("/BaseBlockSystem/SessionPage");
 			}
 			
+			else if(loggedInUser.isAdmin()) {
+				resp.sendRedirect("/BaseBlockSystem/SessionPage");
+			}
+			
 			if (getProjectId(req) == 0) {
-				out.print("<p>Vänligen välj ett projekt först!</p>");
+				out.print("<p>Please choose a project first!</p>");
 				return;	
 			}
 			
@@ -169,7 +113,7 @@ public class TimeReportController extends servletBase {
 
 			if(addReportWeek != null && addReportYear != null && Integer.parseInt(addReportYear) == LocalDate.now().getYear() && Integer.parseInt(addReportWeek) > weekNumber) {
 
-				resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=kan-inte-skapa-raport-i-framtiden");
+				resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=cant-create-timereport-in-the-future");
 				return;
 			}
 
@@ -178,7 +122,7 @@ public class TimeReportController extends servletBase {
 
 				if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > 1440) { 
 
-					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?tid-kan-bara-vara-heltal-mellan-0-och-1440");
+					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?time-can-only-be-a-number-between-1-and-1440");
 					return;
 
 				}
@@ -203,7 +147,7 @@ public class TimeReportController extends servletBase {
 						Integer.parseInt(timeSpent),  loggedInUser.getUserId(),  this.getProjectId(req), resp); 
 
 				if(activityReport == null) {
-					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=aktivitetsrapport-kunde-ej-skapas");
+					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=activity-report-could-not-be-created");
 					return;
 				}
 
@@ -266,7 +210,7 @@ public class TimeReportController extends servletBase {
 				}
 
 				else {
-					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=Endast projektledare kan signera en rapport");
+					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=only-a-projectleader-can-sign-a-timereport");
 				}
 			}
 
@@ -328,7 +272,7 @@ public class TimeReportController extends servletBase {
 					return;
 				}
 				else {
-					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=kan-inte-skapa-rapport-i-framtiden-eller-bak-i-tiden");
+					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=cant-create-timereport-in-the-future-or-before-week-0");
 				}
 
 			}
@@ -347,14 +291,77 @@ public class TimeReportController extends servletBase {
 		}
 
 		catch (NumberFormatException e) {
-			resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=otippat-error");
+			resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=unexpected-error");
 			e.printStackTrace(); 
 		} catch (Exception e) {
-			resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=otippat-error");
+			resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=unexpected-error");
 			e.printStackTrace();
 		}
 
 	}
+	
+	
+	/**
+	 * Creates a new Activityreport and links it to an existing Timereport for the same week. If no Timereport exists for the given week, one is created
+	 * 
+	 * @param activityTypeId - The int value of the activity type
+	 * @param activitySubTypeId - The int value of the activity subtype
+	 * @param date - The date the activityreport was created
+	 * @param year - The year of the activity
+	 * @param week - The week of the activity
+	 * @param minutes - The amount of minutes spent on the activity
+	 * @param userId - The id of the user who creates the activityreport
+	 * @param projectId - The id of the project in which the activityreport was created.
+	 * @param resp - HttpServletResponse
+	 * @return - The newly created activityreport
+	 * @throws Exception
+	 */
+	private ActivityReport createActivityReport(int activityTypeId, int
+			activitySubTypeId, LocalDate date, int year, int week, int minutes, int userId, int projectId, HttpServletResponse resp) throws Exception {
+
+		TimeReport timereport = null;
+		ActivityReport activityReport = null;
+		int projectUserId = dbService.getProjectUserIdByUserIdAndProjectId(userId, projectId);
+
+		if(dbService.hasTimeReport(week, year, userId, projectId)) {// Does timereport this week and year exist?
+
+			List<TimeReport> allReports = dbService.getTimeReportsByUserAndProject(userId, projectId);	
+			for(TimeReport tr : allReports) { 
+				if(tr.getWeek() == week && tr.getYear() == year) { //Find timereport for this week and year amongst all timereports
+					timereport = tr;
+
+					List<ActivityReport> activityReports = dbService.getActivityReports(tr.getTimeReportId());	//TODO: Anv�nd smidigare databasfunktion 				
+					int totalDateTime = 0;
+
+					for(ActivityReport ar : activityReports) { // Calculate if the activity will overstep the amount of minutes in a day. 
+
+						if(ar.getReportDate().equals(date)) {
+							totalDateTime += ar.getMinutes();
+						}
+					}
+
+					if(totalDateTime + minutes > 1440) {
+						resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
+						return null;
+					}
+
+					if(tr.isFinished() || tr.isSigned()) {
+						resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=timereport-is-signed-or-marked-as-ready-for-signing,-and-cant-be-edited.");
+						return null;
+					}
+				}
+			}
+		}
+		else { //Else - timereport this week and year didnt exist, create one!
+			timereport = dbService.createTimeReport(new TimeReport(0, projectUserId, 0, null, year, week, LocalDateTime.now(), false)); 
+		}
+
+		activityReport = dbService.createActivityReport(new ActivityReport(0, activityTypeId, activitySubTypeId, timereport.getTimeReportId(), date, minutes));
+
+		return activityReport;
+
+	}
+	
 	/**
 	 * Creates a String containing a HTML page with all users with a link to their corresponding timereport lists
 	 * 
@@ -366,8 +373,8 @@ public class TimeReportController extends servletBase {
 
 		List<User> userList = dbService.getAllUsers(this.getProjectId(req));
 
-		String html = "<table width=\"600\" border=\"2\">\r\n" + "<tr>\r\n" + "<td> Användarnamn </td>\r\n"
-				+ "<td> Se användares tidrapporter </td>\r\n"+ 
+		String html = "<table width=\"600\" border=\"2\">\r\n" + "<tr>\r\n" + "<td> Username </td>\r\n"
+				+ "<td> View users timereports </td>\r\n"+ 
 				"</td>\r\n";
 
 		for(User u : userList) {
@@ -375,7 +382,7 @@ public class TimeReportController extends servletBase {
 			html +=   "<tr>\r\n" 
 					+ "<td>" + u.getUsername()+ "</td>\r\n"+
 					"<td> <form action=\"TimeReportPage?showUserPage="+u.getUserId()+"\" method=\"get\"> "
-					+ "<button name=\"showUserPage\" type=\"submit\" value=\"" +u.getUserId() + "\"> Välj </button> </form> </td> \r\n";
+					+ "<button name=\"showUserPage\" type=\"submit\" value=\"" +u.getUserId() + "\"> Select </button> </form> </td> \r\n";
 		}
 
 		html += "</tr>\r\n" + "</table>"; //Ends the HTML table
@@ -401,13 +408,13 @@ public class TimeReportController extends servletBase {
 		//Table start
 		html += "<table width=\"400\" border=\"2\">\r\n" 
 				+ "<tr>\r\n" 
-				+ "<td> År </td>\r\n"
-				+ "<td> Vecka </td>\r\n"
-				+ "<td> Användarnamn </td>\r\n"
+				+ "<td> Year </td>\r\n"
+				+ "<td> Week </td>\r\n"
+				+ "<td> Username </td>\r\n"
 				+ "<td> Timespent(minutes) </td>\r\n" 
 				+ "<td> Status </td>\r\n" 
-				+ "<td> Välj tidrapport </td>\r\n"
-				+ "<td> Ta bort tidrapport </td>\r\n";
+				+ "<td> Select Timereport </td>\r\n"
+				+ "<td> Remove Timereport </td>\r\n";
 
 		for (TimeReport tr : timeReportList) {
 
@@ -419,9 +426,9 @@ public class TimeReportController extends servletBase {
 				String reportOwner = dbService.getUserByTimeReportId(tr.getTimeReportId()).getUsername();
 
 				if (tr.isSigned()) { // get isSigned or not
-					signed = "Signerad";
+					signed = "Signed";
 				} else {
-					signed = "Ej signerad";
+					signed = "Unsigned";
 				}
 
 
@@ -432,7 +439,7 @@ public class TimeReportController extends servletBase {
 						"<td>" + timeReportTotalTime + "</td>\r\n" + "<td>" + signed + "</td>\r\n"
 						+ "<td> <form action=\"TimeReportPage?timeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
 						+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() 
-						+ "\"> Välj </button>  </form> </td> \r\n";
+						+ "\"> Select </button>  </form> </td> \r\n";
 
 				html += "</tr>\r\n";
 			}
@@ -472,9 +479,9 @@ public class TimeReportController extends servletBase {
 		//HTML table start and header.
 		html +=  "<table width=\"600\" border=\"2\">\r\n" 
 				+ "<tr>\r\n" 
-				+ "<td> Datum </td>\r\n"
-				+ "<td> Aktivitetstyp </td>\r\n" + "<td> Subtyp </td>\r\n" + "<td> Minuter </td>\r\n"
-				+ "<td> Ta bort aktivitetsrapport </td>\r\n";
+				+ "<td> Date </td>\r\n"
+				+ "<td> Activitytype</td>\r\n" + "<td> Subtype </td>\r\n" + "<td> Minutes </td>\r\n"
+				+ "<td> Remove activity report </td>\r\n";
 
 		List<ActivityReport> activityReports = dbService.getActivityReports(timeReportId);
 		List<ActivityType> activityTypes = dbService.getActivityTypes();
@@ -501,7 +508,7 @@ public class TimeReportController extends servletBase {
 				html += "<td> <form action=\"TimeReportPage?deleteActivityReportId=\""+aReport.getActivityReportId()+"&timeReportId=\"" + timeReportId + "\" method=\"get\">\r\n" + 
 						"		<input name=\"deleteActivityReportId\" type=\"hidden\" value=\""+aReport.getActivityReportId()+"\"></input>\r\n" + 
 						" <input name=\"timeReportId\" type=\"hidden\" value=\""+timeReportId+"\"></input>\r\n" + 
-						"		<input type=\"submit\" value=\"Ta bort\"></input>\r\n" + 
+						"		<input type=\"submit\" value=\"Remove\"></input>\r\n" + 
 						"	</td> \r\n"
 						+ "</form>";
 
@@ -518,16 +525,16 @@ public class TimeReportController extends servletBase {
 
 			if(reportIsSigned) {
 				html += "<form method=\"get\"> <button name=\"timeReportIdToUnsign\" type=\"submit\" value=\"" + timeReport.getTimeReportId() 
-				+ "\"> Avsignera </button>  </form> \r\n" ;
+				+ "\"> Unsign </button>  </form> \r\n" ;
 			}
 
 			else if(!reportIsSigned && reportIsFinished) {
 				html += "<form method=\"get\"> <button name=\"timeReportIdToSign\" type=\"submit\" value=\"" + timeReport.getTimeReportId() 
-				+ "\"> Signera </button>  </form> \r\n";
+				+ "\"> Sign </button>  </form> \r\n";
 			}
 
 			else if(!reportIsSigned && !reportIsFinished) {
-				html += "<body> Rapporten är inte markerad som redo för signering. </body> \r\n";
+				html += "<body> Report is not marked as ready for signing </body> \r\n";
 			}
 		}
 
@@ -539,13 +546,13 @@ public class TimeReportController extends servletBase {
 					"		<input name=\"addReportWeek\" type=\"hidden\" value=\""+timeReport.getWeek()+"\"></input>\r\n" + 
 					" <input name=\"timeReportId\" type=\"hidden\" value=\""+timeReportId+"\"></input>\r\n" + 
 					" <input name=\"addReportYear\" type=\"hidden\" value=\""+timeReport.getYear()+"\"></input>\r\n" + 
-					"		<input type=\"submit\" value=\"Lägg till ny aktivitet.\"></input>\r\n" + 
+					"		<input type=\"submit\" value=\"Add new activity\"></input>\r\n" + 
 					"	</form>";
 
 			//Button - Mark activity report as finished
 			html +=	"<td> <form action = \"TimeReportPage?timeReportFinishedId=\""+timeReport.getTimeReportId()+"\" method=\"get\"> <button name=\"timeReportFinishedId\" type=\"submit\" value=\"" 
 					+ timeReport.getTimeReportId() 
-					+ "\"> Markera tidrapport som redo för signering. </button>  </form> \r\n";										
+					+ "\"> Mark timereport as ready for signing </button>  </form> \r\n";										
 		}
 
 		//If timerport owner is the one logged in and looking at this screen AND timereport IS! marked and finished and not signed.
@@ -553,7 +560,7 @@ public class TimeReportController extends servletBase {
 
 			//Button - Unmark activity report as finished
 			html +=	"<td> <form action = \"TimeReportPage?timeReportNotFinishedId=\""+timeReport.getTimeReportId()+"\" method=\"get\"> <button name=\"timeReportNotFinishedId\" type=\"submit\" value=\"" + timeReport.getTimeReportId() 
-			+ "\"> Avmarkera tidrapport som redo för signering. </button>  </form> \r\n";		
+			+ "\"> Unmark </button>  </form> \r\n";		
 		}
 
 		return html;
@@ -622,7 +629,7 @@ public class TimeReportController extends servletBase {
 
 		//if there are no timereports for the specified user.
 		if(userTimeReports.isEmpty()) {
-			html += "<body> Inga tidsrapporter finns för den valda användaren </body>\r\n";
+			html += "<body> No timereports exist for the selected user </body>\r\n";
 		}
 
 		//Else start building the HTML table
@@ -631,12 +638,12 @@ public class TimeReportController extends servletBase {
 			//Html table start and header
 			html += "<table width=\"600\" border=\"2\">\r\n" 
 					+ "<tr>\r\n" 
-					+ "<td> År </td>\r\n"
-					+ "<td> Vecka </td>\r\n"
-					+ "<td> Tidspenderad (minuter) </td>\r\n" 
+					+ "<td> Year </td>\r\n"
+					+ "<td> Week </td>\r\n"
+					+ "<td> Timespent (minuter) </td>\r\n" 
 					+ "<td> Status </td>\r\n" 
-					+ "<td> Välj tidrapport </td>\r\n"
-					+ "<td> Ta bort tidrapport </td>\r\n";
+					+ "<td> Select timereport </td>\r\n"
+					+ "<td> Remove timereport </td>\r\n";
 
 			//Adds all timereports into the table
 			for (TimeReport tr : userTimeReports) {
@@ -646,9 +653,9 @@ public class TimeReportController extends servletBase {
 
 				//get String representation of signed/unsigned
 				if (tr.isSigned()) {
-					signed = "Signerad";
+					signed = "Signed";
 				} else {
-					signed = "Ej signerad";
+					signed = "Unsigned";
 				}
 
 				//Add timereport information into table
@@ -658,12 +665,12 @@ public class TimeReportController extends servletBase {
 						"<td>" + signed + "</td>\r\n"
 						+ "<td> <form action=\"TimeReportPage?timeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
 						+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() 
-						+ "\"> Välj </button>  </form> </td> \r\n";
+						+ "\"> Select </button>  </form> </td> \r\n";
 
 				//If timereport isn't signed, and the report owner is the one browsing, a button for deleting it should be visible
 				if(!tr.isSigned() && isUserLoggedInUser(user, req)) { 
 					html += "<td> <form action=\"TimeReportPage?deleteTimeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
-							+ "<button name=\"deleteTimeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() + "\"> Ta bort </button> </form> </td> \r\n";
+							+ "<button name=\"deleteTimeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() + "\"> Remove </button> </form> </td> \r\n";
 				}
 
 				html += "</tr>\r\n";
@@ -684,13 +691,13 @@ public class TimeReportController extends servletBase {
 						"<!DOCTYPE html>\r\n" + 
 						"<html>\r\n"	
 						+ " <form id=\"filter_form\" method=\"get\">\r\n" 
-						+ "             Skapa tidrapport för: \r\n"
+						+ "             Create timereport for: \r\n"
 						+ "                <div id=\"selectWeek\">\r\n"
 						+ "                    <select id=\"addReportWeek\" name=\"addReportWeek\" form=\"filter_form\">\r\n";
 				//Week selection dropdown list
 				for(int i = 1; i < 54; i++) {
 
-					html += "<option value=" + i + ">Vecka: " + i + " </option>\r\n";
+					html += "<option value=" + i + ">Week: " + i + " </option>\r\n";
 				}
 
 				html += "</select>\r\n  </div>\r\n"
@@ -698,14 +705,14 @@ public class TimeReportController extends servletBase {
 						+ "                    <select id=\"addReportYear\" name=\"addReportYear\" form=\"filter_form\">\r\n";
 				//Year selection dropdown list
 				for(int i = 2020; i <= d.getYear(); i++) {	
-					html += "                        <option value="+i+">År: "+i+"</option>\r\n";
+					html += "                        <option value="+i+">Year: "+i+"</option>\r\n";
 				}
 
 				//Adds "Create" button
 				html += "            </select>\r\n" 
 						+ "              </div>\r\n"						
 						+ "            </div>\r\n"
-						+ "			  <input type=\"submit\" value=\"Skapa tidrapport\" >\r\n"
+						+ "			  <input type=\"submit\" value=\"Create timereport\" >\r\n"
 						+ "           </form>"
 						+ "          </html>";
 			}
@@ -720,14 +727,14 @@ public class TimeReportController extends servletBase {
 						"<!DOCTYPE html>\r\n" + 
 						"<html>\r\n"	
 						+ " <form id=\"getAllReports\" method=\"get\">\r\n" 
-						+ "             Hämta alla tidsrapporter för detta projektet för: \r\n"
+						+ "          Get all timereports for this project for: \r\n"
 						+ "                <div id=\"selectWeek\">\r\n"
 						+ "                    <select id=\"getReportsWeek\" name=\"getReportsWeek\" form=\"getAllReports\">\r\n";
 
 				//Week dropdown list
 				for(int i = 1; i < 54; i++) {
 
-					html += "<option value=" + i + ">Vecka: " + i + " </option>\r\n";
+					html += "<option value=" + i + ">Week: " + i + " </option>\r\n";
 				}
 
 				html += "</select>\r\n  </div>\r\n"
@@ -735,23 +742,23 @@ public class TimeReportController extends servletBase {
 						+ "                    <select id=\"getReportsYear\" name=\"getReportsYear\" form=\"getAllReports\">\r\n";
 				//Year dropdown list
 				for(int i = 2020; i <= d.getYear(); i++) {	
-					html += "                        <option value="+i+">År: "+i+"</option>\r\n";
+					html += "                        <option value="+i+">Year: "+i+"</option>\r\n";
 				}
 
 				//Button for retrieving timereports.
 				html += "            </select>\r\n" 
 						+ "              </div>\r\n"						
 						+ "            </div>\r\n"
-						+ "			  <input type=\"submit\" value=\"Hämta tidsrapporter\" >\r\n"
+						+ "			  <input type=\"submit\" value=\"Get timereports\" >\r\n"
 						+ "           </form>"
 						+ "          </html>";
 
 				//Button for showing all unsigned reports and showing all users.
 				html += "<form action=\"TimeReportPage?showAllUnsignedReports\" metod=\"get\">\r\n" + 
-						"  <input name=\"showAllUnsignedReports\" type=\"submit\" value=\"Visa alla osignerade tidrapporter\" >\r\n" + 
+						"  <input name=\"showAllUnsignedReports\" type=\"submit\" value=\"Show all unsigned timereports\" >\r\n" + 
 						"</form>\r\n"+
 						"<form action=\"TimeReportPage?showAllUsers\" metod=\"get\">\r\n" + 
-						"  <input name=\"showAllUsers\" type=\"submit\" value=\"Visa alla användare\" >\r\n" + 
+						"  <input name=\"showAllUsers\" type=\"submit\" value=\"Show all users\" >\r\n" + 
 						"</form>"
 						+ "<br>";
 			}
@@ -774,7 +781,7 @@ public class TimeReportController extends servletBase {
 
 		try {
 			if(!isProjectLeader(req)) {
-				resp.sendRedirect("/BaseBlockSystem/TimeReportPage?endast-en-projektledare-ska-kunna-se-denna-vyn");
+				resp.sendRedirect("/BaseBlockSystem/TimeReportPage?only-a-projectleader-should-be-able-to-access-this-view");
 			}
 
 
@@ -793,17 +800,17 @@ public class TimeReportController extends servletBase {
 			//if there are none, write it out
 			if(unsignedTimeReports.isEmpty()) {
 
-				html += "<body> Det finns inga osignerade tidrapporter i systemet!</body>";
+				html += "<body> There are no unsigned timereports in the project!</body>";
 			}
 
 			//HTML table init and head
 			html = "<table width=\"400\" border=\"2\">\r\n" 
 					+ "<tr>\r\n" 
-					+ "<td> Vecka </td>\r\n"
-					+ "<td> Användarnamn </td>\r\n"
-					+ "<td> Tid spenderad (minuter) </td>\r\n" 
+					+ "<td> Week </td>\r\n"
+					+ "<td> Username </td>\r\n"
+					+ "<td> Timespent(minutes) </td>\r\n" 
 					+ "<td> Status </td>\r\n" 
-					+ "<td> Välj tidrapport </td>\r\n";
+					+ "<td> Select timereport </td>\r\n";
 
 			//For all unsigned timereports, add info to table
 			for (TimeReport tr : unsignedTimeReports) {
@@ -812,9 +819,9 @@ public class TimeReportController extends servletBase {
 				String signed;
 
 				if (tr.isSigned()) {
-					signed = "Signerad";
+					signed = "Signed";
 				} else {
-					signed = "Ej signerad";
+					signed = "Unsigned";
 				}
 
 				User trOwner = dbService.getUserByTimeReportId(tr.getTimeReportId());
@@ -824,7 +831,7 @@ public class TimeReportController extends servletBase {
 						"<td>" + trOwner.getUsername() + "</td>\r\n" +
 						"<td>" + timeReportTotalTime + "</td>\r\n"
 						+ "<td>" + signed + "</td>\r\n" //Should be "Ej signerad" for all reports
-						+ "<td> <form method=\"get\"> <button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() + "\"> Välj </button> </form> \r\n"
+						+ "<td> <form method=\"get\"> <button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() + "\"> Select </button> </form> \r\n"
 						+ "</td>\r\n" + "</tr>\r\n";
 
 			}
@@ -895,7 +902,7 @@ public class TimeReportController extends servletBase {
 		return "<!--square.html-->\r\n" + 
 		"<!DOCTYPE html>\r\n" + 
 		"<html>\r\n"	
-		+ " <form id=\"filter_form\" method=\"get\">\r\n" + "                 Aktivitetstyp\r\n"
+		+ " <form id=\"filter_form\" method=\"get\">\r\n" + "                 Activity type\r\n"
 		+ "                <div id=\"activity_picker\">\r\n"
 		+ "                    <select id=\"act_picker_1\" name=\"activity\" form=\"filter_form\">\r\n" //Activity picker
 		+ "                        <option value=11>SDP</option>\r\n"
@@ -910,14 +917,14 @@ public class TimeReportController extends servletBase {
 		+ "                        <option value=21>Funktionstest</option>\r\n"
 		+ "                        <option value=22>Systemtest</option>\r\n"
 		+ "                        <option value=23>Regressionstest</option>\r\n"
-		+ "                        <option value=30>Möte</option>\r\n"
-		+ "                        <option value=41>Föreläsning</option>\r\n"
-		+ "                        <option value=42>Övning</option>\r\n"
-		+ "                        <option value=43>Terminalövning</option>\r\n"
-		+ "                        <option value=44>Självstudier</option>\r\n"
-		+ "                        <option value=100>Övrigt</option>\r\n"
+		+ "                        <option value=30>M�te</option>\r\n"
+		+ "                        <option value=41>F�rel�sning</option>\r\n"
+		+ "                        <option value=42>�vning</option>\r\n"
+		+ "                        <option value=43>Terminal�vning</option>\r\n"
+		+ "                        <option value=44>Sj�lvstudier</option>\r\n"
+		+ "                        <option value=100>�vrigt</option>\r\n"
 		+ "                      </select>\r\n" + "                </div>\r\n" + "            </div>\r\n"
-		+ "            <div id=\"subTypes\">\r\n" + "                <p class=\"descriptors\">Aktivitet subtyp</p>\r\n" //Activity subtype picker
+		+ "            <div id=\"subTypes\">\r\n" + "                <p class=\"descriptors\">Activity Subtype</p>\r\n" //Activity subtype picker
 		+ "                <div id=\"activity_picker\">\r\n"
 		+ "                    <select id=\"act_picker_2\" name=\"subType\" form=\"filter_form\">\r\n"
 		+ "                        <option value=\"U\">U</option>\r\n"
@@ -938,15 +945,15 @@ public class TimeReportController extends servletBase {
 		+ "</script>"
 
 				//Hidden values, submit button and time input field
-				+ "                <p class=\"descriptors\">Tid spenderad (i minuter) </p>\r\n"
+				+ "                <p class=\"descriptors\">Timespent(minutes) </p>\r\n"
 				+ "                <div id=\"activity_picker\">\r\n" + "				</div>"
-				+ "              <input class=\"credentials_rect\" type=\"number\" id=\"timeSpent\" name=\"timeSpent\" min=\"1\" max=\"1440\" pattern=\"^[0-9]*$\" title=\"Please enter numbers only.\" maxlength=\"4\" placeholder=\"Tid Spenderad\" required><br>\r\n"
+				+ "              <input class=\"credentials_rect\" type=\"number\" id=\"timeSpent\" name=\"timeSpent\" min=\"1\" max=\"1440\" pattern=\"^[0-9]*$\" title=\"Please enter numbers only.\" maxlength=\"4\" placeholder=\"Timespent\" required><br>\r\n"
 				+ "		<input name=\"addReportWeek\" type=\"hidden\" value=\""+ week + "\"></input>\r\n" //Hidden values that get sent into URL
 				+"<input name=\"addReportYear\" type=\"hidden\" value=\""+ year + "\"> </input>\r\n"
-				+ "  <label for=\"dateInfo\">Mata in datum för aktivitet: </label>\r\n"  
+				+ "  <label for=\"dateInfo\">Enter date for activity: </label>\r\n"  
 				+ "<input type=\"date\" id=\"dateOfReport\" name=\"dateOfReport\" value=\"" + p + "\" min=\""+ s +"\" max=\""+ e+ "\">\r\n"	
 				+ " <input name=\"timeReportId\" type=\"hidden\" value=\""+ timeReportId + "\"></input>\r\n"
-				+ "              <input class=\"submitBtn\" type=\"submit\" value=\"Skicka in\">\r\n" 				
+				+ "              <input class=\"submitBtn\" type=\"submit\" value=\"Send\">\r\n" 				
 				+ "                </div>\r\n"
 				+ "              </form>"
 				+ "              </html>";
