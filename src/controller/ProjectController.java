@@ -106,7 +106,11 @@ public class ProjectController extends servletBase {
 		
 		if (projectSelected != null ) {
 			setProjectId(req, Integer.valueOf(projectSelected));
-			resp.sendRedirect("UserPage");
+			if (isAdmin(req)) {
+				resp.sendRedirect("UserPage");
+			} else {
+				resp.sendRedirect("TimeReportPage");
+			}
 		}
 		
 		
