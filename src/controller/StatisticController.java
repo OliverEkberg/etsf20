@@ -3,19 +3,14 @@ package controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sun.org.apache.bcel.internal.generic.GETSTATIC;
 
 import baseblocksystem.servletBase;
-import database.ActivityType;
-import database.DatabaseService;
 import database.Project;
 import database.Role;
 import database.Statistic;
@@ -23,7 +18,6 @@ import database.User;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -46,6 +40,7 @@ import java.util.TreeSet;
 
 @WebServlet("/statistics")
 public class StatisticController extends servletBase {
+	private static final long serialVersionUID = 1L;
 	List<Project> activeProjects;
 	List<User> projectUsers;
 	
@@ -332,30 +327,6 @@ public class StatisticController extends servletBase {
 		return sb.toString();
 	}
 	
-	/**
-	 * Gets the options in HTML format for the activities.
-	 * @return the HTML code for select options.
-	 */
-	private String getActivitySelectOptions() {
-		StringBuilder sbBuilder = new StringBuilder();
-		try {
-			List<ActivityType> activityTypes = dbService.getActivityTypes();
-			for (ActivityType activityType : activityTypes) {
-				sbBuilder.append("<option value=\"");
-				sbBuilder.append(activityType.getType());
-				sbBuilder.append("\">");
-				sbBuilder.append(activityType.getType());
-				sbBuilder.append("</option>\n");
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return sbBuilder.toString();
-		
-	}
-	
 	private String getProjectSelectOptions(HttpServletRequest req) {
 		StringBuilder sbBuilder = new StringBuilder();
 		
@@ -395,7 +366,6 @@ public class StatisticController extends servletBase {
 				sbBuilder.append("</option>\n");
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -403,14 +373,6 @@ public class StatisticController extends servletBase {
 		return sbBuilder.toString();
 	}
 	
-	private int getIdForProject(String projectName) {
-		for (Project project : activeProjects) {
-			if (project.getName().equals(projectName))
-				return project.getProjectId();
-		}
-		return -1;
-	}
-
 	private String getStatisticsDataTable(Statistic statistic) {
 		StringBuilder sbBuilder = new StringBuilder();
 		
