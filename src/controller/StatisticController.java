@@ -36,15 +36,13 @@ import java.util.List;
  * 
  * Description of the class.
  * 
- * @author Ferit B�lezek ( Enter name if you've messed around with this file ;) )
+ * @author Ferit Blezek ( Enter name if you've messed around with this file ;) )
  * @version 1.0
  * 
  */
 
 @WebServlet("/statistics")
 public class StatisticController extends servletBase {
-	
-	
 	List<Project> activeProjects;
 	List<User> projectUsers;
 	
@@ -56,7 +54,7 @@ public class StatisticController extends servletBase {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		PrintWriter out = resp.getWriter();
-		
+	
 
 		String username = req.getParameter("username");
 		String from = req.getParameter("from");
@@ -380,7 +378,6 @@ public class StatisticController extends servletBase {
 		return sbBuilder.toString();
 	}
 	
-	
 	private int getIdForProject(String projectName) {
 		for (Project project : activeProjects) {
 			if (project.getName().equals(projectName))
@@ -388,7 +385,7 @@ public class StatisticController extends servletBase {
 		}
 		return -1;
 	}
-	
+
 	private String getStatisticsDataTable(Statistic statistic) {
 		StringBuilder sbBuilder = new StringBuilder();
 		
@@ -458,5 +455,11 @@ public class StatisticController extends servletBase {
 		sbBuilder.append("</table>");
 		return sbBuilder.toString();
 	}
+	
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    	doGet(req, resp);
+    }
+	
 
 }
