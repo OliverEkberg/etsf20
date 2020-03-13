@@ -21,12 +21,15 @@ import database.Role;
 import database.Statistic;
 import database.User;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 
 /**
@@ -84,8 +87,8 @@ public class StatisticController extends servletBase {
 				int weeks = (int) ChronoUnit.WEEKS.between(fromDate, toDate);				
 				
 				
-				if (actionIsAllowed(req, getIdForProject(projectId)) || getLoggedInUser(req) != null && username != null && username.equals(getLoggedInUser(req).getUsername()))
-					out.println(statisticsPageForm(getStats(username, fromDate, toDate, activity, role, projectId, weeks),req));
+				if (actionIsAllowed(req, getProjectId(req)) || getLoggedInUser(req) != null && username != null && username.equals(getLoggedInUser(req).getUsername()))
+					out.println(statisticsPageForm(getStats(username, fromDate, toDate, activity, role, projectId, weeks, getProjectId(req)),req));
 				else {
 					out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">ACTION NOT ALLOWED: You are not admin or project leader for this project."  + "</p>");
 					out.println(statisticsPageForm(null,req));
@@ -102,52 +105,55 @@ public class StatisticController extends servletBase {
 		
     }
     
-    private List<Statistic> getStats(String username, LocalDate fromDate, LocalDate toDate, String activity, String role, String projectName, int weeks) throws Exception {
+    private List<LocalDate> getStatDates(LocalDate from, LocalDate to) {
+		Set<LocalDate> datesT = new TreeSet<>();
+		datesT.add(from);
+
+		for (LocalDate date = from.plusWeeks(9); date.isBefore(to); date = date.plusWeeks(9)) {
+			if (date.getDayOfWeek() == DayOfWeek.MONDAY) {
+				date = date.plusWeeks(1);
+			}
+			
+			while (date.getDayOfWeek() != DayOfWeek.MONDAY) {
+				date = date.plusDays(1);
+			}
+
+			datesT.add(date);
+		}
+		
+		datesT.add(to.plusDays(1));
+		return new ArrayList<LocalDate>(datesT);
+    }
+    
+    private List<Statistic> getStats(String username, LocalDate fromDate, LocalDate toDate, String activity, String role, String projectName, int weeks, int projectId) throws Exception {
     	List<Statistic> stats = new ArrayList<Statistic>();
     	List<Role> roles = dbService.getAllRoles();
-    	projectUsers = dbService.getAllUsers(getIdForProject(projectName));
+    	projectUsers = dbService.getAllUsers(projectId);
     	
-		while(weeks > 0) {
-			Statistic statistic = null;
-			
-			if (weeks > 10) {
-			switch (statsToGet(username, activity, role)) {
+    	List<LocalDate> ds = getStatDates(fromDate, toDate);
+    	
+    	for (int i = 1; i < ds.size(); i++) {
+    		LocalDate from = ds.get(i - 1);
+    		LocalDate to = ds.get(i);
+
+    		Statistic statistic = null;
+    		switch (statsToGet(username, activity, role)) {
 			case 1:
-				statistic = dbService.getActivityStatistics(getIdForProject(projectName),getIdForUser(username), fromDate, fromDate.plusWeeks(10));
+				statistic = dbService.getActivityStatistics(projectId, getIdForUser(username), from, to);
 				break;
 			case 2:
-				statistic = dbService.getActivityStatistics(getIdForProject(projectName), fromDate, toDate);
+				statistic = dbService.getActivityStatistics(projectId, from, to);
 				break;
 			case 3:
-				statistic = dbService.getRoleStatistics(getIdForProject(projectName), getRoleIdFor(role, roles), fromDate, toDate);
+				statistic = dbService.getRoleStatistics(projectId, getRoleIdFor(role, roles), from, to);
 				break;
 			case -1:
 				return null;
 
 			}
 			stats.add(statistic);
-			weeks = weeks - 10;
-			fromDate = fromDate.plusWeeks(11);
-			} else {
-				switch (statsToGet(username, activity, role)) {
-				case 1:
-					statistic = dbService.getActivityStatistics(getIdForProject(projectName), getIdForUser(username), fromDate, toDate);
-					break;
-				case 2:
-					statistic = dbService.getActivityStatistics(getIdForProject(projectName), fromDate, toDate);
-					break;
-				case 3:
-					statistic = dbService.getRoleStatistics(getIdForProject(projectName), getRoleIdFor(role, roles), fromDate, toDate);
-					break;
-				case -1:
-					return null;
-
-				}
-				stats.add(statistic);
-				weeks = 0;
-			}
-			
-		}
+    	}
+    	
 		return stats;
     }
     
