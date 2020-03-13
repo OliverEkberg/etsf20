@@ -183,18 +183,30 @@ public abstract class servletBase extends HttpServlet {
     	String nav = "            <div id=\"navigation\">\r\n" + 
 				"                <ul id=\"menu\">\r\n";
     	
+    	boolean isPl = false;
+    	boolean isA = false;
+    	int pickedP = 0;
+    	
     	try {
-    		if (isProjectLeader(req, getProjectId(req)) || isAdmin(req)) {
-    			nav += "<li><a class=\"linkBtn\" href=\"UserPage\">Users</a></li>\r\n";
-    		}
+    		isPl = isProjectLeader(req, getProjectId(req));
+    		isA = isAdmin(req);
+    		pickedP = getProjectId(req);
     	} catch (Exception e) {
     		e.printStackTrace();
     	}
+    	
+    	if (isA) {
+			nav += "<li><a class=\"linkBtn\" href=\"UserPage\">Users</a></li>\r\n";
+		}
+    	
     		
+    	if (pickedP != 0) {
+    		nav += "                    <li><a class=\"linkBtn\" href=\"TimeReportPage\">Reports</a></li>\r\n" + 
+    				
+    				"                    <li><a class=\"linkBtn\" href=\"statistics\">Statistics</a></li>\r\n";
+    	}
   
-    	nav +=	"                    <li><a class=\"linkBtn\" href=\"TimeReportPage\">Reports</a></li>\r\n" + 
-				"                    <li><a class=\"linkBtn\" href=\"projects\">Projects</a></li>\r\n" + 
-				"                    <li><a class=\"linkBtn\" href=\"statistics\">Statistics</a></li>\r\n" + 
+    	nav +="                    <li><a class=\"linkBtn\" href=\"projects\">Projects</a></li>\r\n" + 
 				"                </ul>\r\n" + 
 				"            </div>\r\n";
 		

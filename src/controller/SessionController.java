@@ -45,7 +45,7 @@ public class SessionController extends servletBase {
 					e.printStackTrace();
 				}
 
-				resp.sendRedirect("UserPage");
+				resp.sendRedirect("projects");
 			} else {
 
 				out.println("<p><!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "\n" + "\n" + "<script> {\n"
