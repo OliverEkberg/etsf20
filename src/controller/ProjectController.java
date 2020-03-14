@@ -18,10 +18,6 @@ import database.User;
 /**
  * Servlet implementation class ProjectController
  * 
- * A xx page. 
- * 
- * Description of the class.
- * 
  * @author Ferit Bolezek and Dominik Gashi
  * @version 0.1
  * 
@@ -268,6 +264,13 @@ public class ProjectController extends servletBase {
 				"</body>");
 	}
 	
+	
+	/**
+	 *  Checks if the current user is allowed to perform the action.
+	 * @param the current httpRequest.
+	 * @param the project's id.
+	 * @return whether this action is allowed or not.
+	 */
 	private boolean actionIsAllowed(HttpServletRequest req, int projectId) {
 		try {
 			User user = getLoggedInUser(req);
@@ -300,6 +303,13 @@ public class ProjectController extends servletBase {
     	return false;
     }
 
+    
+    /**
+     * Given a project, generates rows for each user to display in HTML.
+     * @param the project to get user forms for.
+     * @return the HTML code for the user forms.
+     */
+    
 	private String getUserFormsForProject(Project project) {
 		StringBuilder sbBuilder = new StringBuilder();
 		try {
@@ -342,6 +352,13 @@ public class ProjectController extends servletBase {
 		return sbBuilder.toString();
 	}
 	
+	
+	/**
+	 * Gets the roles Id given the roles name.
+	 * @param the roles name.
+	 * @param all available roles.
+	 * @return the role's Id.
+	 */
     private int getRoleIdFor(String name, List<Role> roles) {
     	for (Role role : roles) {
 			if (role.getRole().equals(name))
@@ -416,11 +433,20 @@ public class ProjectController extends servletBase {
 		
 		return sbBuilder.toString();
 	}
+	
+	/**
+	 * Given a projectId, deletes the project.
+	 * @param the project's id.
+	 */
 	public void deleteProject(int projectId) {
 		dbService.deleteProject(projectId);
 	}
 	
-	
+	/**
+	 * Given project details, creates the project.
+	 * @param the project's id.
+	 * @return the newly created project.
+	 */
 	public Project createProject(Project proj) {
 		try {
 			return dbService.createProject(proj);
