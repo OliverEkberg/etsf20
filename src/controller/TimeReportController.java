@@ -7,8 +7,11 @@ import java.time.LocalDateTime;
 import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -163,7 +166,7 @@ public class TimeReportController extends servletBase {
 
 			//Parameters for showing activity report form
 			if(addReportYear != null && addReportWeek != null && timeReportId != null && activityType == null && subType == null) {
-				out.print(activityReportForm(Integer.parseInt(addReportWeek), Integer.parseInt(addReportYear), timeReportId));
+				out.print(activityReportForm(Integer.parseInt(addReportWeek), Integer.parseInt(addReportYear), timeReportId, req));
 				return;
 			}
 
@@ -271,7 +274,7 @@ public class TimeReportController extends servletBase {
 				int addReportWeekInt = Integer.parseInt(addReportWeek);
 
 				if(addReportWeekInt > 0 && addReportWeekInt <= 53) {
-					out.print(activityReportForm(Integer.parseInt(addReportWeek), Integer.parseInt(addReportYear), ""));
+					out.print(activityReportForm(Integer.parseInt(addReportWeek), Integer.parseInt(addReportYear), "", req));
 					return;
 				}
 				else {
@@ -884,7 +887,7 @@ public class TimeReportController extends servletBase {
 	 * @param timeReportId - The timereport in which the activityreport will lie
 	 * @return A String containing the HTML described above
 	 */
-	private String activityReportForm(int week, int year, String timeReportId) {
+	private String activityReportForm(int week, int year, String timeReportId, HttpServletRequest req) {
 
 		//If a timereport already exists, use that year
 		try {
@@ -906,48 +909,52 @@ public class TimeReportController extends servletBase {
 		if (e.compareTo(LocalDate.now()) < 0) {
 			p = e;
 		}
-
+		
+		List<ActivityType> activityTypes = dbService.getActivityTypes();
+		List<ActivitySubType> activitySubTypes = dbService.getActivitySubTypes();
+		Set<String> uniqueSubTypes = new TreeSet<String>();
+		Set<Integer> activityTypesWithSubTypes = new HashSet<Integer>();
+		
+		for (ActivitySubType ast : activitySubTypes) {
+			uniqueSubTypes.add(ast.getSubType());
+			activityTypesWithSubTypes.add(ast.getActivityTypeId());
+		}
+		
+		String jsArray = "[";
+		for (int i : activityTypesWithSubTypes) {
+			jsArray += i + ",";
+		}
+		jsArray = jsArray.substring(0, jsArray.length() - 1);
+		jsArray += "]";
 
 		//Builds the HTML String
-		return "<!--square.html-->\r\n" + 
+		String html = "<!--square.html-->\r\n" + 
 		"<!DOCTYPE html>\r\n" + 
 		"<html>\r\n" +
 		"<div id= \"form\">"
 		+ " <form id=\"filter_form\" method=\"get\">\r\n" + "                 Activity type\r\n"
 		+ "                <div id=\"activity_picker\">\r\n"
-		+ "                    <select id=\"act_picker_1\" name=\"activity\" form=\"filter_form\">\r\n" //Activity picker
-		+ "                        <option value=11>SDP</option>\r\n"
-		+ "                        <option value=12>SRS</option>\r\n"
-		+ "                        <option value=13>SVVS</option>\r\n"
-		+ "                        <option value=14>STLDD</option>\r\n"
-		+ "                        <option value=15>SVVI</option>\r\n"
-		+ "                        <option value=16>SDDD</option>\r\n"
-		+ "                        <option value=17>SVVR</option>\r\n"
-		+ "                        <option value=18>SSD</option>\r\n"
-		+ " 					   <option value=19>Slutrapport</option>\r\n"
-		+ "                        <option value=21>Funktionstest</option>\r\n"
-		+ "                        <option value=22>Systemtest</option>\r\n"
-		+ "                        <option value=23>Regressionstest</option>\r\n"
-		+ "                        <option value=30>Mote</option>\r\n"
-		+ "                        <option value=41>F�rel�sning</option>\r\n"
-		+ "                        <option value=42>�vning</option>\r\n"
-		+ "                        <option value=43>Terminal�vning</option>\r\n"
-		+ "                        <option value=44>Sj�lvstudier</option>\r\n"
-		+ "                        <option value=100>�vrigt</option>\r\n"
-		+ "                      </select>\r\n" + "                </div>\r\n"
+		+ "                    <select id=\"act_picker_1\" name=\"activity\" form=\"filter_form\">\r\n"; //Activity picker
+		
+		for (ActivityType at : activityTypes) {
+			html += "<option value=" + at.getActivityTypeId() + ">" + at.getType() + "</option>";
+		}
+		
+		html += "                      </select>\r\n" + "                </div>\r\n"
 		+ "            <div id=\"subTypes\">\r\n" + "                <p class=\"descriptors\">Activity Subtype</p>\r\n" //Activity subtype picker
 		+ "                <div id=\"activity_picker\">\r\n"
-		+ "                    <select id=\"act_picker_2\" name=\"subType\" form=\"filter_form\">\r\n"
-		+ "                        <option value=\"U\">U</option>\r\n"
-		+ "                        <option value=\"O\">O</option>\r\n"
-		+ "                        <option value=\"I\">I</option>\r\n"
-		+ "                        <option value=\"F\">F</option>\r\n"
-		+ "                      </select>\r\n" + "                </div>\r\n" + "            </div>\r\n"
+		+ "                    <select id=\"act_picker_2\" name=\"subType\" form=\"filter_form\">\r\n";
+		
+		for (String subType : uniqueSubTypes) {
+			html += "<option value=" + subType + ">" + subType + "</option>"; // TODO: Change this to use id instead
+		}
+		
+		html += "                      </select>\r\n" + "                </div>\r\n" + "            </div>\r\n"
 		+ "<script>"
 		+ "const one = document.querySelector('#act_picker_1');const two = document.querySelector('#subTypes');" //Javascript for making subtype picker invisible if the picked Activity has no subtype
 		+ "one.addEventListener('change', (event) => {"
 		+ "const pickedValue = event.target.value;"
-		+ "if (pickedValue > 19) {"
+		+ "if (!"+ jsArray + ".includes((+pickedValue))) {"
 		+ "two.style.visibility = 'hidden';"
 		+ "} else {"
 		+ "two.style.visibility = 'visible';"
@@ -970,6 +977,7 @@ public class TimeReportController extends servletBase {
 				"</div>"
 				+ "              </html>";
 
+		return html;
 
 	}		
 	/**
