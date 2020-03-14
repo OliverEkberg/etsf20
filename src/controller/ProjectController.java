@@ -109,7 +109,7 @@ public class ProjectController extends servletBase {
 			if (isAdmin(req)) {
 				resp.sendRedirect("UserPage");
 			} else {
-				resp.sendRedirect("TimeReportPage");
+				resp.sendRedirect(Constants.TIMEREPORTS_PATH);
 			}
 		}
 		

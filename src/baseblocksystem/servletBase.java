@@ -182,7 +182,7 @@ public abstract class servletBase extends HttpServlet {
 		}
     	
     	if (projectId != 0 && !isAdmin) {
-    		sb.append("<li><a class=\"linkBtn\" href=\"TimeReportPage\">Reports</a></li>");
+    		sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.TIMEREPORTS_PATH + "\">Reports</a></li>");
     		sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.STATISTICS_PATH + "\">Statistics</a></li>");
     	}
     	sb.append("</ul>");

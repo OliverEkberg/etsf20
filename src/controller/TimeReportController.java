@@ -41,7 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 
 // wtf is this i try to fix but it never work
 
-@WebServlet("/TimeReportPage")
+@WebServlet("/" + Constants.TIMEREPORTS_PATH)
 public class TimeReportController extends servletBase {
 
 	DatabaseService dbService;
@@ -119,7 +119,7 @@ public class TimeReportController extends servletBase {
 
 			if(addReportWeek != null && addReportYear != null && Integer.parseInt(addReportYear) == LocalDate.now().getYear() && Integer.parseInt(addReportWeek) > weekNumber) {
 
-				resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=cant-create-timereport-in-the-future");
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=cant-create-timereport-in-the-future");
 				return;
 			}
 
@@ -128,7 +128,7 @@ public class TimeReportController extends servletBase {
 
 				if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > 1440) { 
 
-					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?time-can-only-be-a-number-between-1-and-1440");
+					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?time-can-only-be-a-number-between-1-and-1440");
 					return;
 
 				}
@@ -153,7 +153,7 @@ public class TimeReportController extends servletBase {
 						Integer.parseInt(timeSpent),  loggedInUser.getUserId(),  this.getProjectId(req), resp); 
 
 				if(activityReport == null) {
-					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=activity-report-could-not-be-created");
+					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=activity-report-could-not-be-created");
 					return;
 				}
 
@@ -216,7 +216,7 @@ public class TimeReportController extends servletBase {
 				}
 
 				else {
-					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=only-a-projectleader-can-sign-a-timereport");
+					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=only-a-projectleader-can-sign-a-timereport");
 				}
 			}
 
@@ -278,7 +278,7 @@ public class TimeReportController extends servletBase {
 					return;
 				}
 				else {
-					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=cant-create-timereport-in-the-future-or-before-week-0");
+					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=cant-create-timereport-in-the-future-or-before-week-0");
 				}
 
 			}
@@ -297,10 +297,10 @@ public class TimeReportController extends servletBase {
 		}
 
 		catch (NumberFormatException e) {
-			resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=unexpected-error");
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=unexpected-error");
 			e.printStackTrace(); 
 		} catch (Exception e) {
-			resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=unexpected-error");
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=unexpected-error");
 			e.printStackTrace();
 		}
 
@@ -347,12 +347,12 @@ public class TimeReportController extends servletBase {
 					}
 
 					if(totalDateTime + minutes > 1440) {
-						resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
+						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
 						return null;
 					}
 
 					if(tr.isFinished() || tr.isSigned()) {
-						resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=timereport-is-signed-or-marked-as-ready-for-signing,-and-cant-be-edited.");
+						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=timereport-is-signed-or-marked-as-ready-for-signing,-and-cant-be-edited.");
 						return null;
 					}
 				}
@@ -387,7 +387,7 @@ public class TimeReportController extends servletBase {
 
 			html +=   "<tr>\r\n" 
 					+ "<td>" + u.getUsername()+ "</td>\r\n"+
-					"<td> <form action=\"TimeReportPage?showUserPage="+u.getUserId()+"\" method=\"get\"> "
+					"<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?showUserPage="+u.getUserId()+"\" method=\"get\"> "
 					+ "<button name=\"showUserPage\" type=\"submit\" value=\"" +u.getUserId() + "\"> Select </button> </form> </td> \r\n";
 		}
 
@@ -443,7 +443,7 @@ public class TimeReportController extends servletBase {
 						"<td>" + tr.getWeek() + "</td>\r\n"+
 						"<td>" + reportOwner + "</td>\r\n"+
 						"<td>" + timeReportTotalTime + "</td>\r\n" + "<td>" + signed + "</td>\r\n"
-						+ "<td> <form action=\"TimeReportPage?timeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
+						+ "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
 						+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() 
 						+ "\"> Select </button>  </form> </td> \r\n";
 
@@ -511,7 +511,7 @@ public class TimeReportController extends servletBase {
 
 			//If timereport isn't signed, and the report owner is the one accessing it, show button for deleting activity, else dont show it.			
 			if(!reportIsSigned && !reportIsFinished && isUserLoggedInUser(reportOwner, req)) {
-				html += "<td> <form action=\"TimeReportPage?deleteActivityReportId=\""+aReport.getActivityReportId()+"&timeReportId=\"" + timeReportId + "\" method=\"get\">\r\n" + 
+				html += "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?deleteActivityReportId=\""+aReport.getActivityReportId()+"&timeReportId=\"" + timeReportId + "\" method=\"get\">\r\n" + 
 						"		<input name=\"deleteActivityReportId\" type=\"hidden\" value=\""+aReport.getActivityReportId()+"\"></input>\r\n" + 
 						" <input name=\"timeReportId\" type=\"hidden\" value=\""+timeReportId+"\"></input>\r\n" + 
 						"		<input type=\"submit\" value=\"Remove\"></input>\r\n" + 
@@ -548,7 +548,7 @@ public class TimeReportController extends servletBase {
 		if(isUserLoggedInUser(reportOwner, req) && !timeReport.isFinished() && !timeReport.isSigned()) {
 
 			//Show button for adding activity	
-			html += "<form action=\"TimeReportPage?week=\""+timeReport.getWeek()+"&timeReportId=\"" + timeReportId + "\"&addReportYear=\"" + timeReport.getYear() + "\" method=\"get\">\r\n" +  
+			html += "<form action=\"" + Constants.TIMEREPORTS_PATH + "?week=\""+timeReport.getWeek()+"&timeReportId=\"" + timeReportId + "\"&addReportYear=\"" + timeReport.getYear() + "\" method=\"get\">\r\n" +  
 					"		<input name=\"addReportWeek\" type=\"hidden\" value=\""+timeReport.getWeek()+"\"></input>\r\n" + 
 					" <input name=\"timeReportId\" type=\"hidden\" value=\""+timeReportId+"\"></input>\r\n" + 
 					" <input name=\"addReportYear\" type=\"hidden\" value=\""+timeReport.getYear()+"\"></input>\r\n" + 
@@ -556,7 +556,7 @@ public class TimeReportController extends servletBase {
 					"	</form>";
 
 			//Button - Mark activity report as finished
-			html +=	"<td> <form action = \"TimeReportPage?timeReportFinishedId=\""+timeReport.getTimeReportId()+"\" method=\"get\"> <button name=\"timeReportFinishedId\" type=\"submit\" value=\"" 
+			html +=	"<td> <form action = \"" + Constants.TIMEREPORTS_PATH + "?timeReportFinishedId=\""+timeReport.getTimeReportId()+"\" method=\"get\"> <button name=\"timeReportFinishedId\" type=\"submit\" value=\"" 
 					+ timeReport.getTimeReportId() 
 					+ "\"> Mark timereport as ready for signing </button>  </form> \r\n";										
 		}
@@ -565,7 +565,7 @@ public class TimeReportController extends servletBase {
 		else if(isUserLoggedInUser(reportOwner, req) && timeReport.isFinished() && !timeReport.isSigned()) { 
 
 			//Button - Unmark activity report as finished
-			html +=	"<td> <form action = \"TimeReportPage?timeReportNotFinishedId=\""+timeReport.getTimeReportId()+"\" method=\"get\"> <button name=\"timeReportNotFinishedId\" type=\"submit\" value=\"" + timeReport.getTimeReportId() 
+			html +=	"<td> <form action = \"" + Constants.TIMEREPORTS_PATH + "?timeReportNotFinishedId=\""+timeReport.getTimeReportId()+"\" method=\"get\"> <button name=\"timeReportNotFinishedId\" type=\"submit\" value=\"" + timeReport.getTimeReportId() 
 			+ "\"> Unmark </button>  </form> \r\n";		
 		}
 
@@ -669,13 +669,13 @@ public class TimeReportController extends servletBase {
 						"<td>" + tr.getWeek() + "</td>\r\n"+
 						"<td>" + timeReportTotalTime + "</td>\r\n" + 
 						"<td>" + signed + "</td>\r\n"
-						+ "<td> <form action=\"TimeReportPage?timeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
+						+ "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
 						+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() 
 						+ "\"> Select </button>  </form> </td> \r\n";
 
 				//If timereport isn't signed, and the report owner is the one browsing, a button for deleting it should be visible
 				if(!tr.isSigned() && isUserLoggedInUser(user, req)) { 
-					html += "<td> <form action=\"TimeReportPage?deleteTimeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
+					html += "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?deleteTimeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
 							+ "<button name=\"deleteTimeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() + "\"> Remove </button> </form> </td> \r\n";
 				} else {
 					html += "<td>";
@@ -766,10 +766,10 @@ public class TimeReportController extends servletBase {
 						+ "          </html>";
 
 				//Button for showing all unsigned reports and showing all users.
-				html += "<form action=\"TimeReportPage?showAllUnsignedReports\" metod=\"get\">\r\n" + 
+				html += "<form action=\"" + Constants.TIMEREPORTS_PATH + "?showAllUnsignedReports\" metod=\"get\">\r\n" + 
 						"  <input name=\"showAllUnsignedReports\" type=\"submit\" value=\"Show all unsigned timereports\" >\r\n" + 
 						"</form>\r\n"+
-						"<form action=\"TimeReportPage?showAllUsers\" metod=\"get\">\r\n" + 
+						"<form action=\"" + Constants.TIMEREPORTS_PATH + "?showAllUsers\" metod=\"get\">\r\n" + 
 						"  <input name=\"showAllUsers\" type=\"submit\" value=\"Show all users\" >\r\n" + 
 						"</form>"
 						+ "<br>" +
@@ -794,7 +794,7 @@ public class TimeReportController extends servletBase {
 
 		try {
 			if(!isProjectLeader(req)) {
-				resp.sendRedirect("/BaseBlockSystem/TimeReportPage?only-a-projectleader-should-be-able-to-access-this-view");
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?only-a-projectleader-should-be-able-to-access-this-view");
 			}
 
 
