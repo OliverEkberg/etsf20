@@ -12,15 +12,12 @@ import baseblocksystem.servletBase;
 import database.User;
 
 /**
- * Servlet implementation class SessionController
+ * Servlet implementation class SessionController.
  * 
- * A xx page.
+ * Class that handles the system login page.
  * 
- * Description of the class.
- * 
- * @author Ferit Bï¿½lezek ( Enter name if you've messed around with this file
- *         ;) )
- * @version 1.0
+ * @author Ferit Bï¿½lezek, Emil Jönsson.
+ * @version 0.1
  * 
  */
 
@@ -28,6 +25,11 @@ import database.User;
 public class SessionController extends servletBase {
 	private static final long serialVersionUID = 1L;
 
+	/**
+	*
+	* Handles logic about the login page.
+ 	* 
+	*/
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		PrintWriter out = resp.getWriter();
@@ -57,11 +59,19 @@ public class SessionController extends servletBase {
 		out.println(getHeader(req));
 		out.println(loginRequestForm());
 	}
-
+	/**
+	* Checks with the database if the name and password are correct.
+	* @param name the given name.
+	* @param password the given password.
+	* @return boolean true if credentials are ok.
+	*/
 	private boolean canLogIn(String name, String password) {
 		return dbService.getUserByCredentials(name, password) != null;
 	}
 
+	/**
+	* logout the user
+	*/
 	private void logout(HttpServletRequest req) {
 		if (isLoggedIn(req) == true) {
 			setIsLoggedIn(req, false);
@@ -70,7 +80,10 @@ public class SessionController extends servletBase {
 			setIsAdmin(req, false);
 		}
 	}
-
+	/**
+	* Builds a String containing HTML for showing a form for logging into the system.
+	* @return html form for entering username and password.
+	*/
 	private String loginRequestForm() {
 		StringBuilder sb = new StringBuilder();
 		
