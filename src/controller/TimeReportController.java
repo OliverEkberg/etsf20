@@ -114,9 +114,9 @@ public class TimeReportController extends servletBase {
 			//Parameters for creating a new activityreport 
 			if(activityType != null && subType != null && timeSpent != null && addReportWeek != null && addReportYear != null && timeReportId != null && dateOfReport != null) {			
 
-				if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > 1440) { 
+				if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > Constants.MAX_MINUTES_PER_DAY) { 
 
-					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?time-can-only-be-a-number-between-1-and-1440");
+					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?time-can-only-be-a-number-between-1-and-" + Constants.MAX_MINUTES_PER_DAY);
 					return;
 
 				}
@@ -282,8 +282,8 @@ public class TimeReportController extends servletBase {
 			out.println(getUserTimeReports(loggedInUser, req)); //Standard case, if nothing else works this is called
 
 		} catch (Exception e) {
-			resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=unexpected-error");
 			e.printStackTrace();
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=unexpected-error");
 		}
 
 	}
@@ -318,18 +318,14 @@ public class TimeReportController extends servletBase {
 				if(tr.getWeek() == week && tr.getYear() == year) { //Find timereport for this week and year amongst all timereports
 					timereport = tr;
 
-					List<ActivityReport> activityReports = dbService.getActivityReports(tr.getTimeReportId());	//TODO: Anvand smidigare databasfunktion 				
-					int totalDateTime = 0;
-
-					for(ActivityReport ar : activityReports) { // Calculate if the activity will overstep the amount of minutes in a day. 
-
-						if(ar.getReportDate().equals(date)) {
-							totalDateTime += ar.getMinutes();
-						}
-					}
-
-					if(totalDateTime + minutes > 1440) {
-						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
+					int totalTime = dbService.getActivityReports(tr.getTimeReportId())
+							.stream()
+							.filter(ar -> ar.getReportDate().equals(date))
+							.mapToInt(ar -> ar.getMinutes())
+							.sum();
+					
+					if(totalTime + minutes > Constants.MAX_MINUTES_PER_DAY) {
+//						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
 						return null;
 					}
 
@@ -344,6 +340,8 @@ public class TimeReportController extends servletBase {
 			timereport = dbService.createTimeReport(new TimeReport(0, projectUserId, 0, null, year, week, LocalDateTime.now(), false)); 
 		}
 
+		
+		System.out.println(date.toString());
 		activityReport = dbService.createActivityReport(new ActivityReport(0, activityTypeId, activitySubTypeId, timereport.getTimeReportId(), date, minutes));
 
 		return activityReport;
@@ -947,7 +945,7 @@ public class TimeReportController extends servletBase {
 				//Hidden values, submit button and time input field
 				+ "                <p class=\"descriptors\">Timespent(minutes) </p>\r\n"
 				+ "                <div id=\"activity_picker\">\r\n" + "				</div>"
-				+ "              <input class=\"credentials_rect\" type=\"number\" id=\"timeSpent\" name=\"timeSpent\" min=\"1\" max=\"1440\" pattern=\"^[0-9]*$\" title=\"Please enter numbers only.\" maxlength=\"4\" placeholder=\"Timespent\" required><br>\r\n"
+				+ "              <input class=\"credentials_rect\" type=\"number\" id=\"timeSpent\" name=\"timeSpent\" min=\"1\" max="+ addQuotes(Constants.MAX_MINUTES_PER_DAY + "") +" pattern=\"^[0-9]*$\" title=\"Please enter numbers only.\" maxlength=\"4\" placeholder=\"Timespent\" required><br>\r\n"
 				+ "		<input name=\"addReportWeek\" type=\"hidden\" value=\""+ week + "\"></input>\r\n" //Hidden values that get sent into URL
 				+"<input name=\"addReportYear\" type=\"hidden\" value=\""+ year + "\"> </input>\r\n"
 				+ "  <label for=\"dateInfo\">Enter date for activity: </label>\r\n"  

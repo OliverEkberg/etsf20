@@ -10,4 +10,5 @@ public class Constants {
 	public static final int MAX_PASSWORD_LENGTH = 10;
 	public static final int MIN_USERNAME_LENGTH = 5;
 	public static final int MAX_USERNAME_LENGTH = 10;
+	public static final int MAX_MINUTES_PER_DAY = 1440;
 }
