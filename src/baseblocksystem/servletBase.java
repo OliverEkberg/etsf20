@@ -165,7 +165,7 @@ public abstract class servletBase extends HttpServlet {
     	
     	sb.append("<div id=\"navigation\">");
     	sb.append("<ul id=\"menu\">");
-    	sb.append("<li><a class=\"linkBtn\" href=\"projects\">Projects</a></li>");
+    	sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.PROJECTS_PATH + "\">Projects</a></li>");
     	
     	boolean isAdmin = false;
     	int projectId = 0;

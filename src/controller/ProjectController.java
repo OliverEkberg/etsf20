@@ -34,7 +34,7 @@ import database.User;
  * 
  */
 
-@WebServlet("/projects")
+@WebServlet("/" + Constants.PROJECTS_PATH)
 public class ProjectController extends servletBase {
 	
 	
@@ -179,7 +179,7 @@ public class ProjectController extends servletBase {
 		if (req.getParameter("editProject") != null && actionIsAllowed(req, Integer.valueOf(req.getParameter("editProject")))) {
 			Project p = new Project(Integer.parseInt(req.getParameter("editProject")),req.getParameter("editProjectName") );
 			currentProject = p;
-			out.println("<a href=\"projects\" style=\"padding:36px\">BACK</a>"
+			out.println("<a href=\"" + Constants.PROJECTS_PATH + "\" style=\"padding:36px\">BACK</a>"
 					+ "<h2>Add new user to project:</h2>\r\n" + 
 					"<form id=\"user_form\">\r\n" + 
 					"<table id=\"table\">\r\n" + 
@@ -229,9 +229,9 @@ public class ProjectController extends servletBase {
 		for(int i = 0; i < plist.size(); i++) {
 			allowed = actionIsAllowed(req, plist.get(i).getProjectId());
 			out.print("<tr>\n" + 
-						"<td><a href=\"projects?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n" + 
-						(!allowed ? "<td></td>" :"<td><a href=\"projects?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
-						(!allowed ? "<td></td>" :"<td><a href=\"projects?deleteProjectId=" + plist.get(i).getName() + "\">delete</a></td>\n") +
+						"<td><a href=\"" + Constants.PROJECTS_PATH + "?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n" + 
+						(!allowed ? "<td></td>" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
+						(!allowed ? "<td></td>" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?deleteProjectId=" + plist.get(i).getName() + "\">delete</a></td>\n") +
 					"</tr>\n");
 		}
 		
@@ -335,7 +335,7 @@ public class ProjectController extends servletBase {
 						"                </td>\r\n" + 
 						"            <td><input type=\"submit\" value=\"Update Role\"></td>\r\n" + 
 						"        </form>\r\n" + 
-						"                <td><a href=\"projects?deleteUserId=" + projectUsers.get(i).getUserId() + "&" + "deleteProjectId=" + project.getProjectId() +"\"" + ">remove from project</a></td>\r\n" + 
+						"                <td><a href=\"" + Constants.PROJECTS_PATH + "?deleteUserId=" + projectUsers.get(i).getUserId() + "&" + "deleteProjectId=" + project.getProjectId() +"\"" + ">remove from project</a></td>\r\n" + 
 						"            </tr>");
 			}
 			
