@@ -217,8 +217,8 @@ public class StatisticController extends servletBase {
 
 	private String statisticsPageForm(List<Statistic> statistics, HttpServletRequest req) {
 		LocalDate now = LocalDate.now();
-		LocalDate startOfWeek = now.minusDays(now.getDayOfWeek().getValue() - 1);
-		LocalDate endOfWeek = now.plusDays(7 - now.getDayOfWeek().getValue());
+		LocalDate startOfWeek = Helpers.getFirstDayOfWeek(now);
+		LocalDate endOfWeek = Helpers.getLastDayOfWeek(now);
 
 		StringBuilder sb = new StringBuilder();
 

@@ -95,9 +95,7 @@ public class TimeReportController extends servletBase {
 				return;	
 			}
 			
-			LocalDate d = LocalDate.now();
-			TemporalField woy = WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear(); 
-			int weekNumber = d.get(woy);
+			int weekNumber = Helpers.getWeekNbr(LocalDate.now());
 
 			if(error != null) { //If user gets an error
 				out.println("<script> "
@@ -878,8 +876,8 @@ public class TimeReportController extends servletBase {
 		//Code for controlling so the user only can input valid information into the date picker(same week and year as they selected)
 		WeekFields weekFields = WeekFields.of(Locale.getDefault());
 		LocalDate d = LocalDate.now().withYear(year).with(weekFields.weekOfYear(), week);
-		LocalDate s = d.minusDays(d.getDayOfWeek().getValue() - 1);
-		LocalDate e = d.plusDays(7 - d.getDayOfWeek().getValue());
+		LocalDate s = Helpers.getFirstDayOfWeek(d);
+		LocalDate e = Helpers.getLastDayOfWeek(d);
 		LocalDate p = LocalDate.now();
 
 		if (e.compareTo(LocalDate.now()) > 0) {
@@ -900,6 +898,7 @@ public class TimeReportController extends servletBase {
 			activityTypesWithSubTypes.add(ast.getActivityTypeId());
 		}
 		
+		// Construct an JS array containing the ids of activity types which have sub types
 		String jsArray = "[";
 		for (int i : activityTypesWithSubTypes) {
 			jsArray += i + ",";
@@ -965,14 +964,13 @@ public class TimeReportController extends servletBase {
 	 * 
 	 * @param req - HttpServletRequest
 	 * @return true if the user is a projectleader, else false.
-	 * @throws Exception
 	 */
-	private boolean isProjectLeader(HttpServletRequest req) throws Exception {
+	private boolean isProjectLeader(HttpServletRequest req) {
 		return this.isProjectLeader(req, this.getProjectId(req));
 	}
 
-	private boolean isUserLoggedInUser(User user, HttpServletRequest req) throws Exception {
-		return user.getUserId() == this.getLoggedInUser(req).getUserId();
+	private boolean isUserLoggedInUser(User user, HttpServletRequest req) {
+		User loggedInUser = getLoggedInUser(req);
+		return loggedInUser != null && loggedInUser.getUserId() == user.getUserId();
 	}
-
 }
