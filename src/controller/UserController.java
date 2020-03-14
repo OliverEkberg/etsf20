@@ -211,28 +211,37 @@ public class UserController extends servletBase {
 			err.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Checks if given character is allowed as a part of a username or password.
+	 * 
+	 * @param c The character to check.
+	 * @return Whether the character is allowed or not.
+	 */
+	private boolean isAllowedChar(char c) {
+		int ci = (int) c;
+		return (ci >= 48 && ci <= 57) || (ci >= 65 && ci <= 90) || (ci >= 97 && ci <= 122);
+	}
 
 	private boolean checkNewName(String name) {
 		int length = name.length();
 		boolean isOk = (length >= Constants.MIN_USERNAME_LENGTH && length <= Constants.MAX_USERNAME_LENGTH);
-		if (isOk)
-			for (int i = 0; i < length; i++) {
-				int ci = (int) name.charAt(i);
-				boolean thisOk = ((ci >= 48 && ci <= 57) || (ci >= 65 && ci <= 90) || (ci >= 97 && ci <= 122));
-				isOk = isOk && thisOk;
-			}
+		
+		for (int i = 0; i < length && isOk; i++) {
+			isOk = isOk && isAllowedChar(name.charAt(i));
+		}
+		
 		return isOk;
 	}
 
 	private boolean checkPassword(String password) {
 		int length = password.length();
 		boolean isOk = (length >= Constants.MIN_PASSWORD_LENGTH && length <= Constants.MAX_PASSWORD_LENGTH);
-		if (isOk)
-			for (int i = 0; i < length; i++) {
-				int ci = (int) password.charAt(i);
-				boolean thisOk = ((ci >= 48 && ci <= 57) || (ci >= 65 && ci <= 90) || (ci >= 97 && ci <= 122));
-				isOk = isOk && thisOk;
-			}
+		
+		for (int i = 0; i < length && isOk; i++) {
+			isOk = isOk && isAllowedChar(password.charAt(i));
+		}
+		
 		return isOk;
 	}
 }
