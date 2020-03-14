@@ -406,8 +406,7 @@ public class ProjectController extends servletBase {
 	 */
 	private String getRoleSelectOptions() {
 		StringBuilder sbBuilder = new StringBuilder();
-		List<Role> roles = dbService.getAllRoles();
-		for (Role role : roles) {
+		for (Role role : dbService.getAllRoles()) {
 			sbBuilder.append("<option value=\"");
 			sbBuilder.append(role.getRole());
 			sbBuilder.append("\">");
@@ -417,14 +416,8 @@ public class ProjectController extends servletBase {
 		
 		return sbBuilder.toString();
 	}
-	public boolean deleteProject(int projectId) {
-		try {
-			dbService.deleteProject(projectId);
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return false;
+	public void deleteProject(int projectId) {
+		dbService.deleteProject(projectId);
 	}
 	
 	

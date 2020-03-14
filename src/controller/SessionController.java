@@ -36,7 +36,7 @@ public class SessionController extends servletBase {
 		String password = req.getParameter("password");
 
 		if (name != null && password != null) {
-			if (login(name, password)) {
+			if (canLogIn(name, password)) {
 				setIsLoggedIn(req, true);
 				User u = dbService.getUserByCredentials(name, password);
 				setUserId(req, u.getUserId());
@@ -58,19 +58,17 @@ public class SessionController extends servletBase {
 		out.println(loginRequestForm());
 	}
 
-	private boolean login(String name, String password) {
+	private boolean canLogIn(String name, String password) {
 		return dbService.getUserByCredentials(name, password) != null;
 	}
 
-	private boolean logout(HttpServletRequest req) throws IOException {
+	private void logout(HttpServletRequest req) {
 		if (isLoggedIn(req) == true) {
 			setIsLoggedIn(req, false);
 			setUserId(req, 0);
 			setProjectId(req, 0);
 			setIsAdmin(req, false);
-			return true;
 		}
-		return false;
 	}
 
 	private String loginRequestForm() {
