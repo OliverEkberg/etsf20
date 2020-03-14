@@ -52,11 +52,11 @@ public class ProjectController extends servletBase {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
 			if (getLoggedInUser(req) == null) {
-				resp.sendRedirect("/BaseBlockSystem/SessionPage");
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 				return;
 			}
 		} catch (Exception e) {
-			resp.sendRedirect("/BaseBlockSystem/SessionPage");
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 			return;
 		}
 		PrintWriter out = resp.getWriter();

@@ -95,11 +95,11 @@ public class TimeReportController extends servletBase {
 			out.println("<p id=\"report_title_text\">Reports</p>");
 			
 			if (loggedInUser == null) {
-				resp.sendRedirect("/BaseBlockSystem/SessionPage");
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 			}
 			
 			else if(loggedInUser.isAdmin()) {
-				resp.sendRedirect("/BaseBlockSystem/SessionPage");
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 			}
 			
 			if (getProjectId(req) == 0) {

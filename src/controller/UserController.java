@@ -34,7 +34,7 @@ public class UserController extends servletBase {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		if (!isLoggedIn(req)) {
-			resp.sendRedirect("SessionPage");
+			resp.sendRedirect(Constants.SESSION_PATH);
 			return;
 		}
 		

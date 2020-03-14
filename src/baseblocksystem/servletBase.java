@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import controller.Constants;
 import database.DatabaseService;
 import database.Project;
 import database.Role;
@@ -153,7 +154,7 @@ public abstract class servletBase extends HttpServlet {
 
 			} catch (Exception e) {
 			}
-			sb.append("<a id=\"logoutbtn\" href=\"SessionPage\">Logout</a>");
+			sb.append("<a id=\"logoutbtn\" href=\"" + Constants.SESSION_PATH + "\">Logout</a>");
 		}
 		sb.append("</div>");
     	return sb.toString();

@@ -58,11 +58,11 @@ public class StatisticController extends servletBase {
 
 		try {
 			if (getLoggedInUser(req) == null) {
-				resp.sendRedirect("/BaseBlockSystem/SessionPage");
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 				return;
 			}
 		} catch (Exception e) {
-			resp.sendRedirect("/BaseBlockSystem/SessionPage");
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 			return;
 		}
 
