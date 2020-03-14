@@ -18,6 +18,8 @@ import java.util.TreeSet;
  * rows are represented with models to make for a easy dev experience.
  * 
  * @author OliverEkberg and JesperAnnefors
+ * @version 0.1
+ * @since 2020-03-14
  */
 public class DatabaseService {
 	private final String DATABASE_SERVER_ADDRESS = "vm23.cs.lth.se";
@@ -74,7 +76,7 @@ public class DatabaseService {
 	}
 
 	/**
-	 * Maps a ResultSet to a ActivityType model
+	 * Maps a ResultSet to an ActivityType model
 	 * 
 	 * @param rs The result from the SQL query
 	 * @return The ActivityType model
@@ -85,7 +87,7 @@ public class DatabaseService {
 	}
 
 	/**
-	 * Maps a ResultSet to a ActivitySubType model
+	 * Maps a ResultSet to an ActivitySubType model
 	 * 
 	 * @param rs The result from the SQL query
 	 * @return The ActivitySubType model
@@ -97,7 +99,7 @@ public class DatabaseService {
 	}
 	
 	/**
-	 * Maps a ResultSet to a ActivityReport model
+	 * Maps a ResultSet to an ActivityReport model
 	 * 
 	 * @param rs The result from the SQL query
 	 * @return The ActivityReport model
@@ -110,7 +112,7 @@ public class DatabaseService {
 	}
 
 	/**
-	 * Maps a ResultSet to a User model
+	 * Maps a ResultSet to an User model
 	 * 
 	 * @param rs The result from the SQL query
 	 * @return The User model
@@ -150,8 +152,8 @@ public class DatabaseService {
 	/**
 	 * Gets user by credentials. Will return null if user could not be found
 	 * 
-	 * @param username - The username of the user
-	 * @param password - The password of the user
+	 * @param username The username of the user
+	 * @param password The password of the user
 	 * @return User model or null
 	 */
 	public User getUserByCredentials(String username, String password) {
@@ -179,7 +181,7 @@ public class DatabaseService {
 	/**
 	 * Gets user by userId. Will return null if user could not be found
 	 * 
-	 * @param userId - The unique identifier of the user
+	 * @param userId The unique identifier of the user
 	 * @return User model or null
 	 */
 	public User getUserById(int userId) {
@@ -205,7 +207,7 @@ public class DatabaseService {
 	
 	/**
 	 * Gets user associated with given timeReportId.
-	 * @param timeReportId -  The unique identifier of the timeReport
+	 * @param timeReportId The unique identifier of the timeReport
 	 * @return User model or null
 	 */
 	public User getUserByTimeReportId(int timeReportId) {
@@ -261,7 +263,7 @@ public class DatabaseService {
 	/**
 	 * Gets all users participating in the given project
 	 * 
-	 * @param projectId - The unique identifier of the project to find users for
+	 * @param projectId The unique identifier of the project to find users for
 	 * @return A list of all users participating in the project
 	 */
 	public List<User> getAllUsers(int projectId) {
@@ -288,7 +290,7 @@ public class DatabaseService {
 	/**
 	 * Deletes a user by given id
 	 * 
-	 * @param userId - The unique identifier of the user to delete
+	 * @param userId The unique identifier of the user to delete
 	 */
 	public void deleteUserById(int userId) {
 		String sql = "DELETE FROM Users WHERE userId = ?";
@@ -306,7 +308,7 @@ public class DatabaseService {
 	/**
 	 * Deletes a user by given username. Will throw if user does not exist
 	 * 
-	 * @param userId - The unique username of the user to delete
+	 * @param userId The unique username of the user to delete
 	 */
 	public void deleteUserByUsername(String username) {
 		String sql = "DELETE FROM Users WHERE username = ?";
@@ -325,7 +327,7 @@ public class DatabaseService {
 	 * Updates all fields to the provided values. User must already exist for this
 	 * to work
 	 * 
-	 * @param user - The user and its values to update
+	 * @param user The user and its values to update
 	 * @return The updated user
 	 */
 	public User updateUser(User user) {
@@ -351,8 +353,8 @@ public class DatabaseService {
 	/**
 	 * Creates a new user
 	 * 
-	 * @param user - The user model to insert
-	 * @return - The created model
+	 * @param user The user model to insert
+	 * @return The created model
 	 * @throws SQLException
 	 */
 	public User createUser(User user) throws SQLException {
@@ -377,10 +379,10 @@ public class DatabaseService {
 	/**
 	 * Adds user to project with given role
 	 * 
-	 * @param userId    - Unique identifier of user to add
-	 * @param projectId - Unique identifier of which project to add the user
-	 * @param roleId    - Unique identifier of the role the user should have
-	 * @throws Exception - If user could not be added
+	 * @param userId Unique identifier of user to add
+	 * @param projectId Unique identifier of which project to add the user
+	 * @param roleId Unique identifier of the role the user should have
+	 * @throws Exception If user could not be added
 	 */
 	public void addUserToProject(int userId, int projectId, int roleId) throws Exception {
 		String sql = "INSERT INTO ProjectUsers (`userId`, `projectId`, `roleId`) values (?, ?, ?)";
@@ -399,8 +401,8 @@ public class DatabaseService {
 	/**
 	 * Removes user from project
 	 * 
-	 * @param userId    - Unique identifier of the user to remove
-	 * @param projectId - Unique identifier of the the project to which the user
+	 * @param userId Unique identifier of the user to remove
+	 * @param projectId Unique identifier of the the project to which the user
 	 *                  should be removed from
 	 */
 	public void removeUserFromProject(int userId, int projectId) {
@@ -420,10 +422,10 @@ public class DatabaseService {
 	/**
 	 * Change role for a user in a project
 	 * 
-	 * @param userId    - Unique identifier of the user for which to change role
-	 * @param projectId - Unique identifier of the particular project
-	 * @param roleId    - Unique identifier of the new role
-	 * @throws Exception - If the role could not be changed
+	 * @param userId Unique identifier of the user for which to change role
+	 * @param projectId Unique identifier of the particular project
+	 * @param roleId Unique identifier of the new role
+	 * @throws Exception If the role could not be changed
 	 */
 	public void updateUserProjectRole(int userId, int projectId, int roleId) throws Exception {
 		String sql = "UPDATE ProjectUsers " + "SET roleId = ? " + "WHERE userId = ? AND projectId = ?";
@@ -437,17 +439,17 @@ public class DatabaseService {
 		ps.close();
 
 		if (updated == 0) {
-			throw new Exception("Could not update users role in project");
+			throw new Exception("Could not update user's role in project");
 		}
 	}
 	
 	/**
 	 * Gets projectUserId for for given userId in given project. Will throw if user does not exist in project
 	 * 
-	 * @param userId - Unique identifier of user
-	 * @param projectId - Unique identifier of project
+	 * @param userId Unique identifier of user
+	 * @param projectId Unique identifier of project
 	 * @return projectUserId
-	 * @throws Exception - If user can not be found in project
+	 * @throws Exception If user can not be found in project
 	 */
 	public int getProjectUserIdByUserIdAndProjectId(int userId, int projectId) throws Exception {
 		String sql = "SELECT projectUserId FROM ProjectUsers WHERE (userId, projectId) = (?, ?)";
@@ -496,7 +498,7 @@ public class DatabaseService {
 	/**
 	 * Gets all projects in which provided user is participating
 	 * 
-	 * @param userId - Unique identifier of the user
+	 * @param userId Unique identifier of the user
 	 * @return A list of all associated projects
 	 */
 	public List<Project> getAllProjects(int userId) {
@@ -523,7 +525,7 @@ public class DatabaseService {
 	/**
 	 * Gets a project by its unique identifier
 	 * 
-	 * @param projectId - The unique identifier of the project to get
+	 * @param projectId The unique identifier of the project to get
 	 * @return project model or null if project can not be found
 	 */
 	public Project getProject(int projectId) {
@@ -550,7 +552,7 @@ public class DatabaseService {
 	/**
 	 * Creates a new project
 	 * 
-	 * @param project - The project model to persist
+	 * @param project The project model to persist
 	 * @return
 	 * @throws SQLException If project with given name already exists
 	 */
@@ -574,7 +576,7 @@ public class DatabaseService {
 	/**
 	 * Removes a project using its unique identifier
 	 * 
-	 * @param projectId - The unique identifier of the project
+	 * @param projectId The unique identifier of the project
 	 */
 	public void deleteProject(int projectId) {
 		String sql = "DELETE FROM Projects WHERE projectId = ?";
@@ -617,7 +619,7 @@ public class DatabaseService {
 	/**
 	 * Gets a list of all activitySubTypes for given activityType
 	 * 
-	 * @param activityTypeId - Unique identifier of activityType
+	 * @param activityTypeId Unique identifier of activityType
 	 * @return A list of activitySubType models
 	 */
 	public List<ActivitySubType> getActivitySubTypes(int activityTypeId) {
@@ -694,10 +696,10 @@ public class DatabaseService {
 	/**
 	 * Gets the role for the given user in the given project
 	 * 
-	 * @param userId    - Unique identifier of the user
-	 * @param projectId - Unique identifier of the project
+	 * @param userId Unique identifier of the user
+	 * @param projectId Unique identifier of the project
 	 * @return role model
-	 * @throws Exception - If the user actually does not belong to given project
+	 * @throws Exception If the user actually does not belong to given project
 	 */
 	public Role getRole(int userId, int projectId) throws Exception {
 		String sql = "SELECT Roles.* FROM ProjectUsers JOIN Roles USING (roleId) WHERE (userId, projectId) = (?, ?)";
@@ -720,7 +722,7 @@ public class DatabaseService {
 	/**
 	 * Gets all activityReports connected to given timeReport
 	 * 
-	 * @param timeReportId - Unique identifier of the timeReport for which to find
+	 * @param timeReportId Unique identifier of the timeReport for which to find
 	 *                     connected activity reports
 	 * @return List of activityReport models
 	 * @throws SQLException if the timereport does not exist
@@ -745,7 +747,7 @@ public class DatabaseService {
 	/**
 	 * Gets activityReport by its unique identifier
 	 * 
-	 * @param activityReportId - Unique identifier of the activityReport
+	 * @param activityReportId Unique identifier of the activityReport
 	 * @return ActivityReport model or null if it can not be found
 	 */
 	public ActivityReport getActivityReport(int activityReportId) {
@@ -772,7 +774,7 @@ public class DatabaseService {
 	/**
 	 * Creates an activityReport
 	 * 
-	 * @param activityReport - The activityReport to be persisted
+	 * @param activityReport The activityReport to be persisted
 	 * @return The persisted activityReport model
 	 * @throws SQLException if faulty values provided
 	 */
@@ -802,7 +804,7 @@ public class DatabaseService {
 	/**
 	 * Updates an activityReport
 	 * 
-	 * @param activityReport - The activityReport to be updated. Must exist in the
+	 * @param activityReport The activityReport to be updated. Must exist in the
 	 *                       database before running this
 	 * @return The updated and persisted activityReport model
 	 * @throws Exception
@@ -833,7 +835,7 @@ public class DatabaseService {
 	/**
 	 * Removes an activityReport by its unique identifier
 	 * 
-	 * @param activityReportId - Unique identifier of the activityReport to remove
+	 * @param activityReportId Unique identifier of the activityReport to remove
 	 */
 	public void deleteActivityReport(int activityReportId) {
 		String sql = "DELETE FROM ActivityReports WHERE activityReportId = ?";
@@ -851,7 +853,7 @@ public class DatabaseService {
 	/**
 	 * Gets all time reports that exists in the given project
 	 * 
-	 * @param projectId - The unique identifier of the project to find time reports
+	 * @param projectId The unique identifier of the project to find time reports
 	 *                  for
 	 * @return A list of all time reports in a project
 	 */
@@ -880,7 +882,7 @@ public class DatabaseService {
 	/**
 	 * Gets all time reports made by a given user
 	 * 
-	 * @param userId - The unique identifier of the user to find time reports for
+	 * @param userId The unique identifier of the user to find time reports for
 	 * @return A list of all time reports made by a user
 	 */
 	public List<TimeReport> getTimeReportsByUser(int userId) {
@@ -908,8 +910,8 @@ public class DatabaseService {
 	/**
 	 * Gets all time reports made by a given user in given project
 	 * 
-	 * @param userId - The unique identifier of the user to find time reports for
-	 * @param projectId - The unique identifier of the project to find time reports
+	 * @param userId The unique identifier of the user to find time reports for
+	 * @param projectId The unique identifier of the project to find time reports
 	 * @return A list of all time reports made by a in project
 	 */
 	public List<TimeReport> getTimeReportsByUserAndProject(int userId, int projectId) {
@@ -966,10 +968,10 @@ public class DatabaseService {
 	/**
 	 * Checks if a time report exists for the given parameters
 	 * 
-	 * @param week      - The specific week the time report applies to
-	 * @param year      - The specific year the time report applies to
-	 * @param userId    - The unique identifier of the user to find time reports for
-	 * @param projectId - The unique identifier of the project to find time reports
+	 * @param week The specific week the time report applies to
+	 * @param year The specific year the time report applies to
+	 * @param userId The unique identifier of the user to find time reports for
+	 * @param projectId The unique identifier of the project to find time reports
 	 *                  for
 	 * @return True if the time report exists, otherwise False
 	 */
@@ -1002,7 +1004,7 @@ public class DatabaseService {
 	/**
 	 * Creates a time report
 	 * 
-	 * @param timeReport - The TimeReport to be persisted
+	 * @param timeReport The TimeReport to be persisted
 	 * @return The persisted TimeReport model
 	 * @throws SQLException
 	 */
@@ -1048,7 +1050,7 @@ public class DatabaseService {
 	/**
 	 * Updates a time report
 	 * 
-	 * @param timeReport - The TimeReport to be updated. Must exist in the database
+	 * @param timeReport The TimeReport to be updated. Must exist in the database
 	 *                   before running this
 	 * @return The updated and persisted TimeReport model
 	 * @throws Exception
@@ -1095,7 +1097,7 @@ public class DatabaseService {
 	/**
 	 * Removes a time report by its unique identifier
 	 * 
-	 * @param timeReportId - Unique identifier of the time report to remove
+	 * @param timeReportId Unique identifier of the time report to remove
 	 */
 	public void deleteTimeReport(int timeReportId) {
 		String sql = "DELETE FROM TimeReports WHERE timeReportId = ?";
@@ -1116,7 +1118,18 @@ public class DatabaseService {
 		ROLE
 	}
 
-	public Statistic getStatistics(LocalDate from, LocalDate to, StatisticType type, int projectId, int userId, int roleId) {
+	/**
+	 * Gets statistics of the total minutes put in a project between two dates based on 
+	 * all users in the project, a specific user in the project or a specific role in the project.
+	 * @param from Is the start date to gather the data from.
+	 * @param to Is the end date to gather the data from.
+	 * @param type Is the type of data to gather. From all users, a specific user or a specific role.
+	 * @param projectId Is the unique identifier for Project.
+	 * @param userId Is the unique identifier for User. Only needed when showing data for a specific user.
+	 * @param roleId Is the unique identifier for Role. Only needed when showing data for a specific role.
+	 * @return This returns statistics for all users in a project, a specific user in a project or a specific role in a project.
+	 */
+	private Statistic getStatistics(LocalDate from, LocalDate to, StatisticType type, int projectId, int userId, int roleId) {
 		Set<LocalDate> datesT = new TreeSet<>();
 		datesT.add(from);
 
@@ -1210,14 +1223,40 @@ public class DatabaseService {
 		return new Statistic(columnLabels, rowLabels, data);
 	}
 	
+	/**
+	 * Gets statistics of the total minutes put in a project between two dates based on 
+	 * all users in the project.
+	 * @param projectId Is the unique identifier for Project.
+	 * @param from Is the start date to gather the data from.
+	 * @param to Is the end date to gather the data from.
+	 * @return This returns statistics for all users in a project.
+	 */
 	public Statistic getActivityStatistics(int projectId, LocalDate from, LocalDate to) {
 		return getStatistics(from, to, StatisticType.ALL, projectId, 0, 0);
 	}
 
+	/**
+	 * Gets statistics of the total minutes put in a project between two dates based on 
+	 * a specific user in the project.
+	 * @param projectId Is the unique identifier for Project.
+	 * @param userId Is the unique identifier for User.
+	 * @param from Is the start date to gather the data from.
+	 * @param to Is the end date to gather the data from.
+	 * @return This returns statistics for a specific user in a project.
+	 */
 	public Statistic getActivityStatistics(int projectId, int userId, LocalDate from, LocalDate to) {
 		return getStatistics(from, to, StatisticType.USER, projectId, userId, 0);
 	}
 
+	/**
+	 * Gets statistics of the total minutes put in a project between two dates based on 
+	 * a specific role in the project.
+	 * @param projectId Is the unique identifier for Project.
+	 * @param roleId Is the unique identifier for Role.
+	 * @param from Is the start date to gather the data from.
+	 * @param to Is the end date to gather the data from.
+	 * @return This returns statistics for a specific role in a project.
+	 */
 	public Statistic getRoleStatistics(int projectId, int roleId, LocalDate from, LocalDate to) {
 		return getStatistics(from, to, StatisticType.ROLE, projectId, 0, roleId);
 	}
