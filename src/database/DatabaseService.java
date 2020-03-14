@@ -1109,8 +1109,14 @@ public class DatabaseService {
 			e.printStackTrace();
 		}
 	}
+	
+	enum StatisticType {
+		ALL,
+		USER,
+		ROLE
+	}
 
-	public Statistic getActivityStatistics(int projectId, LocalDate from, LocalDate to) throws Exception {
+	public Statistic getStatistics(LocalDate from, LocalDate to, StatisticType type, int projectId, int userId, int roleId) {
 		Set<LocalDate> datesT = new TreeSet<>();
 		datesT.add(from);
 
@@ -1140,148 +1146,79 @@ public class DatabaseService {
 		}
 
 		int[][] data = new int[rowLabels.length][columnLabels.length];
+		
+		StringBuilder sb = new  StringBuilder();
+		sb.append("SELECT AcT.type, SUM(AR.minutes) AS minutes ");
+		sb.append("FROM ActivityReports AR ");
+		sb.append("JOIN ActivityTypes AcT USING (activityTypeId) ");
+		sb.append("JOIN TimeReports TR USING (timeReportId) ");
+		sb.append("JOIN ProjectUsers PU USING (projectUserId) ");
+		sb.append("WHERE AR.reportDate >= ? ");
+		sb.append("AND AR.reportDate < ? ");
+		sb.append("AND PU.projectId = ? ");
+
+		switch (type) {
+		case ALL:
+			break;
+		case USER:
+			sb.append("AND PU.userId = ? ");
+			break;
+		case ROLE:
+			sb.append("AND PU.roleId = ? ");
+			break;
+		}
+		
+		sb.append("GROUP BY AcT.activityTypeId");
+		
+		String sql = sb.toString();
 
 		for (int i = 1; i < dates.size(); i++) {
 			int col = i - 1;
-			String sql = "SELECT AcT.type, SUM(AR.minutes) AS minutes " + "FROM ActivityReports AR "
-					+ "JOIN ActivityTypes AcT USING (activityTypeId) " + "JOIN TimeReports TR USING (timeReportId) "
-					+ "JOIN ProjectUsers PU USING (projectUserId) " + "WHERE " + "AR.reportDate >= ? "
-					+ "AND AR.reportDate < ? " + "AND PU.projectId = ? " + "GROUP BY AcT.activityTypeId";
-			PreparedStatement ps = conn.prepareStatement(sql);
-			ps.setString(1, dates.get(i - 1).toString());
-			ps.setString(2, dates.get(i).toString());
-			ps.setInt(3, projectId);
+			
+			try {
+				PreparedStatement ps = conn.prepareStatement(sql);
+				ps.setString(1, dates.get(i - 1).toString());
+				ps.setString(2, dates.get(i).toString());
+				ps.setInt(3, projectId);
+				
+				switch (type) {
+				case ALL:
+					break;
+				case USER:
+					ps.setInt(4, userId);
+					break;
+				case ROLE:
+					ps.setInt(4, roleId);
+					break;
+				}
 
-			ResultSet rs = ps.executeQuery();
+				ResultSet rs = ps.executeQuery();
 
-			while (rs.next()) {
-				String type = rs.getString("type");
-				int minutes = rs.getInt("minutes");
+				while (rs.next()) {
+					String t = rs.getString("type");
+					int minutes = rs.getInt("minutes");
 
-				data[rowLabelMap.get(type)][col] = minutes;
+					data[rowLabelMap.get(t)][col] = minutes;
+				}
+
+				ps.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
-
-			ps.close();
 		}
 
 		return new Statistic(columnLabels, rowLabels, data);
 	}
-
-	public Statistic getActivityStatistics(int projectId, int userId, LocalDate from, LocalDate to) throws Exception {
-		Set<LocalDate> datesT = new TreeSet<>();
-		datesT.add(from);
-
-		for (LocalDate date = from; date.isBefore(to); date = date.plusDays(1)) {
-			if (date.getDayOfWeek() == DayOfWeek.MONDAY) {
-				datesT.add(date);
-			}
-		}
-		datesT.add(to);
-
-		List<LocalDate> dates = new ArrayList<LocalDate>(datesT);
-
-		List<ActivityType> at = getActivityTypes();
-
-		String[] rowLabels = new String[at.size()];
-		String[] columnLabels = new String[dates.size() - 1];
-
-		Map<String, Integer> rowLabelMap = new HashMap<String, Integer>();
-
-		for (int i = 0; i < at.size(); i++) {
-			rowLabels[i] = at.get(i).getType();
-			rowLabelMap.put(rowLabels[i], i);
-		}
-
-		for (int i = 0; i < dates.size() - 1; i++) {
-			columnLabels[i] = "v." + dates.get(i).get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear());
-		}
-
-		int[][] data = new int[rowLabels.length][columnLabels.length];
-
-		for (int i = 1; i < dates.size(); i++) {
-			int col = i - 1;
-			String sql = "SELECT AcT.type, SUM(AR.minutes) AS minutes " + "FROM ActivityReports AR "
-					+ "JOIN ActivityTypes AcT USING (activityTypeId) " + "JOIN TimeReports TR USING (timeReportId) "
-					+ "JOIN ProjectUsers PU USING (projectUserId) " + "WHERE " + "AR.reportDate >= ? "
-					+ "AND AR.reportDate < ? " + "AND PU.projectId = ? " + "AND PU.userId = ? "
-					+ "GROUP BY AcT.activityTypeId";
-			PreparedStatement ps = conn.prepareStatement(sql);
-			ps.setString(1, dates.get(i - 1).toString());
-			ps.setString(2, dates.get(i).toString());
-			ps.setInt(3, projectId);
-			ps.setInt(4, userId);
-
-			ResultSet rs = ps.executeQuery();
-
-			while (rs.next()) {
-				String type = rs.getString("type");
-				int minutes = rs.getInt("minutes");
-
-				data[rowLabelMap.get(type)][col] = minutes;
-			}
-
-			ps.close();
-		}
-
-		return new Statistic(columnLabels, rowLabels, data);
+	
+	public Statistic getActivityStatistics(int projectId, LocalDate from, LocalDate to) {
+		return getStatistics(from, to, StatisticType.ALL, projectId, 0, 0);
 	}
 
-	public Statistic getRoleStatistics(int projectId, int roleId, LocalDate from, LocalDate to) throws Exception {
-		Set<LocalDate> datesT = new TreeSet<>();
-		datesT.add(from);
+	public Statistic getActivityStatistics(int projectId, int userId, LocalDate from, LocalDate to) {
+		return getStatistics(from, to, StatisticType.USER, projectId, userId, 0);
+	}
 
-		for (LocalDate date = from; date.isBefore(to); date = date.plusDays(1)) {
-			if (date.getDayOfWeek() == DayOfWeek.MONDAY) {
-				datesT.add(date);
-			}
-		}
-		datesT.add(to);
-
-		List<LocalDate> dates = new ArrayList<LocalDate>(datesT);
-
-		List<ActivityType> at = getActivityTypes();
-
-		String[] rowLabels = new String[at.size()];
-		String[] columnLabels = new String[dates.size() - 1];
-
-		Map<String, Integer> rowLabelMap = new HashMap<String, Integer>();
-
-		for (int i = 0; i < at.size(); i++) {
-			rowLabels[i] = at.get(i).getType();
-			rowLabelMap.put(rowLabels[i], i);
-		}
-
-		for (int i = 0; i < dates.size() - 1; i++) {
-			columnLabels[i] = "v." + dates.get(i).get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear());
-		}
-
-		int[][] data = new int[rowLabels.length][columnLabels.length];
-
-		for (int i = 1; i < dates.size(); i++) {
-			int col = i - 1;
-			String sql = "SELECT AcT.type, SUM(AR.minutes) AS minutes " + "FROM ActivityReports AR "
-					+ "JOIN ActivityTypes AcT USING (activityTypeId) " + "JOIN TimeReports TR USING (timeReportId) "
-					+ "JOIN ProjectUsers PU USING (projectUserId) " + "WHERE " + "AR.reportDate >= ? "
-					+ "AND AR.reportDate < ? " + "AND PU.projectId = ? " + "AND PU.roleId = ? "
-					+ "GROUP BY AcT.activityTypeId";
-			PreparedStatement ps = conn.prepareStatement(sql);
-			ps.setString(1, dates.get(i - 1).toString());
-			ps.setString(2, dates.get(i).toString());
-			ps.setInt(3, projectId);
-			ps.setInt(4, roleId);
-
-			ResultSet rs = ps.executeQuery();
-
-			while (rs.next()) {
-				String type = rs.getString("type");
-				int minutes = rs.getInt("minutes");
-
-				data[rowLabelMap.get(type)][col] = minutes;
-			}
-
-			ps.close();
-		}
-
-		return new Statistic(columnLabels, rowLabels, data);
+	public Statistic getRoleStatistics(int projectId, int roleId, LocalDate from, LocalDate to) {
+		return getStatistics(from, to, StatisticType.ROLE, projectId, 0, roleId);
 	}
 }
