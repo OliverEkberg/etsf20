@@ -19,7 +19,6 @@ import baseblocksystem.servletBase;
 import database.ActivityReport;
 import database.ActivitySubType;
 import database.ActivityType;
-import database.DatabaseService;
 import database.TimeReport;
 import database.User;
 
@@ -43,18 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 
 @WebServlet("/" + Constants.TIMEREPORTS_PATH)
 public class TimeReportController extends servletBase {
-
-	DatabaseService dbService;
-
-	public TimeReportController() {
-		super();
-		try {
-			this.dbService = new DatabaseService();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
+	private static final long serialVersionUID = 1L;
 
 	@Override
 	/**

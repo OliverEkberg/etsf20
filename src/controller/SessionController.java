@@ -27,6 +27,8 @@ import database.User;
 
 @WebServlet("/" + Constants.SESSION_PATH)
 public class SessionController extends servletBase {
+	private static final long serialVersionUID = 1L;
+
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		PrintWriter out = resp.getWriter();

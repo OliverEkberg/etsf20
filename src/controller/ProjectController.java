@@ -3,12 +3,7 @@ package controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.function.Predicate;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -16,8 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import baseblocksystem.servletBase;
-import database.ActivityType;
-import database.DatabaseService;
 import database.Project;
 import database.Role;
 import database.User;
@@ -36,8 +29,8 @@ import database.User;
 
 @WebServlet("/" + Constants.PROJECTS_PATH)
 public class ProjectController extends servletBase {
-	
-	
+	private static final long serialVersionUID = 1L;
+
 	private List<Role> roles;
 	
 	private Project currentProject;
