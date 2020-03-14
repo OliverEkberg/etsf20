@@ -25,12 +25,10 @@ import java.util.TreeSet;
 /**
  * Servlet implementation class StatisticController
  * 
- * A xx page.
  * 
- * Description of the class.
- * 
- * @author Ferit Blezek ( Enter name if you've messed around with this file ;) )
- * @version 1.0
+ * @author Ferit Bolezek
+ * @author Oliver Ekberg
+ * @version 0.1
  * 
  */
 
@@ -99,6 +97,12 @@ public class StatisticController extends servletBase {
 
 	}
 
+	/**
+	 * Given two dates, splits them into 10 week intervals.
+	 * @param query option fromDate (start date) received from the HTML datePicker.
+	 * @param query option toDate (end date) received from the HTML datePicker.
+	 * @return list of dates.
+	 */
 	private List<LocalDate> getStatDates(LocalDate from, LocalDate to) {
 		Set<LocalDate> datesT = new TreeSet<>();
 		datesT.add(from);
@@ -119,6 +123,17 @@ public class StatisticController extends servletBase {
 		return new ArrayList<LocalDate>(datesT);
 	}
 
+	
+	/**
+	 * Gets a list of statistics filtered by the parameters.
+	 * @param query option fromDate (start date) received from the HTML datePicker.
+	 * @param query option toDate (end date) received from the HTML datePicker.
+	 * @param the project's id.
+	 * @param query string, depending on what type of stats to get, received from URL query.
+	 * @param the current httpRequest.
+	 * @return A list of the requested statistics.
+	 * @throws Exception if stats could not be received.
+	 */
 	private List<Statistic> getStats(LocalDate fromDate, LocalDate toDate, int projectId, String query, HttpServletRequest req) throws Exception {
 		List<Statistic> stats = new ArrayList<Statistic>();
 		List<Role> roles = dbService.getAllRoles();
@@ -151,6 +166,13 @@ public class StatisticController extends servletBase {
 		return stats;
 	}
 
+	
+	/**
+	 *  Checks if the current user is allowed to perform the action.
+	 * @param the current httpRequest.
+	 * @param the project's id.
+	 * @return whether this action is allowed or not.
+	 */
 	private boolean actionIsAllowed(HttpServletRequest req, int projectId) {
 		try {
 			User user = getLoggedInUser(req);
@@ -175,6 +197,13 @@ public class StatisticController extends servletBase {
 		return false;
 	}
 
+	
+	/**
+	 * Gets the roles Id given the roles name.
+	 * @param the roles name.
+	 * @param all available roles.
+	 * @return the role's Id.
+	 */
 	private int getRoleIdFor(String name, List<Role> roles) {
 		for (Role role : roles) {
 			if (role.getRole().equals(name))
@@ -184,6 +213,11 @@ public class StatisticController extends servletBase {
 		return 0;
 	}
 
+	/**
+	 * Gets the Id given the username.
+	 * @param the username.
+	 * @return the Id linked to the user.
+	 */
 	private int getIdForUser(String username) {
 		for (User user : projectUsers) {
 			if (user.getUsername().equals(username))
@@ -192,6 +226,12 @@ public class StatisticController extends servletBase {
 		return -1;
 	}
 
+	/**
+	 * 
+	 * @param query string, depending on what type of stats to get, received from URL query.
+	 * @param the current httpRequest.
+	 * @return a StatisticType.
+	 */
 	private StatisticType statsToGet(String query, HttpServletRequest req) {
 		try {
 			if (query != null) {
@@ -215,6 +255,13 @@ public class StatisticController extends servletBase {
 		return StatisticType.ALL;		
 	}
 
+	
+	/**
+	 * Gets the HTML to display on this page.
+	 * @param list of statistics.
+	 * @param the current httpRequest.
+	 * @return the HTML for the site.
+	 */
 	private String statisticsPageForm(List<Statistic> statistics, HttpServletRequest req) {
 		LocalDate now = LocalDate.now();
 		LocalDate startOfWeek = now.minusDays(now.getDayOfWeek().getValue() - 1);
@@ -316,6 +363,12 @@ public class StatisticController extends servletBase {
 		return sb.toString();
 	}
 
+
+	/**
+	 * Makes HTML of statistics data.
+	 * @param The statistic to get in HTML format.
+	 * @return HTML for the statistics in table format.
+	 */
 	private String getStatisticsDataTable(Statistic statistic) {
 		StringBuilder sbBuilder = new StringBuilder();
 

@@ -22,8 +22,8 @@ import database.User;
  * 
  * Description of the class.
  * 
- * @author Ferit B�lezek and Dominik Gashi
- * @version 1.0
+ * @author Ferit Bolezek and Dominik Gashi
+ * @version 0.1
  * 
  */
 
