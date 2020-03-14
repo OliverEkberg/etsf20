@@ -564,21 +564,24 @@ public class DatabaseService {
 	 * Gets a list of all activitySubTypes
 	 * 
 	 * @return A list of activitySubType models
-	 * @throws SQLException
 	 */
-	public List<ActivitySubType> getActivitySubTypes() throws SQLException {
+	public List<ActivitySubType> getActivitySubTypes() {
 		List<ActivitySubType> activitySubTypes = new ArrayList<>();
 
-		String sql = "SELECT * FROM ActivitySubTypes";
-		PreparedStatement ps = conn.prepareStatement(sql);
+		String sql = "SELECT * FROM ActivitySubTypes ORDER BY activitySubTypeId";
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		while (rs.next()) {
-			activitySubTypes.add(mapActivitySubType(rs));
+			while (rs.next()) {
+				activitySubTypes.add(mapActivitySubType(rs));
+			}
+
+			ps.close();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return activitySubTypes;
 	}
 
@@ -587,22 +590,25 @@ public class DatabaseService {
 	 * 
 	 * @param activityTypeId - Unique identifier of activityType
 	 * @return A list of activitySubType models
-	 * @throws SQLException
 	 */
-	public List<ActivitySubType> getActivitySubTypes(int activityTypeId) throws SQLException {
+	public List<ActivitySubType> getActivitySubTypes(int activityTypeId) {
 		List<ActivitySubType> activitySubTypes = new ArrayList<>();
 
-		String sql = "SELECT * FROM ActivitySubTypes WHERE activityTypeId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, activityTypeId);
+		String sql = "SELECT * FROM ActivitySubTypes WHERE activityTypeId = ? ORDER BY activitySubTypeId";
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, activityTypeId);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		while (rs.next()) {
-			activitySubTypes.add(mapActivitySubType(rs));
+			while (rs.next()) {
+				activitySubTypes.add(mapActivitySubType(rs));
+			}
+
+			ps.close();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return activitySubTypes;
 	}
 
@@ -610,21 +616,24 @@ public class DatabaseService {
 	 * Gets a list of all activityTypes
 	 * 
 	 * @return A list of activityType models
-	 * @throws SQLException
 	 */
-	public List<ActivityType> getActivityTypes() throws SQLException {
+	public List<ActivityType> getActivityTypes() {
 		List<ActivityType> activityTypes = new ArrayList<>();
 
-		String sql = "SELECT * FROM ActivityTypes";
-		PreparedStatement ps = conn.prepareStatement(sql);
+		String sql = "SELECT * FROM ActivityTypes ORDER BY activityTypeId";
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		while (rs.next()) {
-			activityTypes.add(mapActivityType(rs));
+			while (rs.next()) {
+				activityTypes.add(mapActivityType(rs));
+			}
+
+			ps.close();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return activityTypes;
 	}
 

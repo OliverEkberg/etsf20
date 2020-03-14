@@ -7,8 +7,11 @@ import java.time.LocalDateTime;
 import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -16,7 +19,6 @@ import baseblocksystem.servletBase;
 import database.ActivityReport;
 import database.ActivitySubType;
 import database.ActivityType;
-import database.DatabaseService;
 import database.TimeReport;
 import database.User;
 
@@ -38,20 +40,9 @@ import javax.servlet.http.HttpServletResponse;
 
 // wtf is this i try to fix but it never work
 
-@WebServlet("/TimeReportPage")
+@WebServlet("/" + Constants.TIMEREPORTS_PATH)
 public class TimeReportController extends servletBase {
-
-	DatabaseService dbService;
-
-	public TimeReportController() {
-		super();
-		try {
-			this.dbService = new DatabaseService();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
+	private static final long serialVersionUID = 1L;
 
 	@Override
 	/**
@@ -92,11 +83,11 @@ public class TimeReportController extends servletBase {
 			out.println("<p id=\"report_title_text\">Reports</p>");
 			
 			if (loggedInUser == null) {
-				resp.sendRedirect("/BaseBlockSystem/SessionPage");
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 			}
 			
 			else if(loggedInUser.isAdmin()) {
-				resp.sendRedirect("/BaseBlockSystem/SessionPage");
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 			}
 			
 			if (getProjectId(req) == 0) {
@@ -116,7 +107,7 @@ public class TimeReportController extends servletBase {
 
 			if(addReportWeek != null && addReportYear != null && Integer.parseInt(addReportYear) == LocalDate.now().getYear() && Integer.parseInt(addReportWeek) > weekNumber) {
 
-				resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=cant-create-timereport-in-the-future");
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=cant-create-timereport-in-the-future");
 				return;
 			}
 
@@ -125,7 +116,7 @@ public class TimeReportController extends servletBase {
 
 				if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > 1440) { 
 
-					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?time-can-only-be-a-number-between-1-and-1440");
+					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?time-can-only-be-a-number-between-1-and-1440");
 					return;
 
 				}
@@ -150,7 +141,7 @@ public class TimeReportController extends servletBase {
 						Integer.parseInt(timeSpent),  loggedInUser.getUserId(),  this.getProjectId(req), resp); 
 
 				if(activityReport == null) {
-					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=activity-report-could-not-be-created");
+					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=activity-report-could-not-be-created");
 					return;
 				}
 
@@ -163,7 +154,7 @@ public class TimeReportController extends servletBase {
 
 			//Parameters for showing activity report form
 			if(addReportYear != null && addReportWeek != null && timeReportId != null && activityType == null && subType == null) {
-				out.print(activityReportForm(Integer.parseInt(addReportWeek), Integer.parseInt(addReportYear), timeReportId));
+				out.print(activityReportForm(Integer.parseInt(addReportWeek), Integer.parseInt(addReportYear), timeReportId, req));
 				return;
 			}
 
@@ -213,7 +204,7 @@ public class TimeReportController extends servletBase {
 				}
 
 				else {
-					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=only-a-projectleader-can-sign-a-timereport");
+					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=only-a-projectleader-can-sign-a-timereport");
 				}
 			}
 
@@ -271,11 +262,11 @@ public class TimeReportController extends servletBase {
 				int addReportWeekInt = Integer.parseInt(addReportWeek);
 
 				if(addReportWeekInt > 0 && addReportWeekInt <= 53) {
-					out.print(activityReportForm(Integer.parseInt(addReportWeek), Integer.parseInt(addReportYear), ""));
+					out.print(activityReportForm(Integer.parseInt(addReportWeek), Integer.parseInt(addReportYear), "", req));
 					return;
 				}
 				else {
-					resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=cant-create-timereport-in-the-future-or-before-week-0");
+					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=cant-create-timereport-in-the-future-or-before-week-0");
 				}
 
 			}
@@ -294,10 +285,10 @@ public class TimeReportController extends servletBase {
 		}
 
 		catch (NumberFormatException e) {
-			resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=unexpected-error");
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=unexpected-error");
 			e.printStackTrace(); 
 		} catch (Exception e) {
-			resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=unexpected-error");
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=unexpected-error");
 			e.printStackTrace();
 		}
 
@@ -344,12 +335,12 @@ public class TimeReportController extends servletBase {
 					}
 
 					if(totalDateTime + minutes > 1440) {
-						resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
+						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
 						return null;
 					}
 
 					if(tr.isFinished() || tr.isSigned()) {
-						resp.sendRedirect("/BaseBlockSystem/TimeReportPage?error=timereport-is-signed-or-marked-as-ready-for-signing,-and-cant-be-edited.");
+						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=timereport-is-signed-or-marked-as-ready-for-signing,-and-cant-be-edited.");
 						return null;
 					}
 				}
@@ -384,7 +375,7 @@ public class TimeReportController extends servletBase {
 
 			html +=   "<tr>\r\n" 
 					+ "<td>" + u.getUsername()+ "</td>\r\n"+
-					"<td> <form action=\"TimeReportPage?showUserPage="+u.getUserId()+"\" method=\"get\"> "
+					"<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?showUserPage="+u.getUserId()+"\" method=\"get\"> "
 					+ "<button name=\"showUserPage\" type=\"submit\" value=\"" +u.getUserId() + "\"> Select </button> </form> </td> \r\n";
 		}
 
@@ -440,7 +431,7 @@ public class TimeReportController extends servletBase {
 						"<td>" + tr.getWeek() + "</td>\r\n"+
 						"<td>" + reportOwner + "</td>\r\n"+
 						"<td>" + timeReportTotalTime + "</td>\r\n" + "<td>" + signed + "</td>\r\n"
-						+ "<td> <form action=\"TimeReportPage?timeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
+						+ "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
 						+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() 
 						+ "\"> Select </button>  </form> </td> \r\n";
 
@@ -508,7 +499,7 @@ public class TimeReportController extends servletBase {
 
 			//If timereport isn't signed, and the report owner is the one accessing it, show button for deleting activity, else dont show it.			
 			if(!reportIsSigned && !reportIsFinished && isUserLoggedInUser(reportOwner, req)) {
-				html += "<td> <form action=\"TimeReportPage?deleteActivityReportId=\""+aReport.getActivityReportId()+"&timeReportId=\"" + timeReportId + "\" method=\"get\">\r\n" + 
+				html += "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?deleteActivityReportId=\""+aReport.getActivityReportId()+"&timeReportId=\"" + timeReportId + "\" method=\"get\">\r\n" + 
 						"		<input name=\"deleteActivityReportId\" type=\"hidden\" value=\""+aReport.getActivityReportId()+"\"></input>\r\n" + 
 						" <input name=\"timeReportId\" type=\"hidden\" value=\""+timeReportId+"\"></input>\r\n" + 
 						"		<input type=\"submit\" value=\"Remove\"></input>\r\n" + 
@@ -545,7 +536,7 @@ public class TimeReportController extends servletBase {
 		if(isUserLoggedInUser(reportOwner, req) && !timeReport.isFinished() && !timeReport.isSigned()) {
 
 			//Show button for adding activity	
-			html += "<form action=\"TimeReportPage?week=\""+timeReport.getWeek()+"&timeReportId=\"" + timeReportId + "\"&addReportYear=\"" + timeReport.getYear() + "\" method=\"get\">\r\n" +  
+			html += "<form action=\"" + Constants.TIMEREPORTS_PATH + "?week=\""+timeReport.getWeek()+"&timeReportId=\"" + timeReportId + "\"&addReportYear=\"" + timeReport.getYear() + "\" method=\"get\">\r\n" +  
 					"		<input name=\"addReportWeek\" type=\"hidden\" value=\""+timeReport.getWeek()+"\"></input>\r\n" + 
 					" <input name=\"timeReportId\" type=\"hidden\" value=\""+timeReportId+"\"></input>\r\n" + 
 					" <input name=\"addReportYear\" type=\"hidden\" value=\""+timeReport.getYear()+"\"></input>\r\n" + 
@@ -553,7 +544,7 @@ public class TimeReportController extends servletBase {
 					"	</form>";
 
 			//Button - Mark activity report as finished
-			html +=	"<td> <form action = \"TimeReportPage?timeReportFinishedId=\""+timeReport.getTimeReportId()+"\" method=\"get\"> <button name=\"timeReportFinishedId\" type=\"submit\" value=\"" 
+			html +=	"<td> <form action = \"" + Constants.TIMEREPORTS_PATH + "?timeReportFinishedId=\""+timeReport.getTimeReportId()+"\" method=\"get\"> <button name=\"timeReportFinishedId\" type=\"submit\" value=\"" 
 					+ timeReport.getTimeReportId() 
 					+ "\"> Mark timereport as ready for signing </button>  </form> \r\n";										
 		}
@@ -562,7 +553,7 @@ public class TimeReportController extends servletBase {
 		else if(isUserLoggedInUser(reportOwner, req) && timeReport.isFinished() && !timeReport.isSigned()) { 
 
 			//Button - Unmark activity report as finished
-			html +=	"<td> <form action = \"TimeReportPage?timeReportNotFinishedId=\""+timeReport.getTimeReportId()+"\" method=\"get\"> <button name=\"timeReportNotFinishedId\" type=\"submit\" value=\"" + timeReport.getTimeReportId() 
+			html +=	"<td> <form action = \"" + Constants.TIMEREPORTS_PATH + "?timeReportNotFinishedId=\""+timeReport.getTimeReportId()+"\" method=\"get\"> <button name=\"timeReportNotFinishedId\" type=\"submit\" value=\"" + timeReport.getTimeReportId() 
 			+ "\"> Unmark </button>  </form> \r\n";		
 		}
 
@@ -666,13 +657,13 @@ public class TimeReportController extends servletBase {
 						"<td>" + tr.getWeek() + "</td>\r\n"+
 						"<td>" + timeReportTotalTime + "</td>\r\n" + 
 						"<td>" + signed + "</td>\r\n"
-						+ "<td> <form action=\"TimeReportPage?timeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
+						+ "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
 						+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() 
 						+ "\"> Select </button>  </form> </td> \r\n";
 
 				//If timereport isn't signed, and the report owner is the one browsing, a button for deleting it should be visible
 				if(!tr.isSigned() && isUserLoggedInUser(user, req)) { 
-					html += "<td> <form action=\"TimeReportPage?deleteTimeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
+					html += "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?deleteTimeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
 							+ "<button name=\"deleteTimeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() + "\"> Remove </button> </form> </td> \r\n";
 				} else {
 					html += "<td>";
@@ -763,10 +754,10 @@ public class TimeReportController extends servletBase {
 						+ "          </html>";
 
 				//Button for showing all unsigned reports and showing all users.
-				html += "<form action=\"TimeReportPage?showAllUnsignedReports\" metod=\"get\">\r\n" + 
+				html += "<form action=\"" + Constants.TIMEREPORTS_PATH + "?showAllUnsignedReports\" metod=\"get\">\r\n" + 
 						"  <input name=\"showAllUnsignedReports\" type=\"submit\" value=\"Show all unsigned timereports\" >\r\n" + 
 						"</form>\r\n"+
-						"<form action=\"TimeReportPage?showAllUsers\" metod=\"get\">\r\n" + 
+						"<form action=\"" + Constants.TIMEREPORTS_PATH + "?showAllUsers\" metod=\"get\">\r\n" + 
 						"  <input name=\"showAllUsers\" type=\"submit\" value=\"Show all users\" >\r\n" + 
 						"</form>"
 						+ "<br>" +
@@ -791,7 +782,7 @@ public class TimeReportController extends servletBase {
 
 		try {
 			if(!isProjectLeader(req)) {
-				resp.sendRedirect("/BaseBlockSystem/TimeReportPage?only-a-projectleader-should-be-able-to-access-this-view");
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?only-a-projectleader-should-be-able-to-access-this-view");
 			}
 
 
@@ -884,7 +875,7 @@ public class TimeReportController extends servletBase {
 	 * @param timeReportId - The timereport in which the activityreport will lie
 	 * @return A String containing the HTML described above
 	 */
-	private String activityReportForm(int week, int year, String timeReportId) {
+	private String activityReportForm(int week, int year, String timeReportId, HttpServletRequest req) {
 
 		//If a timereport already exists, use that year
 		try {
@@ -906,48 +897,52 @@ public class TimeReportController extends servletBase {
 		if (e.compareTo(LocalDate.now()) < 0) {
 			p = e;
 		}
-
+		
+		List<ActivityType> activityTypes = dbService.getActivityTypes();
+		List<ActivitySubType> activitySubTypes = dbService.getActivitySubTypes();
+		Set<String> uniqueSubTypes = new TreeSet<String>();
+		Set<Integer> activityTypesWithSubTypes = new HashSet<Integer>();
+		
+		for (ActivitySubType ast : activitySubTypes) {
+			uniqueSubTypes.add(ast.getSubType());
+			activityTypesWithSubTypes.add(ast.getActivityTypeId());
+		}
+		
+		String jsArray = "[";
+		for (int i : activityTypesWithSubTypes) {
+			jsArray += i + ",";
+		}
+		jsArray = jsArray.substring(0, jsArray.length() - 1);
+		jsArray += "]";
 
 		//Builds the HTML String
-		return "<!--square.html-->\r\n" + 
+		String html = "<!--square.html-->\r\n" + 
 		"<!DOCTYPE html>\r\n" + 
 		"<html>\r\n" +
 		"<div id= \"form\">"
 		+ " <form id=\"filter_form\" method=\"get\">\r\n" + "                 Activity type\r\n"
 		+ "                <div id=\"activity_picker\">\r\n"
-		+ "                    <select id=\"act_picker_1\" name=\"activity\" form=\"filter_form\">\r\n" //Activity picker
-		+ "                        <option value=11>SDP</option>\r\n"
-		+ "                        <option value=12>SRS</option>\r\n"
-		+ "                        <option value=13>SVVS</option>\r\n"
-		+ "                        <option value=14>STLDD</option>\r\n"
-		+ "                        <option value=15>SVVI</option>\r\n"
-		+ "                        <option value=16>SDDD</option>\r\n"
-		+ "                        <option value=17>SVVR</option>\r\n"
-		+ "                        <option value=18>SSD</option>\r\n"
-		+ " 					   <option value=19>Slutrapport</option>\r\n"
-		+ "                        <option value=21>Funktionstest</option>\r\n"
-		+ "                        <option value=22>Systemtest</option>\r\n"
-		+ "                        <option value=23>Regressionstest</option>\r\n"
-		+ "                        <option value=30>Mote</option>\r\n"
-		+ "                        <option value=41>F�rel�sning</option>\r\n"
-		+ "                        <option value=42>�vning</option>\r\n"
-		+ "                        <option value=43>Terminal�vning</option>\r\n"
-		+ "                        <option value=44>Sj�lvstudier</option>\r\n"
-		+ "                        <option value=100>�vrigt</option>\r\n"
-		+ "                      </select>\r\n" + "                </div>\r\n"
+		+ "                    <select id=\"act_picker_1\" name=\"activity\" form=\"filter_form\">\r\n"; //Activity picker
+		
+		for (ActivityType at : activityTypes) {
+			html += "<option value=" + at.getActivityTypeId() + ">" + at.getType() + "</option>";
+		}
+		
+		html += "                      </select>\r\n" + "                </div>\r\n"
 		+ "            <div id=\"subTypes\">\r\n" + "                <p class=\"descriptors\">Activity Subtype</p>\r\n" //Activity subtype picker
 		+ "                <div id=\"activity_picker\">\r\n"
-		+ "                    <select id=\"act_picker_2\" name=\"subType\" form=\"filter_form\">\r\n"
-		+ "                        <option value=\"U\">U</option>\r\n"
-		+ "                        <option value=\"O\">O</option>\r\n"
-		+ "                        <option value=\"I\">I</option>\r\n"
-		+ "                        <option value=\"F\">F</option>\r\n"
-		+ "                      </select>\r\n" + "                </div>\r\n" + "            </div>\r\n"
+		+ "                    <select id=\"act_picker_2\" name=\"subType\" form=\"filter_form\">\r\n";
+		
+		for (String subType : uniqueSubTypes) {
+			html += "<option value=" + subType + ">" + subType + "</option>"; // TODO: Change this to use id instead
+		}
+		
+		html += "                      </select>\r\n" + "                </div>\r\n" + "            </div>\r\n"
 		+ "<script>"
 		+ "const one = document.querySelector('#act_picker_1');const two = document.querySelector('#subTypes');" //Javascript for making subtype picker invisible if the picked Activity has no subtype
 		+ "one.addEventListener('change', (event) => {"
 		+ "const pickedValue = event.target.value;"
-		+ "if (pickedValue > 19) {"
+		+ "if (!"+ jsArray + ".includes((+pickedValue))) {"
 		+ "two.style.visibility = 'hidden';"
 		+ "} else {"
 		+ "two.style.visibility = 'visible';"
@@ -970,6 +965,7 @@ public class TimeReportController extends servletBase {
 				"</div>"
 				+ "              </html>";
 
+		return html;
 
 	}		
 	/**

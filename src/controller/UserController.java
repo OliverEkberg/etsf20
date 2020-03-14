@@ -1,13 +1,11 @@
 package controller;
 
 import java.io.IOException;
-import java.io.PipedInputStream;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Random;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,14 +25,14 @@ import database.*;
  * @version 1.0
  * 
  */
-@WebServlet("/UserPage")
+@WebServlet("/" + Constants.USERS_PATH)
 public class UserController extends servletBase {
-	private static final int PASSWORD_LENGTH = 6;
+	private static final long serialVersionUID = 1L;
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		if (!isLoggedIn(req)) {
-			resp.sendRedirect("SessionPage");
+			resp.sendRedirect(Constants.SESSION_PATH);
 			return;
 		}
 		
@@ -83,11 +81,11 @@ public class UserController extends servletBase {
 				out.println("<tr><th>Name</th><th colspan=\"2\">Settings</th></tr>");
 				for (User u : users) {
 					String name = u.getUsername();
-					String deleteURL = "UserPage?deletename=" + name;
+					String deleteURL = Constants.USERS_PATH + "?deletename=" + name;
 					String deleteCode = "<a href=" + addQuotes(deleteURL) + " onclick="
 							+ addQuotes("return confirm('Are you sure you want to delete " + name + "?')")
 							+ "> delete </a>";
-					String resetURL = "UserPage?resetName=" + u.getUserId();
+					String resetURL = Constants.USERS_PATH + "?resetName=" + u.getUserId();
 					String resetCode = "<a href=" + addQuotes(resetURL) + " onclick="
 							+ addQuotes(
 									"return confirm('Are you sure you want to reset password for: " + name + "?')")
@@ -201,7 +199,7 @@ public class UserController extends servletBase {
 	private String generatePassword() {
 		String result = "";
 		Random r = new Random();
-		for (int i = 0; i < PASSWORD_LENGTH; i++)
+		for (int i = 0; i < Constants.MIN_PASSWORD_LENGTH; i++)
 			result += (char) (r.nextInt(26) + 97); // 122-97+1=26
 		return result;
 	}
@@ -213,28 +211,37 @@ public class UserController extends servletBase {
 			err.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Checks if given character is allowed as a part of a username or password.
+	 * 
+	 * @param c The character to check.
+	 * @return Whether the character is allowed or not.
+	 */
+	private boolean isAllowedChar(char c) {
+		int ci = (int) c;
+		return (ci >= 48 && ci <= 57) || (ci >= 65 && ci <= 90) || (ci >= 97 && ci <= 122);
+	}
 
 	private boolean checkNewName(String name) {
 		int length = name.length();
-		boolean isOk = (length >= 5 && length <= 10);
-		if (isOk)
-			for (int i = 0; i < length; i++) {
-				int ci = (int) name.charAt(i);
-				boolean thisOk = ((ci >= 48 && ci <= 57) || (ci >= 65 && ci <= 90) || (ci >= 97 && ci <= 122));
-				isOk = isOk && thisOk;
-			}
+		boolean isOk = (length >= Constants.MIN_USERNAME_LENGTH && length <= Constants.MAX_USERNAME_LENGTH);
+		
+		for (int i = 0; i < length && isOk; i++) {
+			isOk = isOk && isAllowedChar(name.charAt(i));
+		}
+		
 		return isOk;
 	}
 
 	private boolean checkPassword(String password) {
 		int length = password.length();
-		boolean isOk = (length >= 5 && length <= 10);
-		if (isOk)
-			for (int i = 0; i < length; i++) {
-				int ci = (int) password.charAt(i);
-				boolean thisOk = ((ci >= 48 && ci <= 57) || (ci >= 65 && ci <= 90) || (ci >= 97 && ci <= 122));
-				isOk = isOk && thisOk;
-			}
+		boolean isOk = (length >= Constants.MIN_PASSWORD_LENGTH && length <= Constants.MAX_PASSWORD_LENGTH);
+		
+		for (int i = 0; i < length && isOk; i++) {
+			isOk = isOk && isAllowedChar(password.charAt(i));
+		}
+		
 		return isOk;
 	}
 }

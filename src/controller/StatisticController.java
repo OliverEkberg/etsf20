@@ -35,7 +35,7 @@ import java.util.TreeSet;
  * 
  */
 
-@WebServlet("/statistics")
+@WebServlet("/" + Constants.STATISTICS_PATH) 
 public class StatisticController extends servletBase {
 	private static final long serialVersionUID = 1L;
 	
@@ -58,11 +58,11 @@ public class StatisticController extends servletBase {
 
 		try {
 			if (getLoggedInUser(req) == null) {
-				resp.sendRedirect("/BaseBlockSystem/SessionPage");
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 				return;
 			}
 		} catch (Exception e) {
-			resp.sendRedirect("/BaseBlockSystem/SessionPage");
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 			return;
 		}
 

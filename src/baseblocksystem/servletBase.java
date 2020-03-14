@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import controller.Constants;
 import database.DatabaseService;
 import database.Project;
 import database.Role;
@@ -153,7 +154,7 @@ public abstract class servletBase extends HttpServlet {
 
 			} catch (Exception e) {
 			}
-			sb.append("<a id=\"logoutbtn\" href=\"SessionPage\">Logout</a>");
+			sb.append("<a id=\"logoutbtn\" href=\"" + Constants.SESSION_PATH + "\">Logout</a>");
 		}
 		sb.append("</div>");
     	return sb.toString();
@@ -164,7 +165,7 @@ public abstract class servletBase extends HttpServlet {
     	
     	sb.append("<div id=\"navigation\">");
     	sb.append("<ul id=\"menu\">");
-    	sb.append("<li><a class=\"linkBtn\" href=\"projects\">Projects</a></li>");
+    	sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.PROJECTS_PATH + "\">Projects</a></li>");
     	
     	boolean isAdmin = false;
     	int projectId = 0;
@@ -177,12 +178,12 @@ public abstract class servletBase extends HttpServlet {
     	}
     	
     	if (isAdmin) {
-			sb.append("<li><a class=\"linkBtn\" href=\"UserPage\">Users</a></li>");
+			sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.USERS_PATH + "\">Users</a></li>");
 		}
     	
     	if (projectId != 0 && !isAdmin) {
-    		sb.append("<li><a class=\"linkBtn\" href=\"TimeReportPage\">Reports</a></li>");
-    		sb.append("<li><a class=\"linkBtn\" href=\"statistics\">Statistics</a></li>");
+    		sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.TIMEREPORTS_PATH + "\">Reports</a></li>");
+    		sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.STATISTICS_PATH + "\">Statistics</a></li>");
     	}
     	sb.append("</ul>");
     	sb.append("</div>");

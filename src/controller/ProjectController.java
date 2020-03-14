@@ -3,12 +3,7 @@ package controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.function.Predicate;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -16,8 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import baseblocksystem.servletBase;
-import database.ActivityType;
-import database.DatabaseService;
 import database.Project;
 import database.Role;
 import database.User;
@@ -34,10 +27,10 @@ import database.User;
  * 
  */
 
-@WebServlet("/projects")
+@WebServlet("/" + Constants.PROJECTS_PATH)
 public class ProjectController extends servletBase {
-	
-	
+	private static final long serialVersionUID = 1L;
+
 	private List<Role> roles;
 	
 	private Project currentProject;
@@ -52,11 +45,11 @@ public class ProjectController extends servletBase {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
 			if (getLoggedInUser(req) == null) {
-				resp.sendRedirect("/BaseBlockSystem/SessionPage");
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 				return;
 			}
 		} catch (Exception e) {
-			resp.sendRedirect("/BaseBlockSystem/SessionPage");
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 			return;
 		}
 		PrintWriter out = resp.getWriter();
@@ -107,9 +100,9 @@ public class ProjectController extends servletBase {
 		if (projectSelected != null ) {
 			setProjectId(req, Integer.valueOf(projectSelected));
 			if (isAdmin(req)) {
-				resp.sendRedirect("UserPage");
+				resp.sendRedirect(Constants.USERS_PATH);
 			} else {
-				resp.sendRedirect("TimeReportPage");
+				resp.sendRedirect(Constants.TIMEREPORTS_PATH);
 			}
 		}
 		
@@ -179,7 +172,7 @@ public class ProjectController extends servletBase {
 		if (req.getParameter("editProject") != null && actionIsAllowed(req, Integer.valueOf(req.getParameter("editProject")))) {
 			Project p = new Project(Integer.parseInt(req.getParameter("editProject")),req.getParameter("editProjectName") );
 			currentProject = p;
-			out.println("<a href=\"projects\" style=\"padding:36px\">BACK</a>"
+			out.println("<a href=\"" + Constants.PROJECTS_PATH + "\" style=\"padding:36px\">BACK</a>"
 					+ "<h2>Add new user to project:</h2>\r\n" + 
 					"<form id=\"user_form\">\r\n" + 
 					"<table id=\"table\">\r\n" + 
@@ -229,9 +222,9 @@ public class ProjectController extends servletBase {
 		for(int i = 0; i < plist.size(); i++) {
 			allowed = actionIsAllowed(req, plist.get(i).getProjectId());
 			out.print("<tr>\n" + 
-						"<td><a href=\"projects?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n" + 
-						(!allowed ? "<td></td>" :"<td><a href=\"projects?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
-						(!allowed ? "<td></td>" :"<td><a href=\"projects?deleteProjectId=" + plist.get(i).getName() + "\">delete</a></td>\n") +
+						"<td><a href=\"" + Constants.PROJECTS_PATH + "?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n" + 
+						(!allowed ? "<td></td>" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
+						(!allowed ? "<td></td>" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?deleteProjectId=" + plist.get(i).getName() + "\">delete</a></td>\n") +
 					"</tr>\n");
 		}
 		
@@ -335,7 +328,7 @@ public class ProjectController extends servletBase {
 						"                </td>\r\n" + 
 						"            <td><input type=\"submit\" value=\"Update Role\"></td>\r\n" + 
 						"        </form>\r\n" + 
-						"                <td><a href=\"projects?deleteUserId=" + projectUsers.get(i).getUserId() + "&" + "deleteProjectId=" + project.getProjectId() +"\"" + ">remove from project</a></td>\r\n" + 
+						"                <td><a href=\"" + Constants.PROJECTS_PATH + "?deleteUserId=" + projectUsers.get(i).getUserId() + "&" + "deleteProjectId=" + project.getProjectId() +"\"" + ">remove from project</a></td>\r\n" + 
 						"            </tr>");
 			}
 			

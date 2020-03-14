@@ -25,8 +25,10 @@ import database.User;
  * 
  */
 
-@WebServlet("/SessionPage")
+@WebServlet("/" + Constants.SESSION_PATH)
 public class SessionController extends servletBase {
+	private static final long serialVersionUID = 1L;
+
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		PrintWriter out = resp.getWriter();
@@ -45,7 +47,7 @@ public class SessionController extends servletBase {
 					e.printStackTrace();
 				}
 
-				resp.sendRedirect("projects");
+				resp.sendRedirect(Constants.PROJECTS_PATH);
 			} else {
 
 				out.println("<p><!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "\n" + "\n" + "<script> {\n"
