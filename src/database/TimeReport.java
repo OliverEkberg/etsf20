@@ -62,7 +62,7 @@ public class TimeReport {
 
 	/**
 	 * Gets the time and date when the time report was most recently updated at.
-	 * @return This returns the time and date when the time report was most recently updated at. Null if it has never been updated.
+	 * @return This returns the time and date when the time report was most recently updated at.
 	 */
 	public LocalDateTime getUpdatedAt() {
 		return updatedAt;

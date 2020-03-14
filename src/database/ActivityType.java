@@ -32,6 +32,7 @@ public class ActivityType {
 	
 	/**
 	 * Gets the name of the specific ActivityType.
+	 * @return This returns the name of the activity type.
 	 */
 	public String getType() {
 		return type;
