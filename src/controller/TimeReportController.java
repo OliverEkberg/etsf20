@@ -281,12 +281,6 @@ public class TimeReportController extends servletBase {
 
 			out.println(getUserTimeReports(loggedInUser, req)); //Standard case, if nothing else works this is called
 
-
-		}
-
-		catch (NumberFormatException e) {
-			resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=unexpected-error");
-			e.printStackTrace(); 
 		} catch (Exception e) {
 			resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=unexpected-error");
 			e.printStackTrace();
