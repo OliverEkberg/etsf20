@@ -28,7 +28,6 @@ import database.*;
 @WebServlet("/" + Constants.USERS_PATH)
 public class UserController extends servletBase {
 	private static final long serialVersionUID = 1L;
-	private static final int PASSWORD_LENGTH = 6;
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -200,7 +199,7 @@ public class UserController extends servletBase {
 	private String generatePassword() {
 		String result = "";
 		Random r = new Random();
-		for (int i = 0; i < PASSWORD_LENGTH; i++)
+		for (int i = 0; i < Constants.MIN_PASSWORD_LENGTH; i++)
 			result += (char) (r.nextInt(26) + 97); // 122-97+1=26
 		return result;
 	}
@@ -215,7 +214,7 @@ public class UserController extends servletBase {
 
 	private boolean checkNewName(String name) {
 		int length = name.length();
-		boolean isOk = (length >= 5 && length <= 10);
+		boolean isOk = (length >= Constants.MIN_USERNAME_LENGTH && length <= Constants.MAX_USERNAME_LENGTH);
 		if (isOk)
 			for (int i = 0; i < length; i++) {
 				int ci = (int) name.charAt(i);
@@ -227,7 +226,7 @@ public class UserController extends servletBase {
 
 	private boolean checkPassword(String password) {
 		int length = password.length();
-		boolean isOk = (length >= 5 && length <= 10);
+		boolean isOk = (length >= Constants.MIN_PASSWORD_LENGTH && length <= Constants.MAX_PASSWORD_LENGTH);
 		if (isOk)
 			for (int i = 0; i < length; i++) {
 				int ci = (int) password.charAt(i);
