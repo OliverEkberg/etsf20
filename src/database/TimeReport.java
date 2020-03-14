@@ -33,7 +33,7 @@ public class TimeReport {
 		signedAt = null;
 		this.year = year;
 		this.week = week;
-		updatedAt = null;
+		updatedAt = LocalDateTime.now();
 		finished = false;
 	}
 
