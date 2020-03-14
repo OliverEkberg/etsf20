@@ -168,13 +168,18 @@ public class UserController extends servletBase {
 	}
 
 	public String changePasswordForm() {
-		String html = "";
+		String html = "<div id=" + addQuotes("bodyContent") + ">";
 		html += "<p id=\"user_title_text\">Change Password</p>";
-		html += "<p> <form name=" + addQuotes("input");
-		html += " method=" + addQuotes("get");
-		html += "<p> Enter new password: <input type=" + addQuotes("text") + " name=" + addQuotes("newPassword") + '>';
-		html += "<input type=" + addQuotes("submit") + "value=" + addQuotes("Change Password") + '>';
+		html += "<form name=" + addQuotes("input");
+		html += " method=" + addQuotes("get") + ">";
+		html += "<p class=\"descriptors\">New password:</p><br>";
+		html += "<div style=" + addQuotes("display: flex; align-items: center;") + ">";
+		html += "<input type=" + addQuotes("text") + " name=" + addQuotes("newPassword") + "class=" + addQuotes("input") + '>';
+		html += "<input type=" + addQuotes("submit") + "value=" + addQuotes("Change Password") + "class="+ addQuotes("btn") + '>';
+		html += "</div>";
 		html += "</form>";
+		html += "</div>";
+
 		return html;
 	}
 
