@@ -43,12 +43,7 @@ public class ProjectController extends servletBase {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		try {
-			if (getLoggedInUser(req) == null) {
-				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
-				return;
-			}
-		} catch (Exception e) {
+		if (getLoggedInUser(req) == null) {
 			resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 			return;
 		}
@@ -362,25 +357,17 @@ public class ProjectController extends servletBase {
 	 */
 	private String getRoleSelectOptions(Role projectRole) {
 		StringBuilder sbBuilder = new StringBuilder();
-		try {
-			roles = dbService.getAllRoles();
-			for (Role role : roles) {
-				sbBuilder.append("<option value=\"");
-				sbBuilder.append(role.getRole());
-				if(projectRole.getRoleId() == role.getRoleId())
-					sbBuilder.append("\" selected=\"selected\">");
-				else
-					sbBuilder.append("\">");
-				sbBuilder.append(role.getRole());
-				sbBuilder.append("</option>\n");
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		roles = dbService.getAllRoles();
+		for (Role role : roles) {
+			sbBuilder.append("<option value=\"");
+			sbBuilder.append(role.getRole());
+			if(projectRole.getRoleId() == role.getRoleId())
+				sbBuilder.append("\" selected=\"selected\">");
+			else
+				sbBuilder.append("\">");
+			sbBuilder.append(role.getRole());
+			sbBuilder.append("</option>\n");
 		}
-		
-		
-		
 		
 		return sbBuilder.toString();
 	}
@@ -419,31 +406,18 @@ public class ProjectController extends servletBase {
 	 */
 	private String getRoleSelectOptions() {
 		StringBuilder sbBuilder = new StringBuilder();
-		try {
-			List<Role> roles = dbService.getAllRoles();
-			for (Role role : roles) {
-				sbBuilder.append("<option value=\"");
-				sbBuilder.append(role.getRole());
-				sbBuilder.append("\">");
-				sbBuilder.append(role.getRole());
-				sbBuilder.append("</option>\n");
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		for (Role role : dbService.getAllRoles()) {
+			sbBuilder.append("<option value=\"");
+			sbBuilder.append(role.getRole());
+			sbBuilder.append("\">");
+			sbBuilder.append(role.getRole());
+			sbBuilder.append("</option>\n");
 		}
-		
 		
 		return sbBuilder.toString();
 	}
-	public boolean deleteProject(int projectId) {
-		try {
-			dbService.deleteProject(projectId);
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return false;
+	public void deleteProject(int projectId) {
+		dbService.deleteProject(projectId);
 	}
 	
 	

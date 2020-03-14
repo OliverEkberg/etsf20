@@ -340,7 +340,7 @@ public class TimeReportController extends servletBase {
 					}
 
 					if(tr.isFinished() || tr.isSigned()) {
-						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=timereport-is-signed-or-marked-as-ready-for-signing,-and-cant-be-edited.");
+						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=timereport-is-signed-or-marked-as-ready-for-signing-and-cant-be-edited.");
 						return null;
 					}
 				}

@@ -69,8 +69,8 @@ public class UserController extends servletBase {
 			// check if the administrator wants to delete a user
 			String deleteName = req.getParameter("deletename");
 			if (deleteName != null) {
-				if (checkNewName(deleteName)) { // TODO: Look over this whole deletion
-					deleteUser(deleteName);
+				if (checkNewName(deleteName)) {
+					dbService.deleteUserByUsername(deleteName);
 				} else
 					out.println("<p>Error: URL wrong</p>");
 			}
@@ -197,21 +197,13 @@ public class UserController extends servletBase {
 	}
 
 	private String generatePassword() {
-		String result = "";
+		StringBuilder sb = new StringBuilder();
 		Random r = new Random();
 		for (int i = 0; i < Constants.MIN_PASSWORD_LENGTH; i++)
-			result += (char) (r.nextInt(26) + 97); // 122-97+1=26
-		return result;
+			sb.append((char) (r.nextInt(26) + 97)); // 122-97+1=26
+		return sb.toString();
 	}
 
-	private void deleteUser(String name) {
-		try {
-			dbService.deleteUserByUsername(name);
-		} catch (Exception err) {
-			err.printStackTrace();
-		}
-	}
-	
 	/**
 	 * Checks if given character is allowed as a part of a username or password.
 	 * 

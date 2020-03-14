@@ -2,7 +2,6 @@ package controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -288,34 +287,30 @@ public class StatisticController extends servletBase {
 	private String getSelectOptions(HttpServletRequest req) {
 		String divider = "<option disabled>-----------</option>";
 		StringBuilder sb = new StringBuilder();
-		try {
+		sb.append("<option value=\"");
+		sb.append("*");
+		sb.append("\">");
+		sb.append("Whole project");
+		sb.append("</option>\n");
+		
+		sb.append(divider);
+		List<Role> roles = dbService.getAllRoles();
+		for (Role role : roles) {
 			sb.append("<option value=\"");
-			sb.append("*");
+			sb.append(role.getRole());
 			sb.append("\">");
-			sb.append("Whole project");
+			sb.append(role.getRole());
 			sb.append("</option>\n");
-			
-			sb.append(divider);
-			List<Role> roles = dbService.getAllRoles();
-			for (Role role : roles) {
-				sb.append("<option value=\"");
-				sb.append(role.getRole());
-				sb.append("\">");
-				sb.append(role.getRole());
-				sb.append("</option>\n");
-			}
-			
-			sb.append(divider);
-			List<User> users = dbService.getAllUsers(getProjectId(req));
-			for (User user : users) {
-				sb.append("<option value=\"");
-				sb.append(user.getUsername());
-				sb.append("\">");
-				sb.append(user.getUsername());
-				sb.append("</option>\n");
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
+		}
+		
+		sb.append(divider);
+		List<User> users = dbService.getAllUsers(getProjectId(req));
+		for (User user : users) {
+			sb.append("<option value=\"");
+			sb.append(user.getUsername());
+			sb.append("\">");
+			sb.append(user.getUsername());
+			sb.append("</option>\n");
 		}
 
 		return sb.toString();

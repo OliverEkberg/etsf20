@@ -89,7 +89,7 @@ public abstract class servletBase extends HttpServlet {
 		session.setAttribute("userId", userId);
 	}
     
-    protected User getLoggedInUser(HttpServletRequest request) throws Exception {
+    protected User getLoggedInUser(HttpServletRequest request) {
     	HttpSession session = request.getSession(true);
     	Object objectState = session.getAttribute("userId");
     	int userId = 0;
@@ -105,7 +105,7 @@ public abstract class servletBase extends HttpServlet {
 		session.setAttribute("projectId", projectId);
 	}
     
-    protected boolean isProjectLeader(HttpServletRequest request, int projectId) throws Exception {
+    protected boolean isProjectLeader(HttpServletRequest request, int projectId) {
     	try {
     		User loggedInUser = getLoggedInUser(request);
         	Role role = dbService.getRole(loggedInUser.getUserId(), projectId);
