@@ -185,6 +185,7 @@ public abstract class servletBase extends HttpServlet {
     		sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.TIMEREPORTS_PATH + "\">Reports</a></li>");
     		sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.STATISTICS_PATH + "\">Statistics</a></li>");
     	}
+    	sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.USERS_PATH + "?changePassword=yes\">Change password</a></li>");
     	sb.append("</ul>");
     	sb.append("</div>");
     	

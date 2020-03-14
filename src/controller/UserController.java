@@ -42,13 +42,33 @@ public class UserController extends servletBase {
 		out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/usercontroller.css\">\n");
 		out.println(getNav(req));
 
-		User loggedInUser = null;
-		try {
-			loggedInUser = getLoggedInUser(req);
-		} catch (Exception e1) {
-			e1.printStackTrace();
+		User loggedInUser = getLoggedInUser(req);
+
+		// Change password page requested
+		if ("yes".equals(req.getParameter("changePassword"))) {
+			out.println(changePasswordForm());
+			return;
+		}
+		
+		// New password to set
+		String newPassword = req.getParameter("newPassword");
+		if (newPassword != null) {
+			if (checkPassword(newPassword)) {
+				try {
+					changePassword(newPassword, loggedInUser);
+					out.println(alert("Password changed!"));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else {
+				out.println(alert("Invalid password!"));
+			}
+			
+			out.println(changePasswordForm());
+			return;
 		}
 
+		// Default to System Users  (must be admin)
 		if (loggedInUser.isAdmin()) {
 			out.println("<p id=\"user_title_text\">System Users</p>");
 
@@ -116,27 +136,6 @@ public class UserController extends servletBase {
 					e.printStackTrace();
 				}
 			}
-		} else {
-			// Not admin (change password) TODO
-			out.println("<h1>User Page" + "</h1>");
-			out.println(changePasswordForm());
-			String newPassword = req.getParameter("password");
-			if (newPassword != null) {
-				if (checkPassword(newPassword)) {
-					try {
-						changePassword(newPassword, loggedInUser);
-						out.println("<!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "<script>\n"
-								+ "  alert(\"Password changed!\");\n" + "</script>\n" + "\n" + "</body>\n"
-								+ "</html>\n");
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				} else {
-					out.println("<!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "<script>\n"
-							+ "  alert(\"Invalid password...\");\n" + "</script>\n" + "\n" + "</body>\n"
-							+ "</html>\n");
-				}
-			}
 		}
 	}
 
@@ -169,12 +168,18 @@ public class UserController extends servletBase {
 	}
 
 	public String changePasswordForm() {
-		String html;
-		html = "<p> <form name=" + addQuotes("input");
-		html += " method=" + addQuotes("get");
-		html += "<p> Enter new password: <input type=" + addQuotes("text") + " name=" + addQuotes("password") + '>';
-		html += "<input type=" + addQuotes("submit") + "value=" + addQuotes("Change Password") + '>';
+		String html = "<div id=" + addQuotes("bodyContent") + ">";
+		html += "<p id=\"user_title_text\">Change Password</p>";
+		html += "<form name=" + addQuotes("input");
+		html += " method=" + addQuotes("get") + ">";
+		html += "<p class=\"descriptors\">New password:</p><br>";
+		html += "<div style=" + addQuotes("display: flex; align-items: center;") + ">";
+		html += "<input type=" + addQuotes("text") + " name=" + addQuotes("newPassword") + "class=" + addQuotes("input") + '>';
+		html += "<input type=" + addQuotes("submit") + "value=" + addQuotes("Change Password") + "class="+ addQuotes("btn") + '>';
+		html += "</div>";
 		html += "</form>";
+		html += "</div>";
+
 		return html;
 	}
 
