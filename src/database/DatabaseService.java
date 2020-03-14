@@ -65,7 +65,7 @@ public class DatabaseService {
 	/**
 	 * Maps a ResultSet to a Role model
 	 * 
-	 * @param rs - The result from the SQL query
+	 * @param rs The result from the SQL query
 	 * @return The Role model
 	 * @throws SQLException
 	 */
@@ -76,7 +76,7 @@ public class DatabaseService {
 	/**
 	 * Maps a ResultSet to a ActivityType model
 	 * 
-	 * @param rs - The result from the SQL query
+	 * @param rs The result from the SQL query
 	 * @return The ActivityType model
 	 * @throws SQLException
 	 */
@@ -87,7 +87,7 @@ public class DatabaseService {
 	/**
 	 * Maps a ResultSet to a ActivitySubType model
 	 * 
-	 * @param rs - The result from the SQL query
+	 * @param rs The result from the SQL query
 	 * @return The ActivitySubType model
 	 * @throws SQLException
 	 */
@@ -95,7 +95,14 @@ public class DatabaseService {
 		return new ActivitySubType(rs.getInt("activitySubTypeId"), rs.getInt("activityTypeId"),
 				rs.getString("subType"));
 	}
-
+	
+	/**
+	 * Maps a ResultSet to a ActivityReport model
+	 * 
+	 * @param rs The result from the SQL query
+	 * @return The ActivityReport model
+	 * @throws SQLException
+	 */
 	private ActivityReport mapActivityReport(ResultSet rs) throws SQLException {
 		return new ActivityReport(rs.getInt("activityReportId"), rs.getInt("activityTypeId"),
 				rs.getInt("activitySubTypeId"), rs.getInt("timeReportId"), rs.getDate("reportDate").toLocalDate(),
@@ -105,7 +112,7 @@ public class DatabaseService {
 	/**
 	 * Maps a ResultSet to a User model
 	 * 
-	 * @param rs - The result from the SQL query
+	 * @param rs The result from the SQL query
 	 * @return The User model
 	 * @throws SQLException
 	 */
@@ -117,7 +124,7 @@ public class DatabaseService {
 	/**
 	 * Maps a ResultSet to a Project model
 	 * 
-	 * @param rs - The result from the SQL query
+	 * @param rs The result from the SQL query
 	 * @return The Project model
 	 * @throws SQLException
 	 */
@@ -125,6 +132,13 @@ public class DatabaseService {
 		return new Project(rs.getInt("projectId"), rs.getString("name"));
 	}
 
+	/**
+	 * Maps a ResultSet to a TimeReport model
+	 * 
+	 * @param rs The result from the SQL query
+	 * @return The TimeReport model
+	 * @throws SQLException
+	 */
 	private TimeReport mapTimeReport(ResultSet rs) throws SQLException {
 		Timestamp signedAt = rs.getTimestamp("signedAt");
 
@@ -139,23 +153,26 @@ public class DatabaseService {
 	 * @param username - The username of the user
 	 * @param password - The password of the user
 	 * @return User model or null
-	 * @throws SQLException
 	 */
-	public User getUserByCredentials(String username, String password) throws SQLException {
+	public User getUserByCredentials(String username, String password) {
 		User user = null;
 
 		String sql = "SELECT * FROM Users WHERE username = ? AND password = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setString(1, username);
-		ps.setString(2, password);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(1, username);
+			ps.setString(2, password);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		if (rs.next()) {
-			user = mapUser(rs);
+			if (rs.next()) {
+				user = mapUser(rs);
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return user;
 	}
 

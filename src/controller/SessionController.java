@@ -39,13 +39,9 @@ public class SessionController extends servletBase {
 		if (name != null && password != null) {
 			if (login(name, password)) {
 				setIsLoggedIn(req, true);
-				try {
-					User u = dbService.getUserByCredentials(name, password);
-					setUserId(req, u.getUserId());
-					setIsAdmin(req, u.isAdmin());
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
+				User u = dbService.getUserByCredentials(name, password);
+				setUserId(req, u.getUserId());
+				setIsAdmin(req, u.isAdmin());
 
 				resp.sendRedirect(Constants.PROJECTS_PATH);
 			} else {
@@ -64,14 +60,7 @@ public class SessionController extends servletBase {
 	}
 
 	private boolean login(String name, String password) {
-		try {
-			return dbService.getUserByCredentials(name, password) != null;
-		} catch (SQLException ex) {
-			System.out.println("SQLException: " + ex.getMessage());
-			System.out.println("SQLState: " + ex.getSQLState());
-			System.out.println("VendorError: " + ex.getErrorCode());
-		}
-		return false;
+		return dbService.getUserByCredentials(name, password) != null;
 	}
 
 	private boolean logout(HttpServletRequest req) throws IOException {
