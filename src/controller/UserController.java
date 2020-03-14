@@ -205,11 +205,7 @@ public class UserController extends servletBase {
 	}
 
 	private void deleteUser(String name) {
-		try {
-			dbService.deleteUserByUsername(name);
-		} catch (Exception err) {
-			err.printStackTrace();
-		}
+		dbService.deleteUserByUsername(name);
 	}
 	
 	/**

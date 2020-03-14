@@ -181,22 +181,25 @@ public class DatabaseService {
 	 * 
 	 * @param userId - The unique identifier of the user
 	 * @return User model or null
-	 * @throws SQLException
 	 */
-	public User getUserById(int userId) throws SQLException {
+	public User getUserById(int userId) {
 		User user = null;
 
 		String sql = "SELECT * FROM Users WHERE userId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, userId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, userId);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		if (rs.next()) {
-			user = mapUser(rs);
+			if (rs.next()) {
+				user = mapUser(rs);
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return user;
 	}
 	
@@ -204,9 +207,8 @@ public class DatabaseService {
 	 * Gets user associated with given timeReportId.
 	 * @param timeReportId -  The unique identifier of the timeReport
 	 * @return User model or null
-	 * @throws SQLException
 	 */
-	public User getUserByTimeReportId(int timeReportId) throws SQLException {
+	public User getUserByTimeReportId(int timeReportId) {
 		User user = null;
 
 		String sql = "SELECT Users.* " + 
@@ -214,16 +216,20 @@ public class DatabaseService {
 				"JOIN ProjectUsers USING (projectUserId) " + 
 				"JOIN  Users USING (userId) " + 
 				"WHERE timeReportId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, timeReportId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, timeReportId);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		if (rs.next()) {
-			user = mapUser(rs);
+			if (rs.next()) {
+				user = mapUser(rs);
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return user;
 	}
 
@@ -231,21 +237,24 @@ public class DatabaseService {
 	 * Gets all users
 	 * 
 	 * @return A list of all users in the database
-	 * @throws SQLException
 	 */
 	public List<User> getAllUsers() throws SQLException {
 		List<User> users = new ArrayList<>();
 
 		String sql = "SELECT * FROM Users";
-		PreparedStatement ps = conn.prepareStatement(sql);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		while (rs.next()) {
-			users.add(mapUser(rs));
+			while (rs.next()) {
+				users.add(mapUser(rs));
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return users;
 	}
 
@@ -254,42 +263,43 @@ public class DatabaseService {
 	 * 
 	 * @param projectId - The unique identifier of the project to find users for
 	 * @return A list of all users participating in the project
-	 * @throws SQLException
 	 */
-	public List<User> getAllUsers(int projectId) throws SQLException {
+	public List<User> getAllUsers(int projectId) {
 		List<User> users = new ArrayList<>();
 
 		String sql = "SELECT Users.* FROM " + "Users JOIN ProjectUsers USING (userId) " + "WHERE projectId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, projectId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, projectId);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		while (rs.next()) {
-			users.add(mapUser(rs));
+			while (rs.next()) {
+				users.add(mapUser(rs));
+			}
+
+			ps.close();
+		} catch  (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return users;
 	}
 
 	/**
-	 * Deletes a user by given id. Will throw if user does not exist
+	 * Deletes a user by given id
 	 * 
 	 * @param userId - The unique identifier of the user to delete
-	 * @throws Exception - Will be thrown if user does not exist
 	 */
-	public void deleteUserById(int userId) throws Exception {
+	public void deleteUserById(int userId) {
 		String sql = "DELETE FROM Users WHERE userId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, userId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, userId);
 
-		int deleted = ps.executeUpdate();
-
-		ps.close();
-
-		if (deleted == 0) {
-			throw new Exception("User does not exist");
+			ps.executeUpdate();
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -297,19 +307,17 @@ public class DatabaseService {
 	 * Deletes a user by given username. Will throw if user does not exist
 	 * 
 	 * @param userId - The unique username of the user to delete
-	 * @throws Exception - Will be thrown if user does not exist
 	 */
-	public void deleteUserByUsername(String username) throws Exception {
+	public void deleteUserByUsername(String username) {
 		String sql = "DELETE FROM Users WHERE username = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setString(1, username);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(1, username);
 
-		int deleted = ps.executeUpdate();
-
-		ps.close();
-
-		if (deleted == 0) {
-			throw new Exception("User does not exist");
+			ps.executeUpdate();
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -319,25 +327,25 @@ public class DatabaseService {
 	 * 
 	 * @param user - The user and its values to update
 	 * @return The updated user
-	 * @throws Exception
 	 */
-	public User updateUser(User user) throws Exception {
+	public User updateUser(User user) {
 		String sql = "UPDATE Users " + "SET `username` = ?, `password` = ?, `isAdmin` = ? " + "WHERE userId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setString(1, user.getUsername());
-		ps.setString(2, user.getPassword());
-		ps.setBoolean(3, user.isAdmin());
-		ps.setInt(4, user.getUserId());
+		int updated =  0;
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(1, user.getUsername());
+			ps.setString(2, user.getPassword());
+			ps.setBoolean(3, user.isAdmin());
+			ps.setInt(4, user.getUserId());
 
-		int updated = ps.executeUpdate();
+			updated = ps.executeUpdate();
 
-		ps.close();
-
-		if (updated == 0) {
-			return user;
-		} else {
-			return getUserById(user.getUserId());
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
+
+		return updated == 0 ? user : getUserById(user.getUserId());
 	}
 
 	/**
@@ -394,21 +402,18 @@ public class DatabaseService {
 	 * @param userId    - Unique identifier of the user to remove
 	 * @param projectId - Unique identifier of the the project to which the user
 	 *                  should be removed from
-	 * @throws Exception - If the user could not be removed. Could for example be
-	 *                   due to user not actually participating in project
 	 */
-	public void removeUserFromProject(int userId, int projectId) throws Exception {
+	public void removeUserFromProject(int userId, int projectId) {
 		String sql = "DELETE FROM ProjectUsers WHERE userId = ? AND projectId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, userId);
-		ps.setInt(2, projectId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, userId);
+			ps.setInt(2, projectId);
 
-		int deleted = ps.executeUpdate();
-
-		ps.close();
-
-		if (deleted == 0) {
-			throw new Exception("Could not remove user from project");
+			ps.executeUpdate();
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -467,21 +472,24 @@ public class DatabaseService {
 	 * Gets all projects
 	 * 
 	 * @return A list of project models
-	 * @throws SQLException
 	 */
-	public List<Project> getAllProjects() throws SQLException {
+	public List<Project> getAllProjects() {
 		List<Project> projects = new ArrayList<>();
 
 		String sql = "SELECT * FROM Projects";
-		PreparedStatement ps = conn.prepareStatement(sql);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		while (rs.next()) {
-			projects.add(mapProject(rs));
+			while (rs.next()) {
+				projects.add(mapProject(rs));
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return projects;
 	}
 
@@ -490,22 +498,25 @@ public class DatabaseService {
 	 * 
 	 * @param userId - Unique identifier of the user
 	 * @return A list of all associated projects
-	 * @throws SQLException
 	 */
-	public List<Project> getAllProjects(int userId) throws SQLException {
+	public List<Project> getAllProjects(int userId) {
 		List<Project> projects = new ArrayList<>();
 
 		String sql = "SELECT Projects.* " + "FROM Projects JOIN ProjectUsers USING (projectId) " + "WHERE userId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, userId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, userId);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		while (rs.next()) {
-			projects.add(mapProject(rs));
+			while (rs.next()) {
+				projects.add(mapProject(rs));
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return projects;
 	}
 
@@ -514,22 +525,25 @@ public class DatabaseService {
 	 * 
 	 * @param projectId - The unique identifier of the project to get
 	 * @return project model or null if project can not be found
-	 * @throws SQLException
 	 */
-	public Project getProject(int projectId) throws SQLException {
+	public Project getProject(int projectId) {
 		Project project = null;
 
 		String sql = "SELECT * FROM Projects WHERE projectId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, projectId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, projectId);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		if (rs.next()) {
-			project = mapProject(rs);
+			if (rs.next()) {
+				project = mapProject(rs);
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return project;
 	}
 
@@ -538,7 +552,7 @@ public class DatabaseService {
 	 * 
 	 * @param project - The project model to persist
 	 * @return
-	 * @throws SQLException
+	 * @throws SQLException If project with given name already exists
 	 */
 	public Project createProject(Project project) throws SQLException {
 		String sql = "INSERT INTO Projects (`name`) values (?)";
@@ -561,19 +575,17 @@ public class DatabaseService {
 	 * Removes a project using its unique identifier
 	 * 
 	 * @param projectId - The unique identifier of the project
-	 * @throws Exception - If the project does not exist
 	 */
-	public void deleteProject(int projectId) throws Exception {
+	public void deleteProject(int projectId) {
 		String sql = "DELETE FROM Projects WHERE projectId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, projectId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, projectId);
 
-		int deleted = ps.executeUpdate();
-
-		ps.close();
-
-		if (deleted == 0) {
-			throw new Exception("Project does not exist");
+			ps.executeUpdate();
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -658,21 +670,24 @@ public class DatabaseService {
 	 * Gets a list of all roles
 	 * 
 	 * @return A list of role models
-	 * @throws SQLException
 	 */
-	public List<Role> getAllRoles() throws SQLException {
+	public List<Role> getAllRoles() {
 		List<Role> allRoles = new ArrayList<>();
 
 		String sql = "SELECT * FROM Roles";
-		PreparedStatement ps = conn.prepareStatement(sql);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		while (rs.next()) {
-			allRoles.add(mapRole(rs));
+			while (rs.next()) {
+				allRoles.add(mapRole(rs));
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return allRoles;
 	}
 
@@ -708,7 +723,7 @@ public class DatabaseService {
 	 * @param timeReportId - Unique identifier of the timeReport for which to find
 	 *                     connected activity reports
 	 * @return List of activityReport models
-	 * @throws SQLException
+	 * @throws SQLException if the timereport does not exist
 	 */
 	public List<ActivityReport> getActivityReports(int timeReportId) throws SQLException {
 		List<ActivityReport> activityReports = new ArrayList<>();
@@ -732,22 +747,25 @@ public class DatabaseService {
 	 * 
 	 * @param activityReportId - Unique identifier of the activityReport
 	 * @return ActivityReport model or null if it can not be found
-	 * @throws SQLException
 	 */
-	public ActivityReport getActivityReport(int activityReportId) throws SQLException {
+	public ActivityReport getActivityReport(int activityReportId) {
 		ActivityReport activityReport = null;
 
 		String sql = "SELECT * FROM ActivityReports WHERE activityReportId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, activityReportId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, activityReportId);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		if (rs.next()) {
-			activityReport = mapActivityReport(rs);
+			if (rs.next()) {
+				activityReport = mapActivityReport(rs);
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return activityReport;
 	}
 
@@ -756,7 +774,7 @@ public class DatabaseService {
 	 * 
 	 * @param activityReport - The activityReport to be persisted
 	 * @return The persisted activityReport model
-	 * @throws SQLException
+	 * @throws SQLException if faulty values provided
 	 */
 	public ActivityReport createActivityReport(ActivityReport activityReport) throws SQLException {
 		String sql = "INSERT INTO ActivityReports (`activityTypeId`, `activitySubTypeId`, `timeReportId`, `reportDate`, `minutes`) "
@@ -816,19 +834,17 @@ public class DatabaseService {
 	 * Removes an activityReport by its unique identifier
 	 * 
 	 * @param activityReportId - Unique identifier of the activityReport to remove
-	 * @throws Exception - If the activityReport does not exist
 	 */
-	public void deleteActivityReport(int activityReportId) throws Exception {
+	public void deleteActivityReport(int activityReportId) {
 		String sql = "DELETE FROM ActivityReports WHERE activityReportId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, activityReportId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, activityReportId);
 
-		int deleted = ps.executeUpdate();
-
-		ps.close();
-
-		if (deleted == 0) {
-			throw new Exception("Activity Report does not exist");
+			ps.executeUpdate();
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -838,23 +854,26 @@ public class DatabaseService {
 	 * @param projectId - The unique identifier of the project to find time reports
 	 *                  for
 	 * @return A list of all time reports in a project
-	 * @throws SQLException
 	 */
-	public List<TimeReport> getTimeReportsByProject(int projectId) throws SQLException {
+	public List<TimeReport> getTimeReportsByProject(int projectId) {
 		List<TimeReport> timeReports = new ArrayList<>();
 
 		String sql = "SELECT TimeReports.* " + "FROM TimeReports JOIN ProjectUsers USING (projectUserId) "
 				+ "WHERE projectId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, projectId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, projectId);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		while (rs.next()) {
-			timeReports.add(mapTimeReport(rs));
+			while (rs.next()) {
+				timeReports.add(mapTimeReport(rs));
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return timeReports;
 	}
 
@@ -863,23 +882,26 @@ public class DatabaseService {
 	 * 
 	 * @param userId - The unique identifier of the user to find time reports for
 	 * @return A list of all time reports made by a user
-	 * @throws SQLException
 	 */
-	public List<TimeReport> getTimeReportsByUser(int userId) throws SQLException {
+	public List<TimeReport> getTimeReportsByUser(int userId) {
 		List<TimeReport> timeReports = new ArrayList<>();
 
 		String sql = "SELECT TimeReports.* " + "FROM TimeReports JOIN ProjectUsers USING (projectUserId) "
 				+ "WHERE userId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, userId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, userId);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		while (rs.next()) {
-			timeReports.add(mapTimeReport(rs));
+			while (rs.next()) {
+				timeReports.add(mapTimeReport(rs));
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return timeReports;
 	}
 	
@@ -889,24 +911,27 @@ public class DatabaseService {
 	 * @param userId - The unique identifier of the user to find time reports for
 	 * @param projectId - The unique identifier of the project to find time reports
 	 * @return A list of all time reports made by a in project
-	 * @throws SQLException
 	 */
-	public List<TimeReport> getTimeReportsByUserAndProject(int userId, int projectId) throws SQLException {
+	public List<TimeReport> getTimeReportsByUserAndProject(int userId, int projectId) {
 		List<TimeReport> timeReports = new ArrayList<>();
 
 		String sql = "SELECT TimeReports.* " + "FROM TimeReports JOIN ProjectUsers USING (projectUserId) "
 				+ "WHERE userId = ? AND projectId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, userId);
-		ps.setInt(2, projectId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, userId);
+			ps.setInt(2, projectId);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		while (rs.next()) {
-			timeReports.add(mapTimeReport(rs));
+			while (rs.next()) {
+				timeReports.add(mapTimeReport(rs));
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return timeReports;
 	}
 
@@ -916,22 +941,25 @@ public class DatabaseService {
 	 * 
 	 * @param timeReportId - The unique identifier of the time report
 	 * @return TimeReport model or null
-	 * @throws SQLException
 	 */
-	public TimeReport getTimeReportById(int timeReportId) throws SQLException {
+	public TimeReport getTimeReportById(int timeReportId) {
 		TimeReport timeReport = null;
 
 		String sql = "SELECT * FROM TimeReports WHERE timeReportId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, timeReportId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, timeReportId);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		if (rs.next()) {
-			timeReport = mapTimeReport(rs);
+			if (rs.next()) {
+				timeReport = mapTimeReport(rs);
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return timeReport;
 	}
 
@@ -944,27 +972,30 @@ public class DatabaseService {
 	 * @param projectId - The unique identifier of the project to find time reports
 	 *                  for
 	 * @return True if the time report exists, otherwise False
-	 * @throws SQLException
 	 */
-	public boolean hasTimeReport(int week, int year, int userId, int projectId) throws SQLException {
+	public boolean hasTimeReport(int week, int year, int userId, int projectId) {
 		int count = 0;
 
 		String sql = "SELECT COUNT(timeReportId) AS numberOfReports "
 				+ "FROM TimeReports JOIN ProjectUsers USING (projectUserId) "
 				+ "WHERE (week, year, userId, projectId) = (?, ?, ?, ?)";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, week);
-		ps.setInt(2, year);
-		ps.setInt(3, userId);
-		ps.setInt(4, projectId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, week);
+			ps.setInt(2, year);
+			ps.setInt(3, userId);
+			ps.setInt(4, projectId);
 
-		ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
-		if (rs.next()) {
-			count = rs.getInt("numberOfReports");
+			if (rs.next()) {
+				count = rs.getInt("numberOfReports");
+			}
+
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-
-		ps.close();
 		return count > 0;
 	}
 
@@ -1059,25 +1090,23 @@ public class DatabaseService {
 		} else {
 			return getTimeReportById(timeReport.getTimeReportId());
 		}
-	}
+	} 
 
 	/**
 	 * Removes a time report by its unique identifier
 	 * 
 	 * @param timeReportId - Unique identifier of the time report to remove
-	 * @throws Exception - If the time report does not exist
 	 */
-	public void deleteTimeReport(int timeReportId) throws Exception {
+	public void deleteTimeReport(int timeReportId) {
 		String sql = "DELETE FROM TimeReports WHERE timeReportId = ?";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, timeReportId);
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, timeReportId);
 
-		int deleted = ps.executeUpdate();
-
-		ps.close();
-
-		if (deleted == 0) {
-			throw new Exception("Time report does not exist");
+			ps.executeUpdate();
+			ps.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 	}
 
