@@ -35,7 +35,7 @@ import java.util.TreeSet;
  * 
  */
 
-@WebServlet("/statistics")
+@WebServlet("/" + Constants.STATISTICS_PATH) 
 public class StatisticController extends servletBase {
 	private static final long serialVersionUID = 1L;
 	
