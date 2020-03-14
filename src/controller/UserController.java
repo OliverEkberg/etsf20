@@ -135,7 +135,13 @@ public class UserController extends servletBase {
 			}
 		}
 	}
-
+	
+	/**
+	* Resets the password for a given user into an auto-generatoed one.
+	* @param the user id for the specified user.
+	* @return html popup window with the new password.
+	* @throws Exception
+	*/
 	private String resetPassword(int reset) throws Exception {
 		User user = dbService.getUserById(reset);
 		String newPassword = generatePassword();
@@ -204,6 +210,7 @@ public class UserController extends servletBase {
 	* Changes the password for a certain user.
 	* @param the desired password.
 	* @param the specified user object.
+	* @throws Exception
 	*/
 	private void changePassword(String newPassword, User u) throws Exception {
 		u.setPassword(newPassword);
