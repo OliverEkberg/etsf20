@@ -178,7 +178,7 @@ public abstract class servletBase extends HttpServlet {
     	}
     	
     	if (isAdmin) {
-			sb.append("<li><a class=\"linkBtn\" href=\"UserPage\">Users</a></li>");
+			sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.USERS_PATH + "\">Users</a></li>");
 		}
     	
     	if (projectId != 0 && !isAdmin) {

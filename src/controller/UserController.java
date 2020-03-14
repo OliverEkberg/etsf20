@@ -27,7 +27,7 @@ import database.*;
  * @version 1.0
  * 
  */
-@WebServlet("/UserPage")
+@WebServlet("/" + Constants.USERS_PATH)
 public class UserController extends servletBase {
 	private static final int PASSWORD_LENGTH = 6;
 
@@ -83,11 +83,11 @@ public class UserController extends servletBase {
 				out.println("<tr><th>Name</th><th colspan=\"2\">Settings</th></tr>");
 				for (User u : users) {
 					String name = u.getUsername();
-					String deleteURL = "UserPage?deletename=" + name;
+					String deleteURL = Constants.USERS_PATH + "?deletename=" + name;
 					String deleteCode = "<a href=" + addQuotes(deleteURL) + " onclick="
 							+ addQuotes("return confirm('Are you sure you want to delete " + name + "?')")
 							+ "> delete </a>";
-					String resetURL = "UserPage?resetName=" + u.getUserId();
+					String resetURL = Constants.USERS_PATH + "?resetName=" + u.getUserId();
 					String resetCode = "<a href=" + addQuotes(resetURL) + " onclick="
 							+ addQuotes(
 									"return confirm('Are you sure you want to reset password for: " + name + "?')")
