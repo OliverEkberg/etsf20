@@ -89,7 +89,7 @@ public class SessionController extends servletBase {
 		sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/SessionController.css\">");
 		sb.append("<div class=\"wrapper\">");
 		sb.append("<div class=\"title\">TimeKeep</div>");
-		sb.append("<div class=\"subTitle\">Keep track of time and stuff.</div>");
+		sb.append("<div class=\"subTitle\">Keep track of time and stuff</div>");
 		sb.append("<div class=\"center credentials_form\">");
 		sb.append("<form onsubmit=\"checkInput()\">"); // TODO: Add JS?
 		sb.append("<input class=\"credentials_rect\" type=\"text\" id=\"username\" name=\"username\" pattern=\"^[a-zA-Z0-9]*$\" title=\"Please enter letters and numbers only.\" maxlength=\"10\" placeholder=\"Username\" required><br>");
@@ -97,7 +97,7 @@ public class SessionController extends servletBase {
 		sb.append("<input class=\"submitBtn\" type=\"submit\" value=\"Submit\">");
 		sb.append("</form>");
 		sb.append("</div>");
-		sb.append("<div class=\"footerText\">Developed by some dudes at LTH.</div>");
+		sb.append("<div class=\"footerText\">Developed by some dudes at LTH</div>");
 		sb.append("</body>");
 		sb.append("</html>");
 		

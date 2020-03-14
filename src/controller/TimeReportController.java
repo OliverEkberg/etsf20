@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * Description of the class.
  * 
- * @author Linus, Sebastian, André
+ * @author Linus, Sebastian, Andre
  *         
  * @version 1.0
  * 
@@ -86,7 +86,10 @@ public class TimeReportController extends servletBase {
 			String timeSpent = req.getParameter("timeSpent");
 
 			out.println(getHeader(req));
+			out.println("<body>");
+			out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/TimeReportController.css\">\n");
 			out.println(getNav(req));
+			out.println("<p id=\"report_title_text\">Reports</p>");
 			
 			if (loggedInUser == null) {
 				resp.sendRedirect("/BaseBlockSystem/SessionPage");
@@ -330,7 +333,7 @@ public class TimeReportController extends servletBase {
 				if(tr.getWeek() == week && tr.getYear() == year) { //Find timereport for this week and year amongst all timereports
 					timereport = tr;
 
-					List<ActivityReport> activityReports = dbService.getActivityReports(tr.getTimeReportId());	//TODO: Använd smidigare databasfunktion 				
+					List<ActivityReport> activityReports = dbService.getActivityReports(tr.getTimeReportId());	//TODO: Anvand smidigare databasfunktion 				
 					int totalDateTime = 0;
 
 					for(ActivityReport ar : activityReports) { // Calculate if the activity will overstep the amount of minutes in a day. 
@@ -373,7 +376,7 @@ public class TimeReportController extends servletBase {
 
 		List<User> userList = dbService.getAllUsers(this.getProjectId(req));
 
-		String html = "<table width=\"600\" border=\"2\">\r\n" + "<tr>\r\n" + "<td> Username </td>\r\n"
+		String html = "<table id=\"report-table\" width=\"600\" border=\"2\">\r\n" + "<tr>\r\n" + "<td> Username </td>\r\n"
 				+ "<td> View users timereports </td>\r\n"+ 
 				"</td>\r\n";
 
@@ -406,15 +409,15 @@ public class TimeReportController extends servletBase {
 		List<TimeReport> timeReportList = dbService.getTimeReportsByProject(this.getProjectId(req));
 
 		//Table start
-		html += "<table width=\"400\" border=\"2\">\r\n" 
+		html += "<table id=\"report-table\" width=\"400\" border=\"2\">\r\n" 
 				+ "<tr>\r\n" 
-				+ "<td> Year </td>\r\n"
-				+ "<td> Week </td>\r\n"
-				+ "<td> Username </td>\r\n"
-				+ "<td> Timespent(minutes) </td>\r\n" 
-				+ "<td> Status </td>\r\n" 
-				+ "<td> Select Timereport </td>\r\n"
-				+ "<td> Remove Timereport </td>\r\n";
+				+ "<th> Year </th>\r\n"
+				+ "<th> Week </th>\r\n"
+				+ "<th> Username </th>\r\n"
+				+ "<th> Timespent(minutes) </th>\r\n" 
+				+ "<th> Status </th>\r\n" 
+				+ "<th> Select Timereport </th>\r\n"
+				+ "<th> Remove Timereport </th>\r\n";
 
 		for (TimeReport tr : timeReportList) {
 
@@ -638,12 +641,12 @@ public class TimeReportController extends servletBase {
 			//Html table start and header
 			html += "<table width=\"600\" border=\"2\">\r\n" 
 					+ "<tr>\r\n" 
-					+ "<td> Year </td>\r\n"
-					+ "<td> Week </td>\r\n"
-					+ "<td> Timespent (minuter) </td>\r\n" 
-					+ "<td> Status </td>\r\n" 
-					+ "<td> Select timereport </td>\r\n"
-					+ "<td> Remove timereport </td>\r\n";
+					+ "<th> Year </th>\r\n"
+					+ "<th> Week </th>\r\n"
+					+ "<th> Timespent (minuter) </th>\r\n" 
+					+ "<th> Status </th>\r\n" 
+					+ "<th> Select timereport </th>\r\n"
+					+ "<th> Remove timereport </th>\r\n";
 
 			//Adds all timereports into the table
 			for (TimeReport tr : userTimeReports) {
@@ -671,6 +674,8 @@ public class TimeReportController extends servletBase {
 				if(!tr.isSigned() && isUserLoggedInUser(user, req)) { 
 					html += "<td> <form action=\"TimeReportPage?deleteTimeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
 							+ "<button name=\"deleteTimeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() + "\"> Remove </button> </form> </td> \r\n";
+				} else {
+					html += "<td>";
 				}
 
 				html += "</tr>\r\n";
@@ -689,7 +694,8 @@ public class TimeReportController extends servletBase {
 			if(isUserLoggedInUser(user, req)) { 
 				html += "<!--square.html-->\r\n" + 
 						"<!DOCTYPE html>\r\n" + 
-						"<html>\r\n"	
+						"<html>\r\n" +
+						"<div id=\"form\">"
 						+ " <form id=\"filter_form\" method=\"get\">\r\n" 
 						+ "             Create timereport for: \r\n"
 						+ "                <div id=\"selectWeek\">\r\n"
@@ -713,7 +719,8 @@ public class TimeReportController extends servletBase {
 						+ "              </div>\r\n"						
 						+ "            </div>\r\n"
 						+ "			  <input type=\"submit\" value=\"Create timereport\" >\r\n"
-						+ "           </form>"
+						+ "           </form>" +
+						"</div>"
 						+ "          </html>";
 			}
 
@@ -725,7 +732,8 @@ public class TimeReportController extends servletBase {
 				//Get reports for week and year
 				html += "<!--square.html-->\r\n" + 
 						"<!DOCTYPE html>\r\n" + 
-						"<html>\r\n"	
+						"<html>\r\n" +
+						"<div id=\"form\">"
 						+ " <form id=\"getAllReports\" method=\"get\">\r\n" 
 						+ "          Get all timereports for this project for: \r\n"
 						+ "                <div id=\"selectWeek\">\r\n"
@@ -750,7 +758,8 @@ public class TimeReportController extends servletBase {
 						+ "              </div>\r\n"						
 						+ "            </div>\r\n"
 						+ "			  <input type=\"submit\" value=\"Get timereports\" >\r\n"
-						+ "           </form>"
+						+ "           </form>" +
+						"</div>"
 						+ "          </html>";
 
 				//Button for showing all unsigned reports and showing all users.
@@ -760,7 +769,8 @@ public class TimeReportController extends servletBase {
 						"<form action=\"TimeReportPage?showAllUsers\" metod=\"get\">\r\n" + 
 						"  <input name=\"showAllUsers\" type=\"submit\" value=\"Show all users\" >\r\n" + 
 						"</form>"
-						+ "<br>";
+						+ "<br>" +
+						"</div>";
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -804,13 +814,13 @@ public class TimeReportController extends servletBase {
 			}
 
 			//HTML table init and head
-			html = "<table width=\"400\" border=\"2\">\r\n" 
+			html = "<table id=\"report-table\" width=\"400\" border=\"2\">\r\n" 
 					+ "<tr>\r\n" 
-					+ "<td> Week </td>\r\n"
-					+ "<td> Username </td>\r\n"
-					+ "<td> Timespent(minutes) </td>\r\n" 
-					+ "<td> Status </td>\r\n" 
-					+ "<td> Select timereport </td>\r\n";
+					+ "<th> Week </th>\r\n"
+					+ "<th> Username </th>\r\n"
+					+ "<th> Timespent(minutes) </th>\r\n" 
+					+ "<th> Status </th>\r\n" 
+					+ "<th> Select timereport </th>\r\n";
 
 			//For all unsigned timereports, add info to table
 			for (TimeReport tr : unsignedTimeReports) {
@@ -901,7 +911,8 @@ public class TimeReportController extends servletBase {
 		//Builds the HTML String
 		return "<!--square.html-->\r\n" + 
 		"<!DOCTYPE html>\r\n" + 
-		"<html>\r\n"	
+		"<html>\r\n" +
+		"<div id= \"form\">"
 		+ " <form id=\"filter_form\" method=\"get\">\r\n" + "                 Activity type\r\n"
 		+ "                <div id=\"activity_picker\">\r\n"
 		+ "                    <select id=\"act_picker_1\" name=\"activity\" form=\"filter_form\">\r\n" //Activity picker
@@ -917,13 +928,13 @@ public class TimeReportController extends servletBase {
 		+ "                        <option value=21>Funktionstest</option>\r\n"
 		+ "                        <option value=22>Systemtest</option>\r\n"
 		+ "                        <option value=23>Regressionstest</option>\r\n"
-		+ "                        <option value=30>Möte</option>\r\n"
-		+ "                        <option value=41>Föreläsning</option>\r\n"
-		+ "                        <option value=42>Övning</option>\r\n"
-		+ "                        <option value=43>Terminalövning</option>\r\n"
-		+ "                        <option value=44>Självstudier</option>\r\n"
-		+ "                        <option value=100>Övrigt</option>\r\n"
-		+ "                      </select>\r\n" + "                </div>\r\n" + "            </div>\r\n"
+		+ "                        <option value=30>Mote</option>\r\n"
+		+ "                        <option value=41>Fï¿½relï¿½sning</option>\r\n"
+		+ "                        <option value=42>ï¿½vning</option>\r\n"
+		+ "                        <option value=43>Terminalï¿½vning</option>\r\n"
+		+ "                        <option value=44>Sjï¿½lvstudier</option>\r\n"
+		+ "                        <option value=100>ï¿½vrigt</option>\r\n"
+		+ "                      </select>\r\n" + "                </div>\r\n"
 		+ "            <div id=\"subTypes\">\r\n" + "                <p class=\"descriptors\">Activity Subtype</p>\r\n" //Activity subtype picker
 		+ "                <div id=\"activity_picker\">\r\n"
 		+ "                    <select id=\"act_picker_2\" name=\"subType\" form=\"filter_form\">\r\n"
@@ -955,7 +966,8 @@ public class TimeReportController extends servletBase {
 				+ " <input name=\"timeReportId\" type=\"hidden\" value=\""+ timeReportId + "\"></input>\r\n"
 				+ "              <input class=\"submitBtn\" type=\"submit\" value=\"Send\">\r\n" 				
 				+ "                </div>\r\n"
-				+ "              </form>"
+				+ "              </form>" +
+				"</div>"
 				+ "              </html>";
 
 

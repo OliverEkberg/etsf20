@@ -1,6 +1,7 @@
 package controller;
 
 import java.io.IOException;
+import java.io.PipedInputStream;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.List;
@@ -32,186 +33,113 @@ public class UserController extends servletBase {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		if (!isLoggedIn(req)) {
+			resp.sendRedirect("SessionPage");
+			return;
+		}
+		
 		PrintWriter out = resp.getWriter();
 		out.println(getHeader(req));
+		out.println("<body>");
+		out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/usercontroller.css\">\n");
 		out.println(getNav(req));
 
-		String myName = "";
-
 		User loggedInUser = null;
-		int selectedProject = 0;
-		boolean isLeader = false;
 		try {
 			loggedInUser = getLoggedInUser(req);
-			if (loggedInUser != null)
-				myName = (String) loggedInUser.getUsername(); // if the name exists typecast the name to a string
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		selectedProject = getProjectId(req);
-
-		try {
-			isLeader = isProjectLeader(req, selectedProject);
 		} catch (Exception e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
-		// check that the user is logged in
-		if (!isLoggedIn(req))
-			resp.sendRedirect("SessionPage");
-		else {
+		if (loggedInUser.isAdmin()) {
+			out.println("<p id=\"user_title_text\">System Users</p>");
 
-			if (loggedInUser.isAdmin()) {
-				// Admin page
-				out.println("<h1>User Page - Admin" + "</h1>");
-
-				// check if the administrator wants to add a new user in the form
-				String newName = req.getParameter("addname");
-				if (newName != null) {
-					if (checkNewName(newName)) {
-						String password = addUser(newName);
-						if (password == null) {
-							out.println("<p>Error: Suggested user name not possible to add</p>");
-						} else {
-							out.println(alert("User added with password: " + password));
-						}
-					} else
-						out.println("<p>Error: Suggested name not allowed</p>");
-				}
-
-				// check if the administrator wants to delete a user by clicking the URL in the
-				// list
-				String deleteName = req.getParameter("deletename");
-				if (deleteName != null) {
-					if (checkNewName(deleteName)) {
-						deleteUser(deleteName);
-					} else
-						out.println("<p>Error: URL wrong</p>");
-				}
-
-				try {
-					List<User> users = dbService.getAllUsers();
-					List<Project> projects = dbService.getAllProjects();
-					List<Role> roles = dbService.getAllRoles();
-					out.println("<p>Registered users:</p>");
-					out.println("<table border=" + addQuotes("1") + ">");
-					out.println("<tr><td>NAME</td><td></td><td></td></tr>");
-					for (User u : users) {
-						String name = u.getUsername();
-						String deleteURL = "UserPage?deletename=" + name;
-						String deleteCode = "<a href=" + addQuotes(deleteURL) + " onclick="
-								+ addQuotes("return confirm('Are you sure you want to delete " + name + "?')")
-								+ "> delete </a>";
-						String resetURL = "UserPage?resetName=" + u.getUserId();
-						String resetCode = "<a href=" + addQuotes(resetURL) + " onclick="
-								+ addQuotes(
-										"return confirm('Are you sure you want to reset password for: " + name + "?')")
-								+ "> reset password </a>";
-
-						if (u.isAdmin()) {
-							deleteCode = "";
-							resetCode = "";
-
-						}
-
-						out.println("<tr>");
-						out.println("<td>" + name + "</td>");
-						out.println("<td>" + deleteCode + "</td>");
-						out.println("<td>" + resetCode + "</td>");
-						out.println("</tr>");
+			// check if the administrator wants to add a new user in the form
+			String newName = req.getParameter("addname");
+			if (newName != null) {
+				if (checkNewName(newName)) {
+					String password = addUser(newName);
+					if (password == null) {
+						out.println("<p>Error: Suggested user name not possible to add</p>");
+					} else {
+						out.println(alert("User added with password: " + password));
 					}
-					out.println("</table>");
-				} catch (SQLException ex) {
-					System.out.println("SQLException: " + ex.getMessage());
-					System.out.println("SQLState: " + ex.getSQLState());
-					System.out.println("VendorError: " + ex.getErrorCode());
+				} else
+					out.println("<p>Error: Suggested name not allowed</p>");
+			}
+
+			// check if the administrator wants to delete a user
+			String deleteName = req.getParameter("deletename");
+			if (deleteName != null) {
+				if (checkNewName(deleteName)) { // TODO: Look over this whole deletion
+					deleteUser(deleteName);
+				} else
+					out.println("<p>Error: URL wrong</p>");
+			}
+
+			try {
+				List<User> users = dbService.getAllUsers();
+				out.println("<table id=\"userTable\" border=" + addQuotes("1") + ">");
+				out.println("<tr><th>Name</th><th colspan=\"2\">Settings</th></tr>");
+				for (User u : users) {
+					String name = u.getUsername();
+					String deleteURL = "UserPage?deletename=" + name;
+					String deleteCode = "<a href=" + addQuotes(deleteURL) + " onclick="
+							+ addQuotes("return confirm('Are you sure you want to delete " + name + "?')")
+							+ "> delete </a>";
+					String resetURL = "UserPage?resetName=" + u.getUserId();
+					String resetCode = "<a href=" + addQuotes(resetURL) + " onclick="
+							+ addQuotes(
+									"return confirm('Are you sure you want to reset password for: " + name + "?')")
+							+ "> reset password </a>";
+
+					out.println("<tr>");
+					out.println("<td>" + name + "</td>");
+					out.println("<td>" + deleteCode + "</td>");
+					out.println("<td>" + resetCode + "</td>");
+					out.println("</tr>");
 				}
-				out.println(addUserForm());
+				out.println("</table>");
+			} catch (SQLException ex) {
+				System.out.println("SQLException: " + ex.getMessage());
+				System.out.println("SQLState: " + ex.getSQLState());
+				System.out.println("VendorError: " + ex.getErrorCode());
+			}
+			out.println(addUserForm());
 
-				out.println("</body></html>");
+			out.println("</body></html>");
 
-				String resetName = req.getParameter("resetName");
-				if (resetName != null) {
-					int reset = Integer.parseInt(resetName);
+			String resetName = req.getParameter("resetName"); // TODO: Clarify that this is actually reset password for user
+			if (resetName != null) {
+				int reset = Integer.parseInt(resetName);
+				try {
+					out.print(resetPassword(reset));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		} else {
+			// Not admin (change password) TODO
+			out.println("<h1>User Page" + "</h1>");
+			out.println(changePasswordForm());
+			String newPassword = req.getParameter("password");
+			if (newPassword != null) {
+				if (checkPassword(newPassword)) {
 					try {
-						out.print(resetPassword(reset));
+						changePassword(newPassword, loggedInUser);
+						out.println("<!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "<script>\n"
+								+ "  alert(\"Password changed!\");\n" + "</script>\n" + "\n" + "</body>\n"
+								+ "</html>\n");
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-				}
-			} else if (isLeader) {
-				out.println("<h1>User Page - Project Leader" + "</h1>");
-
-				try {
-					List<User> users = dbService.getAllUsers(getProjectId(req));
-					out.println("<p>Registered users:</p>");
-					out.println("<table border=" + addQuotes("1") + ">");
-					out.println("<tr><td>NAME</td><td>ROLE</td></tr>");
-					for (User u : users) {
-						out.println("<tr>");
-						out.println("<td>" + u.getUsername() + "</td>");
-						String role = "";
-						
-						try {
-							role = dbService.getRole(u.getUserId(), selectedProject).getRole();	
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-						out.println("<td>" + role + "</td>");
-						out.println("</tr>");
-					}
-					out.println("</table>");
-				} catch (SQLException ex) {
-					System.out.println("SQLException: " + ex.getMessage());
-					System.out.println("SQLState: " + ex.getSQLState());
-					System.out.println("VendorError: " + ex.getErrorCode());
-				}
-				out.println(changePasswordForm());
-
-				out.println("</body></html>");
-
-				String newPassword = req.getParameter("password");
-				if (newPassword != null) {
-					if (checkPassword(newPassword)) {
-						try {
-							changePassword(newPassword, loggedInUser);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					} else {
-						out.println("<!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "<script>\n"
-								+ "  alert(\"Invalid password...\");\n" + "</script>\n" + "\n" + "</body>\n"
-								+ "</html>\n");
-					}
-				}
-
-			} else {
-				// Normal user
-				out.println("<h1>User Page" + "</h1>");
-				out.println(changePasswordForm());
-				String newPassword = req.getParameter("password");
-				if (newPassword != null) {
-					if (checkPassword(newPassword)) {
-						try {
-							changePassword(newPassword, loggedInUser);
-							out.println("<!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "<script>\n"
-									+ "  alert(\"Password changed!\");\n" + "</script>\n" + "\n" + "</body>\n"
-									+ "</html>\n");
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					} else {
-						out.println("<!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "<script>\n"
-								+ "  alert(\"Invalid password...\");\n" + "</script>\n" + "\n" + "</body>\n"
-								+ "</html>\n");
-					}
+				} else {
+					out.println("<!DOCTYPE html>\n" + "<html>\n" + "<body>\n" + "\n" + "<script>\n"
+							+ "  alert(\"Invalid password...\");\n" + "</script>\n" + "\n" + "</body>\n"
+							+ "</html>\n");
 				}
 			}
 		}
-
 	}
 
 	private String resetPassword(int reset) throws Exception {

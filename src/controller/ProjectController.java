@@ -29,7 +29,7 @@ import database.User;
  * 
  * Description of the class.
  * 
- * @author Ferit B�lezek ( Enter name if you've messed around with this file ;) )
+ * @author Ferit B�lezek and Dominik Gashi
  * @version 1.0
  * 
  */
@@ -106,7 +106,11 @@ public class ProjectController extends servletBase {
 		
 		if (projectSelected != null ) {
 			setProjectId(req, Integer.valueOf(projectSelected));
-			resp.sendRedirect("UserPage");
+			if (isAdmin(req)) {
+				resp.sendRedirect("UserPage");
+			} else {
+				resp.sendRedirect("TimeReportPage");
+			}
 		}
 		
 		
@@ -215,7 +219,7 @@ public class ProjectController extends servletBase {
 		
 		boolean allowed;
 		
-		out.println("<h2>Projects</h2>\n" +
+		out.println("<p id=\"head_text\">Projects</p>\n" +
         "<table id=\"table\">\n" +
           "<tr>\n" +
             "<th>Project Name</th>\n" +
