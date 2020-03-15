@@ -227,7 +227,7 @@ public class StatisticController extends servletBase {
 	}
 
 	/**
-	 * 
+	 * Gets a StatisticType given parameter options.
 	 * @param query string, depending on what type of stats to get, received from URL query.
 	 * @param the current httpRequest.
 	 * @return a StatisticType.
