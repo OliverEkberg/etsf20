@@ -4,7 +4,6 @@ import java.io.*;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -95,9 +94,7 @@ public class TimeReportController extends servletBase {
 				return;	
 			}
 			
-			LocalDate d = LocalDate.now();
-			TemporalField woy = WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear(); 
-			int weekNumber = d.get(woy);
+			int weekNumber = Helpers.getWeekNbr(LocalDate.now());
 
 			if(error != null) { //If user gets an error
 				out.println("<script> "
@@ -114,9 +111,9 @@ public class TimeReportController extends servletBase {
 			//Parameters for creating a new activityreport 
 			if(activityType != null && subType != null && timeSpent != null && addReportWeek != null && addReportYear != null && timeReportId != null && dateOfReport != null) {			
 
-				if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > 1440) { 
+				if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > Constants.MAX_MINUTES_PER_DAY) { 
 
-					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?time-can-only-be-a-number-between-1-and-1440");
+					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?time-can-only-be-a-number-between-1-and-" + Constants.MAX_MINUTES_PER_DAY);
 					return;
 
 				}
@@ -281,15 +278,9 @@ public class TimeReportController extends servletBase {
 
 			out.println(getUserTimeReports(loggedInUser, req)); //Standard case, if nothing else works this is called
 
-
-		}
-
-		catch (NumberFormatException e) {
-			resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=unexpected-error");
-			e.printStackTrace(); 
 		} catch (Exception e) {
-			resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=unexpected-error");
 			e.printStackTrace();
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=unexpected-error");
 		}
 
 	}
@@ -324,18 +315,14 @@ public class TimeReportController extends servletBase {
 				if(tr.getWeek() == week && tr.getYear() == year) { //Find timereport for this week and year amongst all timereports
 					timereport = tr;
 
-					List<ActivityReport> activityReports = dbService.getActivityReports(tr.getTimeReportId());	//TODO: Anvand smidigare databasfunktion 				
-					int totalDateTime = 0;
-
-					for(ActivityReport ar : activityReports) { // Calculate if the activity will overstep the amount of minutes in a day. 
-
-						if(ar.getReportDate().equals(date)) {
-							totalDateTime += ar.getMinutes();
-						}
-					}
-
-					if(totalDateTime + minutes > 1440) {
-						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
+					int totalTime = dbService.getActivityReports(tr.getTimeReportId())
+							.stream()
+							.filter(ar -> ar.getReportDate().equals(date))
+							.mapToInt(ar -> ar.getMinutes())
+							.sum();
+					
+					if(totalTime + minutes > Constants.MAX_MINUTES_PER_DAY) {
+//						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
 						return null;
 					}
 
@@ -349,7 +336,7 @@ public class TimeReportController extends servletBase {
 		else { //Else - timereport this week and year didnt exist, create one!
 			timereport = dbService.createTimeReport(new TimeReport(0, projectUserId, 0, null, year, week, LocalDateTime.now(), false)); 
 		}
-
+		
 		activityReport = dbService.createActivityReport(new ActivityReport(0, activityTypeId, activitySubTypeId, timereport.getTimeReportId(), date, minutes));
 
 		return activityReport;
@@ -367,9 +354,9 @@ public class TimeReportController extends servletBase {
 
 		List<User> userList = dbService.getAllUsers(this.getProjectId(req));
 
-		String html = "<table id=\"report-table\" width=\"600\" border=\"2\">\r\n" + "<tr>\r\n" + "<td> Username </td>\r\n"
-				+ "<td> View users timereports </td>\r\n"+ 
-				"</td>\r\n";
+		String html = "<table id=\"report-table\" width=\"600\" border=\"1\">\r\n" + "<tr>\r\n" + "<th> Username </th>\r\n"
+				+ "<th> View users timereports </th>\r\n"+ 
+				"</tr>\r\n";
 
 		for(User u : userList) {
 
@@ -400,7 +387,7 @@ public class TimeReportController extends servletBase {
 		List<TimeReport> timeReportList = dbService.getTimeReportsByProject(this.getProjectId(req));
 
 		//Table start
-		html += "<table id=\"report-table\" width=\"400\" border=\"2\">\r\n" 
+		html += "<table id=\"report-table\" width=\"400\" border=\"1\">\r\n" 
 				+ "<tr>\r\n" 
 				+ "<th> Year </th>\r\n"
 				+ "<th> Week </th>\r\n"
@@ -464,6 +451,7 @@ public class TimeReportController extends servletBase {
 		boolean isProjectLeader = isProjectLeader(req);
 		boolean reportIsSigned = timeReport.isSigned();
 		boolean reportIsFinished = timeReport.isFinished();
+		boolean isActivityReportsDeletable = !reportIsSigned && !reportIsFinished && isUserLoggedInUser(reportOwner, req); //If timereport isn't signed, and the report owner is the one accessing it, show button for deleting activity, else do not show it.
 
 		//If projectleader is looking within a report, and it isn't their own. Display the name of the report owner.
 		if(this.isProjectLeader(req) && !isUserLoggedInUser(reportOwner, req)) {
@@ -471,11 +459,14 @@ public class TimeReportController extends servletBase {
 		}
 
 		//HTML table start and header.
-		html +=  "<table width=\"600\" border=\"2\">\r\n" 
+		html +=  "<table width=\"600\" border=\"1\">\r\n" 
 				+ "<tr>\r\n" 
-				+ "<td> Date </td>\r\n"
-				+ "<td> Activitytype</td>\r\n" + "<td> Subtype </td>\r\n" + "<td> Minutes </td>\r\n"
-				+ "<td> Remove activity report </td>\r\n";
+				+ "<th> Date </th>\r\n"
+				+ "<th> Activitytype</th>\r\n" + "<th> Subtype </th>\r\n" + "<th> Minutes </th>\r\n";
+		
+		if (isActivityReportsDeletable) {
+			html += "<th> Remove activity report </th>\r\n";
+		}
 
 		List<ActivityReport> activityReports = dbService.getActivityReports(timeReportId);
 		List<ActivityType> activityTypes = dbService.getActivityTypes();
@@ -497,8 +488,7 @@ public class TimeReportController extends servletBase {
 					+ "<td>" + activitySubType + "</td>\r\n" 
 					+ "<td>" + aReport.getMinutes() + "</td>\r\n";
 
-			//If timereport isn't signed, and the report owner is the one accessing it, show button for deleting activity, else dont show it.			
-			if(!reportIsSigned && !reportIsFinished && isUserLoggedInUser(reportOwner, req)) {
+			if(isActivityReportsDeletable) {
 				html += "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?deleteActivityReportId=\""+aReport.getActivityReportId()+"&timeReportId=\"" + timeReportId + "\" method=\"get\">\r\n" + 
 						"		<input name=\"deleteActivityReportId\" type=\"hidden\" value=\""+aReport.getActivityReportId()+"\"></input>\r\n" + 
 						" <input name=\"timeReportId\" type=\"hidden\" value=\""+timeReportId+"\"></input>\r\n" + 
@@ -630,11 +620,11 @@ public class TimeReportController extends servletBase {
 		else {
 
 			//Html table start and header
-			html += "<table width=\"600\" border=\"2\">\r\n" 
+			html += "<table width=\"600\" border=\"1\">\r\n" 
 					+ "<tr>\r\n" 
 					+ "<th> Year </th>\r\n"
 					+ "<th> Week </th>\r\n"
-					+ "<th> Timespent (minuter) </th>\r\n" 
+					+ "<th> Timespent (minutes) </th>\r\n" 
 					+ "<th> Status </th>\r\n" 
 					+ "<th> Select timereport </th>\r\n"
 					+ "<th> Remove timereport </th>\r\n";
@@ -805,7 +795,7 @@ public class TimeReportController extends servletBase {
 			}
 
 			//HTML table init and head
-			html = "<table id=\"report-table\" width=\"400\" border=\"2\">\r\n" 
+			html = "<table id=\"report-table\" width=\"400\" border=\"1\">\r\n" 
 					+ "<tr>\r\n" 
 					+ "<th> Week </th>\r\n"
 					+ "<th> Username </th>\r\n"
@@ -886,8 +876,8 @@ public class TimeReportController extends servletBase {
 		//Code for controlling so the user only can input valid information into the date picker(same week and year as they selected)
 		WeekFields weekFields = WeekFields.of(Locale.getDefault());
 		LocalDate d = LocalDate.now().withYear(year).with(weekFields.weekOfYear(), week);
-		LocalDate s = d.minusDays(d.getDayOfWeek().getValue() - 1);
-		LocalDate e = d.plusDays(7 - d.getDayOfWeek().getValue());
+		LocalDate s = Helpers.getFirstDayOfWeek(d);
+		LocalDate e = Helpers.getLastDayOfWeek(d);
 		LocalDate p = LocalDate.now();
 
 		if (e.compareTo(LocalDate.now()) > 0) {
@@ -908,6 +898,7 @@ public class TimeReportController extends servletBase {
 			activityTypesWithSubTypes.add(ast.getActivityTypeId());
 		}
 		
+		// Construct an JS array containing the ids of activity types which have sub types
 		String jsArray = "[";
 		for (int i : activityTypesWithSubTypes) {
 			jsArray += i + ",";
@@ -953,7 +944,7 @@ public class TimeReportController extends servletBase {
 				//Hidden values, submit button and time input field
 				+ "                <p class=\"descriptors\">Timespent(minutes) </p>\r\n"
 				+ "                <div id=\"activity_picker\">\r\n" + "				</div>"
-				+ "              <input class=\"credentials_rect\" type=\"number\" id=\"timeSpent\" name=\"timeSpent\" min=\"1\" max=\"1440\" pattern=\"^[0-9]*$\" title=\"Please enter numbers only.\" maxlength=\"4\" placeholder=\"Timespent\" required><br>\r\n"
+				+ "              <input class=\"credentials_rect\" type=\"number\" id=\"timeSpent\" name=\"timeSpent\" min=\"1\" max="+ addQuotes(Constants.MAX_MINUTES_PER_DAY + "") +" pattern=\"^[0-9]*$\" title=\"Please enter numbers only.\" maxlength=\"4\" placeholder=\"Timespent\" required><br>\r\n"
 				+ "		<input name=\"addReportWeek\" type=\"hidden\" value=\""+ week + "\"></input>\r\n" //Hidden values that get sent into URL
 				+"<input name=\"addReportYear\" type=\"hidden\" value=\""+ year + "\"> </input>\r\n"
 				+ "  <label for=\"dateInfo\">Enter date for activity: </label>\r\n"  
@@ -973,14 +964,13 @@ public class TimeReportController extends servletBase {
 	 * 
 	 * @param req - HttpServletRequest
 	 * @return true if the user is a projectleader, else false.
-	 * @throws Exception
 	 */
-	private boolean isProjectLeader(HttpServletRequest req) throws Exception {
+	private boolean isProjectLeader(HttpServletRequest req) {
 		return this.isProjectLeader(req, this.getProjectId(req));
 	}
 
-	private boolean isUserLoggedInUser(User user, HttpServletRequest req) throws Exception {
-		return user.getUserId() == this.getLoggedInUser(req).getUserId();
+	private boolean isUserLoggedInUser(User user, HttpServletRequest req) {
+		User loggedInUser = getLoggedInUser(req);
+		return loggedInUser != null && loggedInUser.getUserId() == user.getUserId();
 	}
-
 }
