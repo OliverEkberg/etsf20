@@ -337,9 +337,7 @@ public class TimeReportController extends servletBase {
 		else { //Else - timereport this week and year didnt exist, create one!
 			timereport = dbService.createTimeReport(new TimeReport(0, projectUserId, 0, null, year, week, LocalDateTime.now(), false)); 
 		}
-
 		
-		System.out.println(date.toString());
 		activityReport = dbService.createActivityReport(new ActivityReport(0, activityTypeId, activitySubTypeId, timereport.getTimeReportId(), date, minutes));
 
 		return activityReport;
