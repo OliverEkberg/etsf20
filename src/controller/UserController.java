@@ -16,13 +16,10 @@ import database.*;
 /**
  * Servlet implementation class UserController
  * 
- * A xx page.
- * 
- * Description of the class.
- * 
- * @author Ferit B�lezek ( Enter name if you've messed around with this file
- *         ;) )
- * @version 1.0
+ * @author Christoffer Larsson
+ * @author Emil Jönsson
+ * @author Jonatan Walse
+ * @version 0.1
  * 
  */
 @WebServlet("/" + Constants.USERS_PATH)
@@ -138,7 +135,13 @@ public class UserController extends servletBase {
 			}
 		}
 	}
-
+	
+	/**
+	* Resets the password for a given user into an auto-generatoed one.
+	* @param the user id for the specified user.
+	* @return html popup window with the new password.
+	* @throws Exception
+	*/
 	private String resetPassword(int reset) throws Exception {
 		User user = dbService.getUserById(reset);
 		String newPassword = generatePassword();
@@ -156,7 +159,10 @@ public class UserController extends servletBase {
 		sb.append("<!DOCTYPE html>");
 		return sb.toString();
 	}
-
+	/**
+	* A form for adding new users to the system.
+	* @return html form for adding usernames.
+	*/
 	public String addUserForm() {
 		String html;
 		html = "<p> <form name=" + addQuotes("input");
@@ -166,7 +172,10 @@ public class UserController extends servletBase {
 		html += "</form>";
 		return html;
 	}
-
+	/**
+	* A form for changing the users password.
+	* @return html form for changing password.
+	*/
 	public String changePasswordForm() {
 		String html = "<div id=" + addQuotes("bodyContent") + ">";
 		html += "<p id=\"user_title_text\">Change Password</p>";
@@ -182,7 +191,10 @@ public class UserController extends servletBase {
 
 		return html;
 	}
-
+	/**
+	* Adds a new user to the database with an auto-generated password.
+	* @param name of user.
+	*/
 	private String addUser(String name) {
 		try {
 			String newPassword = generatePassword();
@@ -194,13 +206,21 @@ public class UserController extends servletBase {
 		}
 		return null;
 	}
-
+	/**
+	* Changes the password for a certain user.
+	* @param the desired password.
+	* @param the specified user object.
+	* @throws Exception
+	*/
 	private void changePassword(String newPassword, User u) throws Exception {
 		u.setPassword(newPassword);
 		dbService.updateUser(u);
 		System.out.println(newPassword);
 	}
-
+	/**
+	* Generates a random password of 6 letters.
+	* @return auto-generated password.
+	*/
 	private String generatePassword() {
 		StringBuilder sb = new StringBuilder();
 		Random r = new Random();
@@ -219,7 +239,11 @@ public class UserController extends servletBase {
 		int ci = (int) c;
 		return (ci >= 48 && ci <= 57) || (ci >= 65 && ci <= 90) || (ci >= 97 && ci <= 122);
 	}
-
+	/**
+	* Checks if a given username is allowed.
+	* @param the name to check.
+	* @return wether it is allowd or not.
+	*/
 	private boolean checkNewName(String name) {
 		int length = name.length();
 		boolean isOk = (length >= Constants.MIN_USERNAME_LENGTH && length <= Constants.MAX_USERNAME_LENGTH);
@@ -230,7 +254,11 @@ public class UserController extends servletBase {
 		
 		return isOk;
 	}
-
+	/**
+	* Checks if a given password is allowed.
+	* @param the password to check.
+	* @return wether it is allowd or not.
+	*/
 	private boolean checkPassword(String password) {
 		int length = password.length();
 		boolean isOk = (length >= Constants.MIN_PASSWORD_LENGTH && length <= Constants.MAX_PASSWORD_LENGTH);
