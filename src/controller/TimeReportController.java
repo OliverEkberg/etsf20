@@ -625,7 +625,7 @@ public class TimeReportController extends servletBase {
 					+ "<tr>\r\n" 
 					+ "<th> Year </th>\r\n"
 					+ "<th> Week </th>\r\n"
-					+ "<th> Timespent (minuter) </th>\r\n" 
+					+ "<th> Timespent (minutes) </th>\r\n" 
 					+ "<th> Status </th>\r\n" 
 					+ "<th> Select timereport </th>\r\n"
 					+ "<th> Remove timereport </th>\r\n";
