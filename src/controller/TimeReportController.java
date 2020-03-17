@@ -354,9 +354,9 @@ public class TimeReportController extends servletBase {
 
 		List<User> userList = dbService.getAllUsers(this.getProjectId(req));
 
-		String html = "<table id=\"report-table\" width=\"600\" border=\"1\">\r\n" + "<tr>\r\n" + "<td> Username </td>\r\n"
-				+ "<td> View users timereports </td>\r\n"+ 
-				"</td>\r\n";
+		String html = "<table id=\"report-table\" width=\"600\" border=\"1\">\r\n" + "<tr>\r\n" + "<th> Username </th>\r\n"
+				+ "<th> View users timereports </th>\r\n"+ 
+				"</tr>\r\n";
 
 		for(User u : userList) {
 
