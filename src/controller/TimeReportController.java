@@ -355,7 +355,7 @@ public class TimeReportController extends servletBase {
 
 		List<User> userList = dbService.getAllUsers(this.getProjectId(req));
 
-		String html = "<table id=\"report-table\" width=\"600\" border=\"2\">\r\n" + "<tr>\r\n" + "<td> Username </td>\r\n"
+		String html = "<table id=\"report-table\" width=\"600\" border=\"1\">\r\n" + "<tr>\r\n" + "<td> Username </td>\r\n"
 				+ "<td> View users timereports </td>\r\n"+ 
 				"</td>\r\n";
 
@@ -388,7 +388,7 @@ public class TimeReportController extends servletBase {
 		List<TimeReport> timeReportList = dbService.getTimeReportsByProject(this.getProjectId(req));
 
 		//Table start
-		html += "<table id=\"report-table\" width=\"400\" border=\"2\">\r\n" 
+		html += "<table id=\"report-table\" width=\"400\" border=\"1\">\r\n" 
 				+ "<tr>\r\n" 
 				+ "<th> Year </th>\r\n"
 				+ "<th> Week </th>\r\n"
@@ -460,13 +460,13 @@ public class TimeReportController extends servletBase {
 		}
 
 		//HTML table start and header.
-		html +=  "<table width=\"600\" border=\"2\">\r\n" 
+		html +=  "<table width=\"600\" border=\"1\">\r\n" 
 				+ "<tr>\r\n" 
-				+ "<td> Date </td>\r\n"
-				+ "<td> Activitytype</td>\r\n" + "<td> Subtype </td>\r\n" + "<td> Minutes </td>\r\n";
+				+ "<th> Date </th>\r\n"
+				+ "<th> Activitytype</th>\r\n" + "<th> Subtype </th>\r\n" + "<th> Minutes </th>\r\n";
 		
 		if (isActivityReportsDeletable) {
-			html += "<td> Remove activity report </td>\r\n";
+			html += "<th> Remove activity report </th>\r\n";
 		}
 
 		List<ActivityReport> activityReports = dbService.getActivityReports(timeReportId);
@@ -621,7 +621,7 @@ public class TimeReportController extends servletBase {
 		else {
 
 			//Html table start and header
-			html += "<table width=\"600\" border=\"2\">\r\n" 
+			html += "<table width=\"600\" border=\"1\">\r\n" 
 					+ "<tr>\r\n" 
 					+ "<th> Year </th>\r\n"
 					+ "<th> Week </th>\r\n"
@@ -796,7 +796,7 @@ public class TimeReportController extends servletBase {
 			}
 
 			//HTML table init and head
-			html = "<table id=\"report-table\" width=\"400\" border=\"2\">\r\n" 
+			html = "<table id=\"report-table\" width=\"400\" border=\"1\">\r\n" 
 					+ "<tr>\r\n" 
 					+ "<th> Week </th>\r\n"
 					+ "<th> Username </th>\r\n"
