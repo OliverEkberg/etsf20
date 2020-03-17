@@ -452,6 +452,7 @@ public class TimeReportController extends servletBase {
 		boolean isProjectLeader = isProjectLeader(req);
 		boolean reportIsSigned = timeReport.isSigned();
 		boolean reportIsFinished = timeReport.isFinished();
+		boolean isActivityReportsDeletable = !reportIsSigned && !reportIsFinished && isUserLoggedInUser(reportOwner, req); //If timereport isn't signed, and the report owner is the one accessing it, show button for deleting activity, else do not show it.
 
 		//If projectleader is looking within a report, and it isn't their own. Display the name of the report owner.
 		if(this.isProjectLeader(req) && !isUserLoggedInUser(reportOwner, req)) {
@@ -462,8 +463,11 @@ public class TimeReportController extends servletBase {
 		html +=  "<table width=\"600\" border=\"2\">\r\n" 
 				+ "<tr>\r\n" 
 				+ "<td> Date </td>\r\n"
-				+ "<td> Activitytype</td>\r\n" + "<td> Subtype </td>\r\n" + "<td> Minutes </td>\r\n"
-				+ "<td> Remove activity report </td>\r\n";
+				+ "<td> Activitytype</td>\r\n" + "<td> Subtype </td>\r\n" + "<td> Minutes </td>\r\n";
+		
+		if (isActivityReportsDeletable) {
+			html += "<td> Remove activity report </td>\r\n";
+		}
 
 		List<ActivityReport> activityReports = dbService.getActivityReports(timeReportId);
 		List<ActivityType> activityTypes = dbService.getActivityTypes();
@@ -485,8 +489,7 @@ public class TimeReportController extends servletBase {
 					+ "<td>" + activitySubType + "</td>\r\n" 
 					+ "<td>" + aReport.getMinutes() + "</td>\r\n";
 
-			//If timereport isn't signed, and the report owner is the one accessing it, show button for deleting activity, else dont show it.			
-			if(!reportIsSigned && !reportIsFinished && isUserLoggedInUser(reportOwner, req)) {
+			if(isActivityReportsDeletable) {
 				html += "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?deleteActivityReportId=\""+aReport.getActivityReportId()+"&timeReportId=\"" + timeReportId + "\" method=\"get\">\r\n" + 
 						"		<input name=\"deleteActivityReportId\" type=\"hidden\" value=\""+aReport.getActivityReportId()+"\"></input>\r\n" + 
 						" <input name=\"timeReportId\" type=\"hidden\" value=\""+timeReportId+"\"></input>\r\n" + 
