@@ -1,5 +1,10 @@
 package controller;
 
+/**
+ * Holds all global constants for the system.
+ * 
+ * @author Oliver Ekberg
+ */
 public class Constants {
 	public static final String PROJECTS_PATH = "projects";
 	public static final String SESSION_PATH = "session";
