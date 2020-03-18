@@ -24,7 +24,7 @@ import java.util.TreeSet;
 public class DatabaseService {
 	private final String DATABASE_SERVER_ADDRESS = "vm23.cs.lth.se";
 	private final String DATABASE_USER = "pusp2002hbg";
-	private final String DATABASE_PASSWORD = ""; // Fill this in, but do NOT commit it!
+	private final String DATABASE_PASSWORD = "y9sdfwe0"; // Fill this in, but do NOT commit it!
 	private final String DATABASE = "pusp2002hbg";
 	private Connection conn;
 
@@ -1166,7 +1166,8 @@ public class DatabaseService {
 		sb.append("JOIN ActivityTypes AcT USING (activityTypeId) ");
 		sb.append("JOIN TimeReports TR USING (timeReportId) ");
 		sb.append("JOIN ProjectUsers PU USING (projectUserId) ");
-		sb.append("WHERE AR.reportDate >= ? ");
+		sb.append("WHERE TR.signedAt IS NOT NULL ");
+		sb.append("AND AR.reportDate >= ? ");
 		sb.append("AND AR.reportDate < ? ");
 		sb.append("AND PU.projectId = ? ");
 
