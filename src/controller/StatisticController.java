@@ -334,29 +334,39 @@ public class StatisticController extends servletBase {
 	private String getSelectOptions(HttpServletRequest req) {
 		String divider = "<option disabled>-----------</option>";
 		StringBuilder sb = new StringBuilder();
-		sb.append("<option value=\"");
-		sb.append("*");
-		sb.append("\">");
-		sb.append("Whole project");
-		sb.append("</option>\n");
 		
-		sb.append(divider);
-		List<Role> roles = dbService.getAllRoles();
-		for (Role role : roles) {
+		if (isProjectLeader(req, getProjectId(req))) {
 			sb.append("<option value=\"");
-			sb.append(role.getRole());
+			sb.append("*");
 			sb.append("\">");
-			sb.append(role.getRole());
+			sb.append("Whole project");
 			sb.append("</option>\n");
-		}
-		
-		sb.append(divider);
-		List<User> users = dbService.getAllUsers(getProjectId(req));
-		for (User user : users) {
+			
+			sb.append(divider);
+			List<Role> roles = dbService.getAllRoles();
+			for (Role role : roles) {
+				sb.append("<option value=\"");
+				sb.append(role.getRole());
+				sb.append("\">");
+				sb.append(role.getRole());
+				sb.append("</option>\n");
+			}
+			
+			sb.append(divider);
+			List<User> users = dbService.getAllUsers(getProjectId(req));
+			for (User user : users) {
+				sb.append("<option value=\"");
+				sb.append(user.getUsername());
+				sb.append("\">");
+				sb.append(user.getUsername());
+				sb.append("</option>\n");
+			}
+		} else { // Regular users should only see themselves
+			User loggedInUser = getLoggedInUser(req);
 			sb.append("<option value=\"");
-			sb.append(user.getUsername());
+			sb.append(loggedInUser.getUsername());
 			sb.append("\">");
-			sb.append(user.getUsername());
+			sb.append(loggedInUser.getUsername());
 			sb.append("</option>\n");
 		}
 
