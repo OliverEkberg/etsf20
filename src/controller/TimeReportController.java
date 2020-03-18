@@ -786,7 +786,7 @@ public class TimeReportController extends servletBase {
 		userTimeReports = sortTimeReports(userTimeReports);
 
 		// Html table start and header
-		html += "<table width=\"600\" border=\"1\">\r\n" + "<tr>\r\n" + "<th> Year </th>\r\n" + "<th> Week </th>\r\n"
+		html += "<table width=\"600\" border=\"1\">\r\n" + "<tr>\r\n" + "<th> Year </th>\r\n" + "<th> Week </th><th> Username </th>\r\n"
 				+ "<th> Timespent (minutes) </th>\r\n" + "<th> Status </th>\r\n" + "<th> Ready for signing </th>\r\n"
 				+ "<th> Select timereport </th>\r\n" + "<th> Remove timereport </th>\r\n";
 
@@ -817,9 +817,14 @@ public class TimeReportController extends servletBase {
 			}
 
 			// Add timereport information into table
-			html += "<tr>\r\n" + "<td>" + tr.getYear() + "</td>\r\n" + "<td>" + tr.getWeek() + "</td>\r\n" + "<td>"
-					+ timeReportTotalTime + "</td>\r\n" + "<td>" + signed + "</td>\r\n" + "<td>" + markedFinished
-					+ "</td>\r\n" + "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="
+			html += "<tr>\r\n" 
+			+ "<td>" + tr.getYear() + "</td>\r\n" 
+			+ "<td>" + tr.getWeek() + "</td>\r\n"
+			+ "<td>" + dbService.getUserByTimeReportId(tr.getTimeReportId()).getUsername() + "</td>\r\n" //TODO: Effektivisera 
+			+ "<td>" + timeReportTotalTime + "</td>\r\n" 
+			+ "<td>" + signed + "</td>\r\n"
+			+ "<td>" + markedFinished + "</td>\r\n" 
+			+ "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="
 					+ tr.getTimeReportId() + "\" method=\"get\"> "
 					+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId()
 					+ "\"> Select </button>  </form> </td> \r\n";
