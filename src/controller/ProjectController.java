@@ -210,12 +210,14 @@ public class ProjectController extends servletBase {
             ("<th colspan=\"2\"> Settings </th>\n") +
           "</tr>");
 		
+		boolean isAdmin = isAdmin(req);
+		
 		for(int i = 0; i < plist.size(); i++) {
 			allowed = actionIsAllowed(req, plist.get(i).getProjectId());
 			out.print("<tr>\n" + 
-						"<td><a href=\"" + Constants.PROJECTS_PATH + "?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n" + 
+						(isAdmin ? "<td>" + plist.get(i).getName() + "</td>" : "<td><a href=\"" + Constants.PROJECTS_PATH + "?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n") + 
 						(!allowed ? "<td></td>" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
-						(!allowed ? "<td></td>" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?deleteProjectId=" + plist.get(i).getName() + "\">delete</a></td>\n") +
+						(!allowed  || !isAdmin? "<td></td>" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?deleteProjectId=" + plist.get(i).getName() + "\">delete</a></td>\n") +
 					"</tr>\n");
 		}
 		
