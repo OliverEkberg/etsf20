@@ -64,6 +64,7 @@ public class TimeReportController extends servletBase {
 			String getReportsWeek = req.getParameter("getReportsWeek");	
 			String getReportsYear = req.getParameter("getReportsYear");
 			String showAllUnsignedReports = req.getParameter("showAllUnsignedReports");
+			String status = req.getParameter("status");
 			String showAllUsers = req.getParameter("showAllUsers");
 			String showUserPage = req.getParameter("showUserPage");
 			String subType = req.getParameter("subType");
@@ -73,6 +74,10 @@ public class TimeReportController extends servletBase {
 			String timeReportSignId = req.getParameter("timeReportIdToSign");
 			String timeReportUnsignId = req.getParameter("timeReportIdToUnsign");
 			String timeSpent = req.getParameter("timeSpent");
+			String userQuery = req.getParameter("user");
+			
+			Integer userQueryInteger = userQuery == null ? null:Integer.parseInt(userQuery);
+
 
 			out.println(getHeader(req));
 			out.println("<body>");
@@ -179,8 +184,7 @@ public class TimeReportController extends servletBase {
 
 			//Shows the timereportingpage of a specific user
 			if(showUserPage != null) {
-				User user = dbService.getUserById(Integer.parseInt(showUserPage));
-				out.print(getUserTimeReports(user, req));
+				out.print(getUserTimeReports(req, userQueryInteger));
 				return;
 			}
 
@@ -198,7 +202,7 @@ public class TimeReportController extends servletBase {
 					int projectUserId = dbService.getProjectUserIdByUserIdAndProjectId(loggedInUser.getUserId(), this.getProjectId(req));
 					timeReport.sign(projectUserId);
 					dbService.updateTimeReport(timeReport);
-					out.println(getUserTimeReports(loggedInUser, req));
+					out.print(getUserTimeReports(req, userQueryInteger));
 					return;
 				}
 
@@ -213,7 +217,7 @@ public class TimeReportController extends servletBase {
 				timeReport.unsign();
 
 				dbService.updateTimeReport(timeReport);
-				out.println(getUserTimeReports(loggedInUser, req));
+				out.print(getUserTimeReports(req, userQueryInteger));
 				return;
 			}
 
@@ -230,7 +234,7 @@ public class TimeReportController extends servletBase {
 				TimeReport timeReport = dbService.getTimeReportById(Integer.parseInt(timeReportNotFinishedId));
 				timeReport.setFinished(false);
 				dbService.updateTimeReport(timeReport);
-				out.println(getUserTimeReports(loggedInUser, req));
+				out.print(getUserTimeReports(req, userQueryInteger));
 				return;			
 			}
 
@@ -240,7 +244,7 @@ public class TimeReportController extends servletBase {
 				TimeReport timeReport = dbService.getTimeReportById(Integer.parseInt(timeReportFinishedId));
 				timeReport.setFinished(true);
 				dbService.updateTimeReport(timeReport);
-				out.println(getUserTimeReports(loggedInUser, req));
+				out.print(getUserTimeReports(req, userQueryInteger));
 				return;
 			}
 
@@ -251,7 +255,7 @@ public class TimeReportController extends servletBase {
 					dbService.deleteTimeReport(Integer.parseInt(deleteTimeReportId));
 				}
 				catch(Exception e) {}
-				out.print(getUserTimeReports(loggedInUser, req));
+				out.print(getUserTimeReports(req, userQueryInteger));
 				return;
 			}
 
@@ -278,7 +282,7 @@ public class TimeReportController extends servletBase {
 				return;
 			}
 
-			out.println(getUserTimeReports(loggedInUser, req)); //Standard case, if nothing else works this is called
+			out.print(getUserTimeReports(req, userQueryInteger)); //Standard case, if nothing else works this is called
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -603,21 +607,20 @@ public class TimeReportController extends servletBase {
 	 * @return A String containing HTML to show the page described above. 
 	 * @throws Exception
 	 */
-	private String getUserTimeReports(User user, HttpServletRequest req) throws Exception {
+	private String getUserTimeReports(HttpServletRequest req, Integer userId) throws Exception {
 
 		String html = "<!--square.html-->\r\n" + 
 				"<!DOCTYPE html>\r\n";
-
-		List<TimeReport> userTimeReports = dbService.getTimeReportsByUserAndProject(user.getUserId(), this.getProjectId(req));
-		userTimeReports = sortTimeReports(userTimeReports);
 
 		//Adds all users with timereports in this project into user list
 		List<User> userList = dbService.getAllUsers(this.getProjectId(req));
 		userList = sortUserList(userList);
 
+		System.out.println(this.getLoggedInUser(req));
+		
 		//If the projectleader is looking at this page, and its not his own timeport. Show the name of the report owner!
-		if(this.isProjectLeader(req) && !isUserLoggedInUser(user, req)) {
-			html += "<body> <b> "+ user.getUsername() + "</b> <br> </body>\r\n";
+		if(this.isProjectLeader(req) && this.isUserIdLoggedInUser(userId, req)) {
+			html += "<body> <b> "+ dbService.getUserById(userId).getUsername() + "</b> <br> </body>\r\n";
 		}
 		
 		
@@ -626,8 +629,8 @@ public class TimeReportController extends servletBase {
 			// Timereport filtering
 			html += "<html>\r\n" + "<div id=\"form\">" + " <form id=\"userFilter\" method=\"get\">\r\n"
 					+ "          Get all timereports for this project for: \r\n"
-					+ "                <div id=\"getUser\">\r\n"
-					+ "                    <select id=\"getUser\" name=\"getUser\" form=\"userFilter\">\r\n"
+					+ "                <div id=\"user\">\r\n"
+					+ "                    <select id=\"user\" name=\"user\" form=\"userFilter\">\r\n"
 					+ "                      			  <option value=\"allUsers\" >All users</option>\r\n";
 
 			// User dropdown list
@@ -636,8 +639,8 @@ public class TimeReportController extends servletBase {
 				html += "<option value=" + u.getUserId() + "> " + u.getUsername() + " </option>\r\n";
 			}
 
-			html += "</select>\r\n " + "</div>\r\n" + " <div id=\"getStatus\">\r\n"
-					+ "                    <select id=\"getStatus\" name=\"getStatus\" form=\"userFilter\">\r\n"
+			html += "</select>\r\n " + "</div>\r\n" + " <div id=\"status\">\r\n"
+					+ "                    <select id=\"status\" name=\"status\" form=\"userFilter\">\r\n"
 					+ "                        <option value=\"allReports\" >All</option>\r\n"
 					+ "                        <option value=\"signedReports\" >Signed</option>\r\n"
 					+ "                        <option value=\"unSignedReports\" >Unsigned</option>\r\n"
@@ -649,58 +652,7 @@ public class TimeReportController extends servletBase {
 					+ "			 </div>" + "         </html>";
 		}
 
-		// Html table start and header
-		html += "<table width=\"600\" border=\"1\">\r\n" + "<tr>\r\n" + "<th> Year </th>\r\n" + "<th> Week </th>\r\n"
-				+ "<th> Timespent (minutes) </th>\r\n" + "<th> Status </th>\r\n" + "<th> Ready for signing </th>\r\n"
-				+ "<th> Select timereport </th>\r\n" + "<th> Remove timereport </th>\r\n";
-
-		// Adds all timereports into the table
-		for (TimeReport tr : userTimeReports) {
-
-			int timeReportTotalTime = getTotalTimeReportTime(tr);
-			String signed;
-			String markedFinished;
-
-			// get String representation of signed/unsigned
-			if (tr.isSigned()) {
-				signed = "Signed";
-			} else {
-				signed = "Unsigned";
-			}
-
-			if (tr.isFinished()) { // get isFinished or not
-				markedFinished = "Yes";
-			} else {
-				markedFinished = "No";
-			}
-
-			// Add timereport information into table
-			html += "<tr>\r\n" + "<td>" + tr.getYear() + "</td>\r\n" + "<td>" + tr.getWeek() + "</td>\r\n" + "<td>"
-					+ timeReportTotalTime + "</td>\r\n" + "<td>" + signed + "</td>\r\n" + "<td>" + markedFinished
-					+ "</td>\r\n" + "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="
-					+ tr.getTimeReportId() + "\" method=\"get\"> "
-					+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId()
-					+ "\"> Select </button>  </form> </td> \r\n";
-
-			// If timereport isn't signed, and the report owner is the one browsing, a
-			// button for deleting it should be visible
-			if (!tr.isSigned() && isUserLoggedInUser(user, req)) {
-				html += "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?deleteTimeReportId="
-						+ tr.getTimeReportId() + "\" method=\"get\"> "
-						+ "<button name=\"deleteTimeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId()
-						+ "\"> Remove </button> </form> </td> \r\n";
-			} else {
-				html += "<td>";
-			}
-
-			html += "</tr>\r\n";
-
-		}
-
-		
-
-		//END OF TABLE
-		html += "</tr>\r\n" + "</table>";
+		html += getTimereports(req, userId, null, null, null);
 		
 		
 		//Adds more buttons and options underneath the table containing timereports
@@ -709,7 +661,7 @@ public class TimeReportController extends servletBase {
 			LocalDate d = LocalDate.now();
 
 			//If the logged in user is the one browsing this page, give the option to create a new timereport
-			if(isUserLoggedInUser(user, req)) { 
+			if(this.isUserIdLoggedInUser(userId, req)) { 
 				html += 
 						"<div id=\"form\">"
 						+ " <form id=\"filter_form\" method=\"get\">\r\n" 
@@ -795,6 +747,70 @@ public class TimeReportController extends servletBase {
 		return html;
 
 	}
+	
+	private String getTimereports(HttpServletRequest req, Integer userId, String status, Integer year, Integer week) throws Exception {
+
+		String html = "<!--square.html-->\r\n" + 
+				"<!DOCTYPE html>\r\n";
+
+		List<TimeReport> userTimeReports = dbService.getTimeReportsByUserAndProject(userId == null ? 0:userId, this.getProjectId(req));
+		userTimeReports = sortTimeReports(userTimeReports);
+
+		// Html table start and header
+		html += "<table width=\"600\" border=\"1\">\r\n" + "<tr>\r\n" + "<th> Year </th>\r\n" + "<th> Week </th>\r\n"
+				+ "<th> Timespent (minutes) </th>\r\n" + "<th> Status </th>\r\n" + "<th> Ready for signing </th>\r\n"
+				+ "<th> Select timereport </th>\r\n" + "<th> Remove timereport </th>\r\n";
+
+		// Adds all timereports into the table
+		for (TimeReport tr : userTimeReports) {
+
+			int timeReportTotalTime = getTotalTimeReportTime(tr);
+			String signed;
+			String markedFinished;
+
+			// get String representation of signed/unsigned
+			if (tr.isSigned()) {
+				signed = "Signed";
+			} else {
+				signed = "Unsigned";
+			}
+
+			if (tr.isFinished()) { // get isFinished or not
+				markedFinished = "Yes";
+			} else {
+				markedFinished = "No";
+			}
+
+			// Add timereport information into table
+			html += "<tr>\r\n" + "<td>" + tr.getYear() + "</td>\r\n" + "<td>" + tr.getWeek() + "</td>\r\n" + "<td>"
+					+ timeReportTotalTime + "</td>\r\n" + "<td>" + signed + "</td>\r\n" + "<td>" + markedFinished
+					+ "</td>\r\n" + "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="
+					+ tr.getTimeReportId() + "\" method=\"get\"> "
+					+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId()
+					+ "\"> Select </button>  </form> </td> \r\n";
+
+			// If timereport isn't signed, and the report owner is the one browsing, a
+			// button for deleting it should be visible
+			if (!tr.isSigned() && this.isUserIdLoggedInUser(userId, req)) {
+				html += "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?deleteTimeReportId="
+						+ tr.getTimeReportId() + "\" method=\"get\"> "
+						+ "<button name=\"deleteTimeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId()
+						+ "\"> Remove </button> </form> </td> \r\n";
+			} else {
+				html += "<td>";
+			}
+
+			html += "</tr>\r\n";
+
+		}
+
+		//END OF TABLE
+		html += "</tr>\r\n" + "</table>";		
+
+		return html;
+
+	}
+	
 	private List<User> sortUserList(List<User> userList) {
 	
 		List<User> temp = userList;
@@ -1033,5 +1049,10 @@ public class TimeReportController extends servletBase {
 	private boolean isUserLoggedInUser(User user, HttpServletRequest req) {
 		User loggedInUser = getLoggedInUser(req);
 		return loggedInUser != null && loggedInUser.getUserId() == user.getUserId();
+	}
+	
+	private boolean isUserIdLoggedInUser(Integer userId, HttpServletRequest req) {
+		User loggedInUser = getLoggedInUser(req);
+		return loggedInUser != null && userId != null && loggedInUser.getUserId() == userId;
 	}
 }
