@@ -201,23 +201,34 @@ public class ProjectController extends servletBase {
 			out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">ACTION NOT ALLOWED: " + ", reason: You are not an admin or a projectleader for this project.</p>");
 		}
 		
-		boolean allowed;
+		boolean[] allowed = new boolean[plist.size()];
+		
+		for(int i = 0; i < plist.size(); i++) {
+			allowed[i] = actionIsAllowed(req, plist.get(i).getProjectId());
+		}
+		
+		boolean atLeastOneAllowed = false;
+		for (int i = 0; i < allowed.length; i++) {
+			if (allowed[i]) {
+				atLeastOneAllowed = true;
+				break;
+			}
+		}
 		
 		out.println("<p id=\"head_text\">Projects</p>\n" +
         "<table id=\"table\">\n" +
           "<tr>\n" +
             "<th>Project Name</th>\n" +
-            ("<th colspan=\"2\"> Settings </th>\n") +
+            (atLeastOneAllowed ? "<th colspan=\"2\"> Settings </th>\n" : "") +
           "</tr>");
 		
 		boolean isAdmin = isAdmin(req);
 		
 		for(int i = 0; i < plist.size(); i++) {
-			allowed = actionIsAllowed(req, plist.get(i).getProjectId());
 			out.print("<tr>\n" + 
 						(isAdmin ? "<td>" + plist.get(i).getName() + "</td>" : "<td><a href=\"" + Constants.PROJECTS_PATH + "?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n") + 
-						(!allowed ? "<td></td>" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
-						(!allowed  || !isAdmin? "<td></td>" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?deleteProjectId=" + plist.get(i).getName() + "\">delete</a></td>\n") +
+						(!allowed[i] ? "" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
+						(!allowed[i]  || !isAdmin? "" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?deleteProjectId=" + plist.get(i).getName() + "\">delete</a></td>\n") +
 					"</tr>\n");
 		}
 		
