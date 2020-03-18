@@ -364,11 +364,13 @@ public class StatisticController extends servletBase {
 			sb.append(divider);
 			List<User> users = dbService.getAllUsers(getProjectId(req));
 			for (User user : users) {
-				sb.append("<option value=\"");
-				sb.append(user.getUsername());
-				sb.append("\">");
-				sb.append(user.getUsername());
-				sb.append("</option>\n");
+				if (!user.isAdmin()) { // Should not be possible to view stats for admins since they can not report time.
+					sb.append("<option value=\"");
+					sb.append(user.getUsername());
+					sb.append("\">");
+					sb.append(user.getUsername());
+					sb.append("</option>\n");
+				}
 			}
 		} else { // Regular users should only see themselves
 			User loggedInUser = getLoggedInUser(req);
