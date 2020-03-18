@@ -76,7 +76,7 @@ public class TimeReportController extends servletBase {
 			String timeSpent = req.getParameter("timeSpent");
 			String userQuery = req.getParameter("user");
 			
-			Integer userQueryInteger = userQuery == null ? null:Integer.parseInt(userQuery);
+			Integer userQueryInteger = (userQuery == null || "*".equals(userQuery)) ? null:Integer.parseInt(userQuery);
 
 
 			out.println(getHeader(req));
@@ -615,11 +615,8 @@ public class TimeReportController extends servletBase {
 		//Adds all users with timereports in this project into user list
 		List<User> userList = dbService.getAllUsers(this.getProjectId(req));
 		userList = sortUserList(userList);
-
-		System.out.println(this.getLoggedInUser(req));
 		
-		//If the projectleader is looking at this page, and its not his own timeport. Show the name of the report owner!
-		if(this.isProjectLeader(req) && this.isUserIdLoggedInUser(userId, req)) {
+		if(userId != null) {
 			html += "<body> <b> "+ dbService.getUserById(userId).getUsername() + "</b> <br> </body>\r\n";
 		}
 		
@@ -631,7 +628,7 @@ public class TimeReportController extends servletBase {
 					+ "          Get all timereports for this project for: \r\n"
 					+ "                <div id=\"user\">\r\n"
 					+ "                    <select id=\"user\" name=\"user\" form=\"userFilter\">\r\n"
-					+ "                      			  <option value=\"allUsers\" >All users</option>\r\n";
+					+ "                      			  <option value=\"*\" >All users</option>\r\n";
 
 			// User dropdown list
 			for (User u : userList) {
@@ -753,7 +750,14 @@ public class TimeReportController extends servletBase {
 		String html = "<!--square.html-->\r\n" + 
 				"<!DOCTYPE html>\r\n";
 
-		List<TimeReport> userTimeReports = dbService.getTimeReportsByUserAndProject(userId == null ? 0:userId, this.getProjectId(req));
+		List<TimeReport> userTimeReports;
+		if (userId != null) {
+			userTimeReports = dbService.getTimeReportsByUserAndProject(userId == null ? 0 : userId,
+					this.getProjectId(req));
+		} else {
+			userTimeReports = dbService.getTimeReportsByProject(this.getProjectId(req));
+		}
+		
 		userTimeReports = sortTimeReports(userTimeReports);
 
 		// Html table start and header
@@ -827,8 +831,8 @@ public class TimeReportController extends servletBase {
 
 		List<TimeReport> temp = userTimeReports;
 		
-		Comparator<TimeReport> comparator = (tr1, tr2) -> tr1.getYear() - tr2.getYear();
-		comparator = comparator.thenComparing((tr1, tr2) -> tr1.getWeek() - tr2.getWeek());
+		Comparator<TimeReport> comparator = (tr1, tr2) -> tr2.getYear() - tr1.getYear();
+		comparator = comparator.thenComparing((tr1, tr2) -> tr2.getWeek() - tr1.getWeek());
 		    
 		temp.sort(comparator);
 		
