@@ -28,6 +28,8 @@ public class UserController extends servletBase {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		setSessionTimeout(req);
+
 		if (!isLoggedIn(req)) {
 			resp.sendRedirect(Constants.SESSION_PATH);
 			return;

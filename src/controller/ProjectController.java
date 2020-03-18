@@ -39,6 +39,8 @@ public class ProjectController extends servletBase {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		setSessionTimeout(req);
+		
 		if (getLoggedInUser(req) == null) {
 			resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 			return;
@@ -123,13 +125,17 @@ public class ProjectController extends servletBase {
 		
 		if ((delete != null && !isBlank(delete)) && (deleteUser != null && !isBlank(deleteUser)) ) {
 			dbService.removeUserFromProject(Integer.parseInt(deleteUser), Integer.parseInt(delete));
-			out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY DELETED USER</p>");
+			out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY DELETED USER</p>"); // TODO: This is not working due to redirect. Remove?
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.PROJECTS_PATH + "?editProject=" + delete);
+			return;
 		}
 		
 		if ( (userId != null && !isBlank(userId)) && (projId != null && !isBlank(projId)) && (newRole != null && !isBlank(newRole)) ) {
 			int roleId = getRoleIdFor(newRole, roles);
 			dbService.updateUserProjectRole(Integer.parseInt(userId), Integer.parseInt(projId), roleId);
-			out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY UPDATED ROLE TO: " + newRole +  "</p>");
+			out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY UPDATED ROLE TO: " + newRole +  "</p>"); // TODO: This is not working due to redirect. Remove?
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.PROJECTS_PATH + "?editProject=" + projId);
+			return;
 		}
 		
 		if ((userId != null && !isBlank(userId)) && (projId != null && !isBlank(projId)) && (initRole != null && !isBlank(initRole))) {
@@ -149,7 +155,9 @@ public class ProjectController extends servletBase {
 						out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">FAILED TO ADD USER: " + userId + ", reason: Admin users can not be added to projects.</p>");
 					} else {
 						dbService.addUserToProject(findUser.getUserId(), Integer.parseInt(projId), getRoleIdFor(initRole, roles));
-						out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">ADDED USER: " + userId +  "</p>");
+						out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">ADDED USER: " + userId +  "</p>"); // TODO: This is not working due to redirect. Remove?
+						resp.sendRedirect("/BaseBlockSystem/" + Constants.PROJECTS_PATH + "?editProject=" + projId);
+						return;
 					}
 					
 				} else {
@@ -201,21 +209,34 @@ public class ProjectController extends servletBase {
 			out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">ACTION NOT ALLOWED: " + ", reason: You are not an admin or a projectleader for this project.</p>");
 		}
 		
-		boolean allowed;
+		boolean[] allowed = new boolean[plist.size()];
+		
+		for(int i = 0; i < plist.size(); i++) {
+			allowed[i] = actionIsAllowed(req, plist.get(i).getProjectId());
+		}
+		
+		boolean atLeastOneAllowed = false;
+		for (int i = 0; i < allowed.length; i++) {
+			if (allowed[i]) {
+				atLeastOneAllowed = true;
+				break;
+			}
+		}
 		
 		out.println("<p id=\"head_text\">Projects</p>\n" +
         "<table id=\"table\">\n" +
           "<tr>\n" +
             "<th>Project Name</th>\n" +
-            ("<th colspan=\"2\"> Settings </th>\n") +
+            (atLeastOneAllowed ? "<th colspan=\"2\"> Settings </th>\n" : "") +
           "</tr>");
 		
+		boolean isAdmin = isAdmin(req);
+		
 		for(int i = 0; i < plist.size(); i++) {
-			allowed = actionIsAllowed(req, plist.get(i).getProjectId());
 			out.print("<tr>\n" + 
-						"<td><a href=\"" + Constants.PROJECTS_PATH + "?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n" + 
-						(!allowed ? "<td></td>" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
-						(!allowed ? "<td></td>" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?deleteProjectId=" + plist.get(i).getName() + "\">delete</a></td>\n") +
+						(isAdmin ? "<td>" + plist.get(i).getName() + "</td>" : "<td><a href=\"" + Constants.PROJECTS_PATH + "?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n") + 
+						(!allowed[i] ? "" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
+						(!allowed[i]  || !isAdmin? "" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?deleteProjectId=" + plist.get(i).getName() + "\" onclick=" + addQuotes("return confirm('Are you sure you want to delete this project ?')") + ">delete</a></td>\n") +
 					"</tr>\n");
 		}
 		
@@ -333,7 +354,7 @@ public class ProjectController extends servletBase {
 						"                </td>\r\n" + 
 						"            <td><input type=\"submit\" value=\"Update Role\"></td>\r\n" + 
 						"        </form>\r\n" + 
-						"                <td><a href=\"" + Constants.PROJECTS_PATH + "?deleteUserId=" + projectUsers.get(i).getUserId() + "&" + "deleteProjectId=" + project.getProjectId() +"\"" + ">remove from project</a></td>\r\n" + 
+						"                <td><a href=\"" + Constants.PROJECTS_PATH + "?deleteUserId=" + projectUsers.get(i).getUserId() + "&" + "deleteProjectId=" + project.getProjectId() +"\" onclick=" +  addQuotes("return confirm('Are you sure you want to remove this user from project?')") + ">remove from project</a></td>\r\n" + 
 						"            </tr>");
 			}
 			
@@ -399,11 +420,13 @@ public class ProjectController extends servletBase {
 		try {
 			List<User> users = dbService.getAllUsers();
 			for (User user : users) {
-				sbBuilder.append("<option value=\"");
-				sbBuilder.append(user.getUsername());
-				sbBuilder.append("\">");
-				sbBuilder.append(user.getUsername());
-				sbBuilder.append("</option>\n");
+				if (!user.isAdmin()) { // Admins can not be added to project
+					sbBuilder.append("<option value=\"");
+					sbBuilder.append(user.getUsername());
+					sbBuilder.append("\">");
+					sbBuilder.append(user.getUsername());
+					sbBuilder.append("</option>\n");
+				}
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
