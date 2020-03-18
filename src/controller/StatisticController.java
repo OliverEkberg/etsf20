@@ -51,6 +51,8 @@ public class StatisticController extends servletBase {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		setSessionTimeout(req);
+
 		PrintWriter out = resp.getWriter();
 
 		try {

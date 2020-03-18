@@ -216,4 +216,8 @@ public abstract class servletBase extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);
 	}
+	
+	protected void setSessionTimeout(HttpServletRequest req) {
+		req.getSession().setMaxInactiveInterval(Constants.SESSION_LENGTH);
+	}
 }

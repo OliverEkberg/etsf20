@@ -49,6 +49,8 @@ public class TimeReportController extends servletBase {
 	 * 
 	 */
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		setSessionTimeout(req);
+
 		try{
 			PrintWriter out = resp.getWriter();
 			User loggedInUser = this.getLoggedInUser(req);	

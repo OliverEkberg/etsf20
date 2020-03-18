@@ -39,6 +39,8 @@ public class ProjectController extends servletBase {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		setSessionTimeout(req);
+		
 		if (getLoggedInUser(req) == null) {
 			resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 			return;
