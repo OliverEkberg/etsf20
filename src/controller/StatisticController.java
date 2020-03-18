@@ -68,7 +68,7 @@ public class StatisticController extends servletBase {
 		String query = req.getParameter("statType");
 
 		if (from == null || to == null) {
-			out.println(statisticsPageForm(null, req));
+			out.println(statisticsPageForm(null, req, null, null));
 		} else {
 			try {
 				LocalDate fromDate = LocalDate.parse(from);
@@ -76,21 +76,21 @@ public class StatisticController extends servletBase {
 
 				if (actionIsAllowed(req, getProjectId(req)) || getLoggedInUser(req) != null)
 					out.println(statisticsPageForm(
-							getStats(fromDate, toDate, getProjectId(req), query, req), req));
+							getStats(fromDate, toDate, getProjectId(req), query, req), req, fromDate, toDate));
 				else {
 					out.println(
 							"<p style=\"background-color:#c0392b;color:white;padding:16px;\">ACTION NOT ALLOWED: You are not admin or project leader for this project."
 									+ "</p>");
-					out.println(statisticsPageForm(null, req));
+					out.println(statisticsPageForm(null, req, null, null));
 				}
 
 			} catch (DateTimeParseException e) {
 				out.println(
 						"<p style=\"background-color:#c0392b;color:white;padding:16px;\">Incorrect date format, please enter in this format: yyyy-mm-dd, Ex. 2020-03-29"
 								+ "</p>");
-				out.println(statisticsPageForm(null, req));
+				out.println(statisticsPageForm(null, req, null, null));
 			} catch (Exception e) {
-				out.println(statisticsPageForm(null, req));
+				out.println(statisticsPageForm(null, req, null, null));
 				e.printStackTrace();
 			}
 		}
@@ -260,12 +260,21 @@ public class StatisticController extends servletBase {
 	 * Gets the HTML to display on this page.
 	 * @param list of statistics.
 	 * @param the current httpRequest.
+	 * @param the date to check from. Will use first day of week if null provided.
+	 * @param the date to check to. Will use last day of week if null provided.
 	 * @return the HTML for the site.
 	 */
-	private String statisticsPageForm(List<Statistic> statistics, HttpServletRequest req) {
-		LocalDate now = LocalDate.now();
-		LocalDate startOfWeek = Helpers.getFirstDayOfWeek(now);
-		LocalDate endOfWeek = Helpers.getLastDayOfWeek(now);
+	private String statisticsPageForm(List<Statistic> statistics, HttpServletRequest req, LocalDate from, LocalDate to) {
+		LocalDate start, end;
+		
+		if (from != null && to != null) {
+			start = from;
+			end = to;
+		} else {
+			LocalDate now = LocalDate.now();
+			start = Helpers.getFirstDayOfWeek(now);
+			end = Helpers.getLastDayOfWeek(now);
+		}
 
 		StringBuilder sb = new StringBuilder();
 
@@ -288,8 +297,8 @@ public class StatisticController extends servletBase {
 		sb.append("<p class=\"descriptors\" style=\"margin-left: 140px;\">To</p>\r\n");
 		sb.append("</div>");
 		sb.append("<div id=\"stat_date_picker\">\r\n");
-		sb.append("<input type=\"date\" id=\"from\" value=\""+ startOfWeek +"\" name=\"from\">");
-		sb.append("         <input type=\"date\" id=\"to\" value=\""+ endOfWeek +"\" name=\"to\">"); // TODO: Fix proper spacing
+		sb.append("<input type=\"date\" id=\"from\" value=\""+ start +"\" name=\"from\">");
+		sb.append("         <input type=\"date\" id=\"to\" value=\""+ end +"\" name=\"to\">"); // TODO: Fix proper spacing
 		sb.append("</div>");
 		sb.append("</div>");
 		sb.append("<div>");
