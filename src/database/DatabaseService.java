@@ -1166,7 +1166,8 @@ public class DatabaseService {
 		sb.append("JOIN ActivityTypes AcT USING (activityTypeId) ");
 		sb.append("JOIN TimeReports TR USING (timeReportId) ");
 		sb.append("JOIN ProjectUsers PU USING (projectUserId) ");
-		sb.append("WHERE AR.reportDate >= ? ");
+		sb.append("WHERE TR.signedAt IS NOT NULL ");
+		sb.append("AND AR.reportDate >= ? ");
 		sb.append("AND AR.reportDate < ? ");
 		sb.append("AND PU.projectId = ? ");
 
