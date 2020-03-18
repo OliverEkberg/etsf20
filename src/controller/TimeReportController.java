@@ -549,38 +549,40 @@ public class TimeReportController extends servletBase {
 					+ "          Get all timereports for this project for: \r\n"
 					+ "                <div id=\"user\">\r\n"
 					+ "                    <select id=\"user\" name=\"user\" form=\"userFilter\">\r\n"
-					+ "                      			  <option value=\"*\" >All users</option>\r\n";
+					+ "                      			  <option value=\"*\" "+ (userId == null ? "" : "selected ") +">All users</option>\r\n";
 
 			// User dropdown list
 			for (User u : userList) {
-				html += "<option value=" + u.getUserId() + "> " + u.getUsername() + " </option>\r\n";
+				boolean selectedUser = userId != null && u.getUserId() == userId;
+				html += "<option value=" + u.getUserId() + " " + (selectedUser ? "selected " : "") + "> " + u.getUsername() + " </option>\r\n";
 			}
 
 			html += "</select>\r\n " + "</div>\r\n" + " <div id=\"status\">\r\n"
 					+ "                    <select id=\"status\" name=\"status\" form=\"userFilter\">\r\n"
-					+ "                        <option value=\"*\" >All</option>\r\n"
-					+ "                        <option value=\"signed\" >Signed</option>\r\n"
-					+ "                        <option value=\"unsigned\" >Unsigned</option>\r\n"
-					+ "                        <option value=\"readyForSign\" >Ready for signing</option>\r\n"
+					+ "                        <option value=\"*\""+ (status == null || status.equals("*") ? "" : "selected ") +">All</option>\r\n"
+					+ "                        <option value=\"signed\" " + ("signed".equals(status) ? "selected " : "") + ">Signed</option>\r\n"
+					+ "                        <option value=\"unsigned\" " + ("unsigned".equals(status) ? "selected " : "") + ">Unsigned</option>\r\n"
+					+ "                        <option value=\"readyForSign\" " + ("readyForSign".equals(status) ? "selected " : "") + ">Ready for signing</option>\r\n"
 					+ "						   </select>";
 			
 			// Get reports for week and year
 			html +=	  "                <div id=\"weekFilter\">\r\n"
 					+ "                    <select id=\"weekFilter\" name=\"weekFilter\" form=\"userFilter\">\r\n"
-					+ "<option value=\"*\" >All</option>\r\n";
+					+ "<option value=\"*\" "+ (week == null ? "" : "selected ") +">All</option>\r\n";
 
 			// Week dropdown list
 			for (int i = 1; i < 54; i++) {
-
-				html += "<option value=" + i + ">Week: " + i + " </option>\r\n";
+				boolean selectedWeek = week != null && i == week;
+				html += "<option value=" + i + " " + (selectedWeek ? "selected " : "") + ">Week: " + i + " </option>\r\n";
 			}
 
 			html += "</select>\r\n  </div>\r\n" + "<div id=\"yearFilter\">\r\n"
 					+ "                    <select id=\"yearFilter\" name=\"yearFilter\" form=\"userFilter\">\r\n"
-					+ "<option value=\"*\" >All</option>\r\n";
+					+ "<option value=\"*\" "+ (year == null ? "" : "selected ") +">All</option>\r\n";
 			// Year dropdown list
 			for (int i = 2020; i <= d.getYear(); i++) {
-				html += "    <option value=" + i + ">Year: " + i + "</option>\r\n";
+				boolean selectedYear = year != null && i == year;
+				html += "    <option value=" + i + " " + (selectedYear ? "selected " : "") + ">Year: " + i + "</option>\r\n";
 			}
 			
 			// Button for retrieving timereports.
