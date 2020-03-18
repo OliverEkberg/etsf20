@@ -38,7 +38,7 @@ public class SessionController extends servletBase {
 		String password = req.getParameter("password");
 
 		if (name != null && password != null) {
-			if (canLogIn(name, password)) {
+			if (logIn(name, password)) {
 				setIsLoggedIn(req, true);
 				User u = dbService.getUserByCredentials(name, password);
 				setUserId(req, u.getUserId());
@@ -65,7 +65,7 @@ public class SessionController extends servletBase {
 	* @param password the given password.
 	* @return boolean true if credentials are ok.
 	*/
-	private boolean canLogIn(String name, String password) {
+	private boolean logIn(String name, String password) {
 		return dbService.getUserByCredentials(name, password) != null;
 	}
 
