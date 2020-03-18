@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -36,8 +37,6 @@ import javax.servlet.http.HttpServletResponse;
  * @version 1.0
  * 
  */
-
-// wtf is this i try to fix but it never work
 
 @WebServlet("/" + Constants.TIMEREPORTS_PATH)
 public class TimeReportController extends servletBase {
@@ -111,7 +110,8 @@ public class TimeReportController extends servletBase {
 			//Parameters for creating a new activityreport 
 			if(activityType != null && subType != null && timeSpent != null && addReportWeek != null && addReportYear != null && timeReportId != null && dateOfReport != null) {			
 
-				if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > Constants.MAX_MINUTES_PER_DAY) { 
+				
+					if(Integer.parseInt(timeSpent) == 0 || Integer.parseInt(timeSpent) > Constants.MAX_MINUTES_PER_DAY) { 
 
 					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?time-can-only-be-a-number-between-1-and-" + Constants.MAX_MINUTES_PER_DAY);
 					return;
@@ -132,7 +132,9 @@ public class TimeReportController extends servletBase {
 					{
 						activitySubTypeId = ast.getActivitySubTypeId();
 					}
-				}			
+				}	
+				
+				try{		//TODO: När man trycker på send knappen många gånger
 
 				activityReport = createActivityReport( activityTypeId, activitySubTypeId, date, Integer.parseInt(addReportYear),  Integer.parseInt(addReportWeek),  
 						Integer.parseInt(timeSpent),  loggedInUser.getUserId(),  this.getProjectId(req), resp); 
@@ -147,6 +149,8 @@ public class TimeReportController extends servletBase {
 				out.print(getActivityReports(timereport.getTimeReportId(), req)); //Returns to the view of all activityreports for that timereport
 
 				return;
+				}
+				catch(Exception e){}
 			}
 
 			//Parameters for showing activity report form
@@ -394,6 +398,7 @@ public class TimeReportController extends servletBase {
 				+ "<th> Username </th>\r\n"
 				+ "<th> Timespent(minutes) </th>\r\n" 
 				+ "<th> Status </th>\r\n" 
+				+ "<th> Ready for signing </th>\r\n"
 				+ "<th> Select Timereport </th>\r\n"
 				+ "<th> Remove Timereport </th>\r\n";
 
@@ -412,12 +417,12 @@ public class TimeReportController extends servletBase {
 					signed = "Unsigned";
 				}
 
-
 				//Fills HTML table with user info
 				html += "<tr>\r\n" + "<td>" + tr.getYear() + "</td>\r\n" +
 						"<td>" + tr.getWeek() + "</td>\r\n"+
 						"<td>" + reportOwner + "</td>\r\n"+
-						"<td>" + timeReportTotalTime + "</td>\r\n" + "<td>" + signed + "</td>\r\n"
+						"<td>" + timeReportTotalTime + "</td>\r\n" 
+						+ "<td>" + signed + "</td>\r\n"
 						+ "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
 						+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() 
 						+ "\"> Select </button>  </form> </td> \r\n";
@@ -602,9 +607,15 @@ public class TimeReportController extends servletBase {
 	 */
 	private String getUserTimeReports(User user, HttpServletRequest req) throws Exception {
 
-		String html = "";
+		String html = "<!--square.html-->\r\n" + 
+				"<!DOCTYPE html>\r\n";
 
 		List<TimeReport> userTimeReports = dbService.getTimeReportsByUserAndProject(user.getUserId(), this.getProjectId(req));
+		userTimeReports = sortTimeReports(userTimeReports);
+
+		//Adds all users with timereports in this project into user list
+		List<User> userList = dbService.getAllUsers(this.getProjectId(req));
+		userList = sortUserList(userList);
 
 		//If the projectleader is looking at this page, and its not his own timeport. Show the name of the report owner!
 		if(this.isProjectLeader(req) && !isUserLoggedInUser(user, req)) {
@@ -615,6 +626,44 @@ public class TimeReportController extends servletBase {
 		if(userTimeReports.isEmpty()) {
 			html += "<body> No timereports exist for the selected user </body>\r\n";
 		}
+		
+		
+		if(isProjectLeader(req)) {			
+
+			//Timereport filtering
+			html +=	"<html>\r\n" 
+					+ "<div id=\"form\">"
+					+ " <form id=\"userFilter\" method=\"get\">\r\n" 
+					+ "          Get all timereports for this project for: \r\n"
+					+ "                <div id=\"getUser\">\r\n"
+					+ "                    <select id=\"getUser\" name=\"getUser\" form=\"userFilter\">\r\n"
+					+"                      			  <option value=\"allUsers\" >All users</option>\r\n";
+
+			//User dropdown list
+			for(User u : userList) {
+
+				html += "<option value=" + u.getUserId() + "> " + u.getUsername() + " </option>\r\n";
+			}
+
+			html += "</select>\r\n "
+					+ "</div>\r\n"
+					+ " <div id=\"getStatus\">\r\n"
+					+ "                    <select id=\"getStatus\" name=\"getStatus\" form=\"userFilter\">\r\n"
+					+"                        <option value=\"allReports\" >Signed</option>\r\n"
+				    +"                        <option value=\"signedReports\" >Signed</option>\r\n"
+				    +"                        <option value=\"unSignedReports\" >Unsigned</option>\r\n"
+				    +"                        <option value=\"readyForSignReports\" >Ready for signing</option>\r\n";
+		
+			//Button for retrieving timereports.
+			html += "              </select>\r\n" 
+					+ "             </div>\r\n"
+					+ "			   <input type=\"submit\" value=\"Get timereports\" >\r\n"
+					+ "           </form>"
+					+ "			 </div>"
+					+ "         </html>";
+		}
+		
+		
 
 		//Else start building the HTML table
 		else {
@@ -626,6 +675,7 @@ public class TimeReportController extends servletBase {
 					+ "<th> Week </th>\r\n"
 					+ "<th> Timespent (minutes) </th>\r\n" 
 					+ "<th> Status </th>\r\n" 
+					+ "<th> Ready for signing </th>\r\n"
 					+ "<th> Select timereport </th>\r\n"
 					+ "<th> Remove timereport </th>\r\n";
 
@@ -634,6 +684,7 @@ public class TimeReportController extends servletBase {
 
 				int timeReportTotalTime = getTotalTimeReportTime(tr);
 				String signed;
+				String markedFinished;
 
 				//get String representation of signed/unsigned
 				if (tr.isSigned()) {
@@ -641,12 +692,19 @@ public class TimeReportController extends servletBase {
 				} else {
 					signed = "Unsigned";
 				}
+				
+				if (tr.isFinished()) { // get isFinished or not
+					markedFinished = "Yes";
+				} else {
+					markedFinished = "No";
+				}
 
 				//Add timereport information into table
 				html += "<tr>\r\n" + "<td>" + tr.getYear() + "</td>\r\n" +
 						"<td>" + tr.getWeek() + "</td>\r\n"+
 						"<td>" + timeReportTotalTime + "</td>\r\n" + 
 						"<td>" + signed + "</td>\r\n"
+						+"<td>" + markedFinished + "</td>\r\n"
 						+ "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
 						+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() 
 						+ "\"> Select </button>  </form> </td> \r\n";
@@ -673,9 +731,7 @@ public class TimeReportController extends servletBase {
 
 			//If the logged in user is the one browsing this page, give the option to create a new timereport
 			if(isUserLoggedInUser(user, req)) { 
-				html += "<!--square.html-->\r\n" + 
-						"<!DOCTYPE html>\r\n" + 
-						"<html>\r\n" +
+				html += 
 						"<div id=\"form\">"
 						+ " <form id=\"filter_form\" method=\"get\">\r\n" 
 						+ "             Create timereport for: \r\n"
@@ -760,6 +816,32 @@ public class TimeReportController extends servletBase {
 		return html;
 
 	}
+	private List<User> sortUserList(List<User> userList) {
+	
+		List<User> temp = userList;
+		
+		Comparator<User> comparator = (u1, u2) -> u1.getUsername().compareTo(u2.getUsername());
+		    
+		temp.sort(comparator);
+		
+		return temp;
+	}
+
+
+	private List<TimeReport> sortTimeReports(List<TimeReport> userTimeReports) {
+
+		List<TimeReport> temp = userTimeReports;
+		
+		Comparator<TimeReport> comparator = (tr1, tr2) -> tr1.getYear() - tr2.getYear();
+		comparator = comparator.thenComparing((tr1, tr2) -> tr1.getWeek() - tr2.getWeek());
+		    
+		temp.sort(comparator);
+		
+		return temp;
+		
+	}
+
+
 	/**
 	 * Builds a String containing a HTML page showing all timereports for a specific user inside the selected project.
 	 * 
