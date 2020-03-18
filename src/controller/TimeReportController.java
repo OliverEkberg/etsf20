@@ -49,6 +49,8 @@ public class TimeReportController extends servletBase {
 	 * 
 	 */
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		setSessionTimeout(req);
+
 		try {
 			PrintWriter out = resp.getWriter();
 			User loggedInUser = this.getLoggedInUser(req);
@@ -143,7 +145,7 @@ public class TimeReportController extends servletBase {
 					}
 				}
 
-				// TODO: När man trycker på send knappen många gånger (Disablea knappen?)
+				// TODO: Nï¿½r man trycker pï¿½ send knappen mï¿½nga gï¿½nger (Disablea knappen?)
 				activityReport = createActivityReport(activityTypeId, activitySubTypeId, date,
 						Integer.parseInt(addReportYear), Integer.parseInt(addReportWeek), Integer.parseInt(timeSpent),
 						loggedInUser.getUserId(), this.getProjectId(req), resp);

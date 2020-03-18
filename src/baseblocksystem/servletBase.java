@@ -149,7 +149,11 @@ public abstract class servletBase extends HttpServlet {
 				userName = u.getUsername();
 				sb.append("<div id=\"sessionInfo\">"); // TODO: Make this look better
 				sb.append("<label><b>User: </b>" + userName + "		</label>");
-				sb.append("<label><b>Project: </b>" + projectName + "</label>");
+				
+				if (!isAdmin(req)) {
+					sb.append("<label><b>Project: </b>" + projectName + "</label>");
+				}
+				
 				sb.append("</div>");
 
 			} catch (Exception e) {
@@ -211,5 +215,9 @@ public abstract class servletBase extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);
+	}
+	
+	protected void setSessionTimeout(HttpServletRequest req) {
+		req.getSession().setMaxInactiveInterval(Constants.SESSION_LENGTH);
 	}
 }
