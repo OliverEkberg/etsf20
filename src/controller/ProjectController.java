@@ -401,11 +401,13 @@ public class ProjectController extends servletBase {
 		try {
 			List<User> users = dbService.getAllUsers();
 			for (User user : users) {
-				sbBuilder.append("<option value=\"");
-				sbBuilder.append(user.getUsername());
-				sbBuilder.append("\">");
-				sbBuilder.append(user.getUsername());
-				sbBuilder.append("</option>\n");
+				if (!user.isAdmin()) { // Admins can not be added to project
+					sbBuilder.append("<option value=\"");
+					sbBuilder.append(user.getUsername());
+					sbBuilder.append("\">");
+					sbBuilder.append(user.getUsername());
+					sbBuilder.append("</option>\n");
+				}
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
