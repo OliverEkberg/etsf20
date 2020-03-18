@@ -125,13 +125,17 @@ public class ProjectController extends servletBase {
 		
 		if ((delete != null && !isBlank(delete)) && (deleteUser != null && !isBlank(deleteUser)) ) {
 			dbService.removeUserFromProject(Integer.parseInt(deleteUser), Integer.parseInt(delete));
-			out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY DELETED USER</p>");
+			out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY DELETED USER</p>"); // TODO: This is not working due to redirect. Remove?
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.PROJECTS_PATH + "?editProject=" + delete);
+			return;
 		}
 		
 		if ( (userId != null && !isBlank(userId)) && (projId != null && !isBlank(projId)) && (newRole != null && !isBlank(newRole)) ) {
 			int roleId = getRoleIdFor(newRole, roles);
 			dbService.updateUserProjectRole(Integer.parseInt(userId), Integer.parseInt(projId), roleId);
-			out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY UPDATED ROLE TO: " + newRole +  "</p>");
+			out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY UPDATED ROLE TO: " + newRole +  "</p>"); // TODO: This is not working due to redirect. Remove?
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.PROJECTS_PATH + "?editProject=" + projId);
+			return;
 		}
 		
 		if ((userId != null && !isBlank(userId)) && (projId != null && !isBlank(projId)) && (initRole != null && !isBlank(initRole))) {
@@ -151,7 +155,9 @@ public class ProjectController extends servletBase {
 						out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">FAILED TO ADD USER: " + userId + ", reason: Admin users can not be added to projects.</p>");
 					} else {
 						dbService.addUserToProject(findUser.getUserId(), Integer.parseInt(projId), getRoleIdFor(initRole, roles));
-						out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">ADDED USER: " + userId +  "</p>");
+						out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">ADDED USER: " + userId +  "</p>"); // TODO: This is not working due to redirect. Remove?
+						resp.sendRedirect("/BaseBlockSystem/" + Constants.PROJECTS_PATH + "?editProject=" + projId);
+						return;
 					}
 					
 				} else {
