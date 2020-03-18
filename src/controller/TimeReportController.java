@@ -132,10 +132,9 @@ public class TimeReportController extends servletBase {
 					{
 						activitySubTypeId = ast.getActivitySubTypeId();
 					}
-				}	
+				}
 				
-				try{		//TODO: När man trycker på send knappen många gånger
-
+				//TODO: När man trycker på send knappen många gånger (Disablea knappen?)
 				activityReport = createActivityReport( activityTypeId, activitySubTypeId, date, Integer.parseInt(addReportYear),  Integer.parseInt(addReportWeek),  
 						Integer.parseInt(timeSpent),  loggedInUser.getUserId(),  this.getProjectId(req), resp); 
 
@@ -149,8 +148,7 @@ public class TimeReportController extends servletBase {
 				out.print(getActivityReports(timereport.getTimeReportId(), req)); //Returns to the view of all activityreports for that timereport
 
 				return;
-				}
-				catch(Exception e){}
+				
 			}
 
 			//Parameters for showing activity report form
@@ -621,109 +619,90 @@ public class TimeReportController extends servletBase {
 		if(this.isProjectLeader(req) && !isUserLoggedInUser(user, req)) {
 			html += "<body> <b> "+ user.getUsername() + "</b> <br> </body>\r\n";
 		}
-
-		//if there are no timereports for the specified user.
-		if(userTimeReports.isEmpty()) {
-			html += "<body> No timereports exist for the selected user </body>\r\n";
-		}
 		
 		
-		if(isProjectLeader(req)) {			
+		if (isProjectLeader(req)) {
 
-			//Timereport filtering
-			html +=	"<html>\r\n" 
-					+ "<div id=\"form\">"
-					+ " <form id=\"userFilter\" method=\"get\">\r\n" 
+			// Timereport filtering
+			html += "<html>\r\n" + "<div id=\"form\">" + " <form id=\"userFilter\" method=\"get\">\r\n"
 					+ "          Get all timereports for this project for: \r\n"
 					+ "                <div id=\"getUser\">\r\n"
 					+ "                    <select id=\"getUser\" name=\"getUser\" form=\"userFilter\">\r\n"
-					+"                      			  <option value=\"allUsers\" >All users</option>\r\n";
+					+ "                      			  <option value=\"allUsers\" >All users</option>\r\n";
 
-			//User dropdown list
-			for(User u : userList) {
+			// User dropdown list
+			for (User u : userList) {
 
 				html += "<option value=" + u.getUserId() + "> " + u.getUsername() + " </option>\r\n";
 			}
 
-			html += "</select>\r\n "
-					+ "</div>\r\n"
-					+ " <div id=\"getStatus\">\r\n"
+			html += "</select>\r\n " + "</div>\r\n" + " <div id=\"getStatus\">\r\n"
 					+ "                    <select id=\"getStatus\" name=\"getStatus\" form=\"userFilter\">\r\n"
-					+"                        <option value=\"allReports\" >Signed</option>\r\n"
-				    +"                        <option value=\"signedReports\" >Signed</option>\r\n"
-				    +"                        <option value=\"unSignedReports\" >Unsigned</option>\r\n"
-				    +"                        <option value=\"readyForSignReports\" >Ready for signing</option>\r\n";
-		
-			//Button for retrieving timereports.
-			html += "              </select>\r\n" 
-					+ "             </div>\r\n"
-					+ "			   <input type=\"submit\" value=\"Get timereports\" >\r\n"
-					+ "           </form>"
-					+ "			 </div>"
-					+ "         </html>";
+					+ "                        <option value=\"allReports\" >All</option>\r\n"
+					+ "                        <option value=\"signedReports\" >Signed</option>\r\n"
+					+ "                        <option value=\"unSignedReports\" >Unsigned</option>\r\n"
+					+ "                        <option value=\"readyForSignReports\" >Ready for signing</option>\r\n";
+
+			// Button for retrieving timereports.
+			html += "              </select>\r\n" + "             </div>\r\n"
+					+ "			   <input type=\"submit\" value=\"Get timereports\" >\r\n" + "           </form>"
+					+ "			 </div>" + "         </html>";
 		}
-		
-		
 
-		//Else start building the HTML table
-		else {
+		// Html table start and header
+		html += "<table width=\"600\" border=\"1\">\r\n" + "<tr>\r\n" + "<th> Year </th>\r\n" + "<th> Week </th>\r\n"
+				+ "<th> Timespent (minutes) </th>\r\n" + "<th> Status </th>\r\n" + "<th> Ready for signing </th>\r\n"
+				+ "<th> Select timereport </th>\r\n" + "<th> Remove timereport </th>\r\n";
 
-			//Html table start and header
-			html += "<table width=\"600\" border=\"1\">\r\n" 
-					+ "<tr>\r\n" 
-					+ "<th> Year </th>\r\n"
-					+ "<th> Week </th>\r\n"
-					+ "<th> Timespent (minutes) </th>\r\n" 
-					+ "<th> Status </th>\r\n" 
-					+ "<th> Ready for signing </th>\r\n"
-					+ "<th> Select timereport </th>\r\n"
-					+ "<th> Remove timereport </th>\r\n";
+		// Adds all timereports into the table
+		for (TimeReport tr : userTimeReports) {
 
-			//Adds all timereports into the table
-			for (TimeReport tr : userTimeReports) {
+			int timeReportTotalTime = getTotalTimeReportTime(tr);
+			String signed;
+			String markedFinished;
 
-				int timeReportTotalTime = getTotalTimeReportTime(tr);
-				String signed;
-				String markedFinished;
-
-				//get String representation of signed/unsigned
-				if (tr.isSigned()) {
-					signed = "Signed";
-				} else {
-					signed = "Unsigned";
-				}
-				
-				if (tr.isFinished()) { // get isFinished or not
-					markedFinished = "Yes";
-				} else {
-					markedFinished = "No";
-				}
-
-				//Add timereport information into table
-				html += "<tr>\r\n" + "<td>" + tr.getYear() + "</td>\r\n" +
-						"<td>" + tr.getWeek() + "</td>\r\n"+
-						"<td>" + timeReportTotalTime + "</td>\r\n" + 
-						"<td>" + signed + "</td>\r\n"
-						+"<td>" + markedFinished + "</td>\r\n"
-						+ "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
-						+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() 
-						+ "\"> Select </button>  </form> </td> \r\n";
-
-				//If timereport isn't signed, and the report owner is the one browsing, a button for deleting it should be visible
-				if(!tr.isSigned() && isUserLoggedInUser(user, req)) { 
-					html += "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?deleteTimeReportId="+tr.getTimeReportId()+"\" method=\"get\"> "
-							+ "<button name=\"deleteTimeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId() + "\"> Remove </button> </form> </td> \r\n";
-				} else {
-					html += "<td>";
-				}
-
-				html += "</tr>\r\n";
-
+			// get String representation of signed/unsigned
+			if (tr.isSigned()) {
+				signed = "Signed";
+			} else {
+				signed = "Unsigned";
 			}
+
+			if (tr.isFinished()) { // get isFinished or not
+				markedFinished = "Yes";
+			} else {
+				markedFinished = "No";
+			}
+
+			// Add timereport information into table
+			html += "<tr>\r\n" + "<td>" + tr.getYear() + "</td>\r\n" + "<td>" + tr.getWeek() + "</td>\r\n" + "<td>"
+					+ timeReportTotalTime + "</td>\r\n" + "<td>" + signed + "</td>\r\n" + "<td>" + markedFinished
+					+ "</td>\r\n" + "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="
+					+ tr.getTimeReportId() + "\" method=\"get\"> "
+					+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId()
+					+ "\"> Select </button>  </form> </td> \r\n";
+
+			// If timereport isn't signed, and the report owner is the one browsing, a
+			// button for deleting it should be visible
+			if (!tr.isSigned() && isUserLoggedInUser(user, req)) {
+				html += "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?deleteTimeReportId="
+						+ tr.getTimeReportId() + "\" method=\"get\"> "
+						+ "<button name=\"deleteTimeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId()
+						+ "\"> Remove </button> </form> </td> \r\n";
+			} else {
+				html += "<td>";
+			}
+
+			html += "</tr>\r\n";
+
 		}
+
+		
+
 		//END OF TABLE
 		html += "</tr>\r\n" + "</table>";
-
+		
+		
 		//Adds more buttons and options underneath the table containing timereports
 		try {
 
@@ -820,7 +799,7 @@ public class TimeReportController extends servletBase {
 	
 		List<User> temp = userList;
 		
-		Comparator<User> comparator = (u1, u2) -> u1.getUsername().compareTo(u2.getUsername());
+		Comparator<User> comparator = (u1, u2) -> u2.getUsername().compareTo(u1.getUsername());
 		    
 		temp.sort(comparator);
 		
