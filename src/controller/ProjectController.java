@@ -3,7 +3,9 @@ package controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -140,30 +142,12 @@ public class ProjectController extends servletBase {
 		
 		if ((userId != null && !isBlank(userId)) && (projId != null && !isBlank(projId)) && (initRole != null && !isBlank(initRole))) {
 			List<User> allUsers = dbService.getAllUsers();
-			User user = allUsers.stream().filter(u -> u.getUsername().equals(userId)).findAny().orElse(null);
-			
-			if (user == null) {
-				out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">FAILED TO ADD USER: " + userId + ", reason: user does not exist.</p>");
-			} else {
+			User findUser = allUsers.stream().filter(u -> u.getUsername().equals(userId)).findAny().orElse(null);
 				
-				User sameUser = dbService.getAllUsers(Integer.parseInt(projId)).stream().filter(u -> u.getUsername().equals(userId)).findAny().orElse(null);
-				
-				if (sameUser == null) {
-					User findUser = allUsers.stream().filter(u -> u.getUsername().equals(userId)).findAny().orElse(null);
-					
-					if(findUser.isAdmin()) {
-						out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">FAILED TO ADD USER: " + userId + ", reason: Admin users can not be added to projects.</p>");
-					} else {
-						dbService.addUserToProject(findUser.getUserId(), Integer.parseInt(projId), getRoleIdFor(initRole, roles));
-						out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">ADDED USER: " + userId +  "</p>"); // TODO: This is not working due to redirect. Remove?
-						resp.sendRedirect("/BaseBlockSystem/" + Constants.PROJECTS_PATH + "?editProject=" + projId);
-						return;
-					}
-					
-				} else {
-					out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">FAILED TO ADD USER: " + userId + ", reason: user is already in the project.</p>");
-				}
-			}
+			dbService.addUserToProject(findUser.getUserId(), Integer.parseInt(projId), getRoleIdFor(initRole, roles));
+			out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">ADDED USER: " + userId +  "</p>"); // TODO: This is not working due to redirect. Remove?
+			resp.sendRedirect("/BaseBlockSystem/" + Constants.PROJECTS_PATH + "?editProject=" + projId);
+			return;
 		}
 		
 		
@@ -178,7 +162,7 @@ public class ProjectController extends servletBase {
 					"<tr>\r\n" + 
 					"<td><label for=\"pname\">enter username:</label>\r\n" + 
 					"<select id=\"rol_picker\" name=\"userId\" form=\"user_form\">\r\n" + 
-					getUserSelectOptions() +
+					getUserSelectOptions(currentProject.getProjectId()) +
 					"                    </select>\r\n" + 
 					"</td>\r\n" +
 					"<td>\r\n" + 
@@ -413,14 +397,19 @@ public class ProjectController extends servletBase {
 	
 	/**
 	 * Gets the options in HTML format for the roles.
+	 * @param the project in focus.
 	 * @return the HTML code for select options.
 	 */
-	private String getUserSelectOptions() {
+	private String getUserSelectOptions(int projectId) {
 		StringBuilder sbBuilder = new StringBuilder();
 		try {
 			List<User> users = dbService.getAllUsers();
+			Set<Integer> userIdsInProject = new HashSet<Integer>();
+			for (User u : dbService.getAllUsers(projectId)) {
+				userIdsInProject.add(u.getUserId());
+			}
 			for (User user : users) {
-				if (!user.isAdmin()) { // Admins can not be added to project
+				if (!user.isAdmin() && !userIdsInProject.contains(user.getUserId())) { // Admins can not be added to project nor users that already belongs to project
 					sbBuilder.append("<option value=\"");
 					sbBuilder.append(user.getUsername());
 					sbBuilder.append("\">");
