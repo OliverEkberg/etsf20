@@ -145,7 +145,6 @@ public class TimeReportController extends servletBase {
 					}
 				}
 
-				// TODO: N�r man trycker p� send knappen m�nga g�nger (Disablea knappen?)
 				activityReport = createActivityReport(activityTypeId, activitySubTypeId, date,
 						Integer.parseInt(addReportYear), Integer.parseInt(addReportWeek), Integer.parseInt(timeSpent),
 						loggedInUser.getUserId(), this.getProjectId(req), resp);
@@ -723,7 +722,7 @@ public class TimeReportController extends servletBase {
 			html += "<tr>\r\n" 
 			+ "<td>" + tr.getYear() + "</td>\r\n" 
 			+ "<td>" + tr.getWeek() + "</td>\r\n"
-			+ "<td>" + dbService.getUserByTimeReportId(tr.getTimeReportId()).getUsername() + "</td>\r\n" //TODO: Effektivisera 
+			+ "<td>" + dbService.getUserByTimeReportId(tr.getTimeReportId()).getUsername() + "</td>\r\n"
 			+ "<td>" + timeReportTotalTime + "</td>\r\n" 
 			+ "<td>" + signed + "</td>\r\n"
 			+ "<td>" + markedFinished + "</td>\r\n" 
@@ -913,7 +912,7 @@ public class TimeReportController extends servletBase {
 				+ "                    <select id=\"act_picker_2\" name=\"activitySubType\" form=\"filter_form\">\r\n";
 
 		for (String subType : uniqueSubTypes) {
-			html += "<option value=" + subType + ">" + subType + "</option>"; // TODO: Change this to use id instead
+			html += "<option value=" + subType + ">" + subType + "</option>";
 		}
 
 		html += "                      </select>\r\n" + "                </div>\r\n" + "            </div>\r\n"

@@ -94,7 +94,7 @@ public class SessionController extends servletBase {
 		sb.append("<div class=\"title\">TimeKeep</div>");
 		sb.append("<div class=\"subTitle\">Keep track of time and stuff</div>");
 		sb.append("<div class=\"center credentials_form\">");
-		sb.append("<form onsubmit=\"checkInput()\">"); // TODO: Add JS?
+		sb.append("<form>");
 		sb.append("<input class=\"credentials_rect\" type=\"text\" id=\"username\" name=\"username\" pattern=\"^[a-zA-Z0-9]*$\" title=\"Please enter letters and numbers only.\" maxlength=\"10\" placeholder=\"Username\" required><br>");
 		sb.append("<input class=\"credentials_rect\" type=\"password\" id=\"password\" name=\"password\" pattern=\"^[a-zA-Z0-9]*$\" title=\"Please enter letters and numbers only.\" maxlength=\"10\" placeholder=\"Password\" required><br><br>");
 		sb.append("<input class=\"submitBtn\" type=\"submit\" value=\"Submit\">");

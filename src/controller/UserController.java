@@ -126,7 +126,7 @@ public class UserController extends servletBase {
 
 			out.println("</body></html>");
 
-			String resetName = req.getParameter("resetName"); // TODO: Clarify that this is actually reset password for user
+			String resetName = req.getParameter("resetName");
 			if (resetName != null) {
 				int reset = Integer.parseInt(resetName);
 				try {

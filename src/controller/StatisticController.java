@@ -300,7 +300,7 @@ public class StatisticController extends servletBase {
 		sb.append("</div>");
 		sb.append("<div id=\"stat_date_picker\">\r\n");
 		sb.append("<input type=\"date\" id=\"from\" value=\""+ start +"\" name=\"from\">");
-		sb.append("         <input type=\"date\" id=\"to\" value=\""+ end +"\" name=\"to\">"); // TODO: Fix proper spacing
+		sb.append("         <input type=\"date\" id=\"to\" value=\""+ end +"\" name=\"to\">");
 		sb.append("</div>");
 		sb.append("</div>");
 		sb.append("<div>");
