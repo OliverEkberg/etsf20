@@ -57,8 +57,10 @@ public class ProjectController extends servletBase {
 			e1.printStackTrace();
 		}
 		
-		
-		
+		// Edit project provided and user is allowed, select this project globally
+		if (req.getParameter("editProject") != null && actionIsAllowed(req, Integer.valueOf(req.getParameter("editProject")))) {
+			setProjectId(req, Integer.parseInt(req.getParameter("editProject")));
+		}
 		
 		out.println("<body>" + "<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/ProjectController.css\">\n");
 		out.println(getHeader(req));
