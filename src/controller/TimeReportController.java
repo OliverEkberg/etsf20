@@ -55,7 +55,7 @@ public class TimeReportController extends servletBase {
 			PrintWriter out = resp.getWriter();
 			User loggedInUser = this.getLoggedInUser(req);
 
-			String activityType = req.getParameter("activity");
+			String activityType = req.getParameter("activityTypeId");
 			String addReportWeek = req.getParameter("addReportWeek");
 			String addReportYear = req.getParameter("addReportYear");
 			String dateOfReport = req.getParameter("dateOfReport");
@@ -66,7 +66,7 @@ public class TimeReportController extends servletBase {
 			String year = req.getParameter("yearFilter");
 			String status = req.getParameter("status");
 			String showUserPage = req.getParameter("showUserPage");
-			String subType = req.getParameter("subType");
+			String subType = req.getParameter("activitySubType");
 			String timeReportFinishedId = req.getParameter("timeReportFinishedId");
 			String timeReportId = req.getParameter("timeReportId");
 			String timeReportNotFinishedId = req.getParameter("timeReportNotFinishedId");
@@ -372,13 +372,13 @@ public class TimeReportController extends servletBase {
 		boolean reportIsSigned = timeReport.isSigned();
 		boolean reportIsFinished = timeReport.isFinished();
 		boolean isActivityReportsDeletable = !reportIsSigned && !reportIsFinished
-				&& isUserLoggedInUser(reportOwner, req); // If timereport isn't signed, and the report owner is the one
+				&& isUserLoggedInUser(req, reportOwner); // If timereport isn't signed, and the report owner is the one
 															// accessing it, show button for deleting activity, else do
 															// not show it.
 
 		// If projectleader is looking within a report, and it isn't their own. Display
 		// the name of the report owner.
-		if (this.isProjectLeader(req) && !isUserLoggedInUser(reportOwner, req)) {
+		if (this.isProjectLeader(req) && !isUserLoggedInUser(req, reportOwner)) {
 			html += "<body> <b> " + reportOwner.getUsername() + "</b> <br> </body>\r\n";
 		}
 
@@ -443,7 +443,7 @@ public class TimeReportController extends servletBase {
 
 		// If timereport owner is the one logged in and looking at this screen AND isnt
 		// marked as finished
-		if (isUserLoggedInUser(reportOwner, req) && !timeReport.isFinished() && !timeReport.isSigned()) {
+		if (isUserLoggedInUser(req, reportOwner) && !timeReport.isFinished() && !timeReport.isSigned()) {
 
 			// Show button for adding activity
 			html += "<form action=\"" + Constants.TIMEREPORTS_PATH + "?week=\"" + timeReport.getWeek()
@@ -464,7 +464,7 @@ public class TimeReportController extends servletBase {
 
 		// If timerport owner is the one logged in and looking at this screen AND
 		// timereport IS! marked and finished and not signed.
-		else if (isUserLoggedInUser(reportOwner, req) && timeReport.isFinished() && !timeReport.isSigned()) {
+		else if (isUserLoggedInUser(req, reportOwner) && timeReport.isFinished() && !timeReport.isSigned()) {
 
 			// Button - Unmark activity report as finished
 			html += "<td> <form action = \"" + Constants.TIMEREPORTS_PATH + "?timeReportNotFinishedId=\""
@@ -629,7 +629,18 @@ public class TimeReportController extends servletBase {
 		return html;
 
 	}
-
+	
+	/**
+	 *  Builds a String containing a HTML page showing all timereports that conform to the specified filter parameters
+	 * 
+	 * @param req - HttpServletRequest
+	 * @param userId - The id of user (or * for all users) whos timereports you wish to see.
+	 * @param status - The status of the timereport(s) that you wish to see.
+	 * @param year - The year of the the timereport(s) that you wish to see.
+	 * @param week - The week of the timereport(s) that you wish to see.
+	 * @return A String containing HTML to show the page described above.
+	 * @throws Exception
+	 */
 	private String getTimereports(HttpServletRequest req, Integer userId, String status, Integer year, Integer week)
 			throws Exception {
 
@@ -743,6 +754,13 @@ public class TimeReportController extends servletBase {
 
 	}
 
+	/**
+	 *  Sees if the sent in TimeReport has the same year as the sent in year.
+	 * 
+	 * @param tr - The Timereport to check the year off.
+	 * @param year - The year to check the timereport for.
+	 * @return true if the years matches, else false.
+	 */
 	private boolean sameYear(TimeReport tr, Integer year) {
 
 		if(year == null || tr.getYear() == year) {
@@ -752,6 +770,13 @@ public class TimeReportController extends servletBase {
 		return false;
 	}
 
+	/**
+	 *  Sees if the sent in TimeReport has the same week as the sent in week.
+	 * 
+	 * @param tr - The Timereport to check the week off.
+	 * @param week - The week to check the timereport for.
+	 * @return true if the years matches, else false.
+	 */
 	private boolean sameWeek(TimeReport tr, Integer week) {
 
 		if(week == null || tr.getWeek() == week) {
@@ -761,6 +786,12 @@ public class TimeReportController extends servletBase {
 		return false;
 	}
 
+	/**
+	 * Sorts a list of Users alphabeticaly.
+	 *  
+	 * @param userList - The list to be sorted
+	 * @return a sorted list.
+	 */
 	private List<User> sortUserList(List<User> userList) {
 
 		List<User> temp = userList;
@@ -772,6 +803,12 @@ public class TimeReportController extends servletBase {
 		return temp;
 	}
 
+	/**
+	 * Sorts a list of TimeReports by year, and then week. .
+	 *  
+	 * @param userList - The list to be sorted
+	 * @return a sorted list.
+	 */
 	private List<TimeReport> sortTimeReports(List<TimeReport> userTimeReports) {
 
 		List<TimeReport> temp = userTimeReports;
@@ -862,7 +899,7 @@ public class TimeReportController extends servletBase {
 		String html = "<!--square.html-->\r\n" + "<!DOCTYPE html>\r\n" + "<html>\r\n" + "<div id= \"form\">"
 				+ " <form id=\"filter_form\" method=\"get\">\r\n" + "                 Activity type\r\n"
 				+ "                <div id=\"activity_picker\">\r\n"
-				+ "                    <select id=\"act_picker_1\" name=\"activity\" form=\"filter_form\">\r\n"; // Activity
+				+ "                    <select id=\"act_picker_1\" name=\"activityTypeId\" form=\"filter_form\">\r\n"; // Activity
 																													// picker
 
 		for (ActivityType at : activityTypes) {
@@ -873,7 +910,7 @@ public class TimeReportController extends servletBase {
 				+ "            <div id=\"subTypes\">\r\n"
 				+ "                <p class=\"descriptors\">Activity Subtype</p>\r\n" // Activity subtype picker
 				+ "                <div id=\"activity_picker\">\r\n"
-				+ "                    <select id=\"act_picker_2\" name=\"subType\" form=\"filter_form\">\r\n";
+				+ "                    <select id=\"act_picker_2\" name=\"activitySubType\" form=\"filter_form\">\r\n";
 
 		for (String subType : uniqueSubTypes) {
 			html += "<option value=" + subType + ">" + subType + "</option>"; // TODO: Change this to use id instead
@@ -923,18 +960,32 @@ public class TimeReportController extends servletBase {
 	/**
 	 * Checks if the logged in user is a projectleader in the selected project.
 	 * 
-	 * @param req - HttpServletRequest
+	 * @param req - HttpServletRequest.
 	 * @return true if the user is a projectleader, else false.
 	 */
 	private boolean isProjectLeader(HttpServletRequest req) {
 		return this.isProjectLeader(req, this.getProjectId(req));
 	}
 
-	private boolean isUserLoggedInUser(User user, HttpServletRequest req) {
+	/**
+	 * Checks if the user sent in is the logged in user.
+	 * 
+	 * @param req - HttpServletRequest.
+	 * @param user - User to check .
+	 * @return true if the user is the logged in user, else false.
+	 */
+	private boolean isUserLoggedInUser(HttpServletRequest req, User user) {
 		User loggedInUser = getLoggedInUser(req);
 		return loggedInUser != null && loggedInUser.getUserId() == user.getUserId();
 	}
 
+	/**
+	 * Checks if the userId sent in is the logged in user.
+	 * 
+	 * @param req - HttpServletRequest.
+	 * @param userId - UserId to check.
+	 * @return true if the user is the logged in user, else false.
+	 */
 	private boolean isUserIdLoggedInUser(Integer userId, HttpServletRequest req) {
 		User loggedInUser = getLoggedInUser(req);
 		return loggedInUser != null && userId != null && loggedInUser.getUserId() == userId;
