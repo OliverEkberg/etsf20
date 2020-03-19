@@ -596,36 +596,28 @@ public class TimeReportController extends servletBase {
 		html += getTimereports(req, userId, status, year, week);
 
 		// Adds more buttons and options underneath the table containing timereports
-		try {
-			// If the logged in user is the one browsing this page, give the option to
-			// create a new timereport
-			if (this.isUserIdLoggedInUser(userId, req)) {
-				html += "<div id=\"form\">" + " <form id=\"filter_form\" method=\"get\">\r\n"
-						+ "             Create timereport for: \r\n" 
-						+ "                <div id=\"selectWeek\">\r\n"
-						+ "                    <select id=\"addReportWeek\" name=\"addReportWeek\" form=\"filter_form\">\r\n";
-				// Week selection dropdown list
-				for (int i = 1; i < 54; i++) {
+		html += "<div id=\"form\">" + " <form id=\"filter_form\" method=\"get\">\r\n"
+				+ "             Create timereport for: \r\n" 
+				+ "                <div id=\"selectWeek\">\r\n"
+		+ "                    <select id=\"addReportWeek\" name=\"addReportWeek\" form=\"filter_form\">\r\n";
+		// Week selection dropdown list
+		for (int i = 1; i < 54; i++) {
 
-					html += "<option value=" + i + ">Week: " + i + " </option>\r\n";
-				}
-
-				html += "</select>\r\n  </div>\r\n" + "<div id=\"selectYear\">\r\n"
-						+ "                    <select id=\"addReportYear\" name=\"addReportYear\" form=\"filter_form\">\r\n";
-				// Year selection dropdown list
-				for (int i = 2020; i <= d.getYear(); i++) {
-					html += "                        <option value=" + i + ">Year: " + i + "</option>\r\n";
-				}
-
-				// Adds "Create" button
-				html += "            </select>\r\n" + "              </div>\r\n" + "            </div>\r\n"
-						+ "			  <input type=\"submit\" value=\"Create timereport\" >\r\n" + "           </form>"
-						+ "</div>" + "          </html>";
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
+			html += "<option value=" + i + ">Week: " + i + " </option>\r\n";
 		}
+
+		html += "</select>\r\n  </div>\r\n" + "<div id=\"selectYear\">\r\n"
+				+ "                    <select id=\"addReportYear\" name=\"addReportYear\" form=\"filter_form\">\r\n";
+		// Year selection dropdown list
+		for (int i = 2020; i <= d.getYear(); i++) {
+			html += "                        <option value=" + i + ">Year: " + i + "</option>\r\n";
+		}
+
+		// Adds "Create" button
+		html += "            </select>\r\n" + "              </div>\r\n" + "            </div>\r\n"
+				+ "			  <input type=\"submit\" value=\"Create timereport\" >\r\n" + "           </form>"
+				+ "</div>" + "          </html>";
+
 
 		return html;
 
