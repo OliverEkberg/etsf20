@@ -147,11 +147,11 @@ public abstract class servletBase extends HttpServlet {
 				}
 	
 				userName = u.getUsername();
-				sb.append("<div id=\"sessionInfo\">"); // TODO: Make this look better
-				sb.append("<label><b>User: </b>" + userName + "		</label>");
+				sb.append("<div id=\"sessionInfo\">");
+				sb.append("<label><b>User: </b>" + userName + "</label>");
 				
 				if (!isAdmin(req)) {
-					sb.append("<label><b>Project: </b>" + projectName + "</label>");
+					sb.append("<label><b>, Project: </b>" + projectName + "</label>");
 				}
 				
 				sb.append("</div>");
