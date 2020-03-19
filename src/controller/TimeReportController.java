@@ -78,6 +78,10 @@ public class TimeReportController extends servletBase {
 			Integer userQueryInteger = (userQuery == null || "*".equals(userQuery)) ? null
 					: Integer.parseInt(userQuery);
 			
+			if (!isProjectLeader(req)) {
+				userQueryInteger = getLoggedInUser(req).getUserId();
+			}
+			
 			Integer weekInteger = (week == null || "*".equals(week)) ? null
 					: Integer.parseInt(week);
 			
