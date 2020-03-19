@@ -77,7 +77,7 @@ public class ProjectController extends servletBase {
 				plist = dbService.getAllProjects(getLoggedInUser(req).getUserId());
 			
 		
-		String pname = req.getParameter("pname");
+		String pname = req.getParameter("projectName");
 		String delete = req.getParameter("deleteProjectId");
 		String deleteUser = req.getParameter("deleteUserId");
 		String newRole = req.getParameter("newRole");
@@ -86,7 +86,7 @@ public class ProjectController extends servletBase {
 		String userId = req.getParameter("userId");
 		
 		String initRole = req.getParameter("role");
-		String projectSelected = req.getParameter("projectSelected");
+		String projectSelected = req.getParameter("pickProjectId");
 		
 		
 		//String edit
@@ -160,7 +160,7 @@ public class ProjectController extends servletBase {
 					"<form id=\"user_form\">\r\n" + 
 					"<table id=\"table\">\r\n" + 
 					"<tr>\r\n" + 
-					"<td><label for=\"pname\">enter username:</label>\r\n" + 
+					"<td><label for=\"projectName\">enter username:</label>\r\n" + 
 					"<select id=\"rol_picker\" name=\"userId\" form=\"user_form\">\r\n" + 
 					getUserSelectOptions(currentProject.getProjectId()) +
 					"                    </select>\r\n" + 
@@ -218,7 +218,7 @@ public class ProjectController extends servletBase {
 		
 		for(int i = 0; i < plist.size(); i++) {
 			out.print("<tr>\n" + 
-						(isAdmin ? "<td>" + plist.get(i).getName() + "</td>" : "<td><a href=\"" + Constants.PROJECTS_PATH + "?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n") + 
+						(isAdmin ? "<td>" + plist.get(i).getName() + "</td>" : "<td><a href=\"" + Constants.PROJECTS_PATH + "?pickProjectId=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n") + 
 						(!allowed[i] ? "" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
 						(!allowed[i]  || !isAdmin? "" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?deleteProjectId=" + plist.get(i).getName() + "\" onclick=" + addQuotes("return confirm('Are you sure you want to delete this project ?')") + ">delete</a></td>\n") +
 					"</tr>\n");
@@ -232,9 +232,9 @@ public class ProjectController extends servletBase {
 				"        <div id=\"myModal\" class=\"modal\">   \n" + 
 				"            <div class=\"modal-content\">\n" + 
 				"                <span class=\"close1\">&times;</span>\n" + 
-				"                  <label for=\"pname\">Project name:</label>\n" +
+				"                  <label for=\"projectName\">Project name:</label>\n" +
 				"				   <form>" +
-				"                  	<input type=\"text\" id=\"pname\" name=\"pname\" pattern=\"^[a-zA-Z0-9]*$\" title=\"Please enter letters and numbers only.\" minlength=\"3\" maxlength=\"20\" required><br><br>\n" + 
+				"                  	<input type=\"text\" id=\"projectName\" name=\"projectName\" pattern=\"^[a-zA-Z0-9]*$\" title=\"Please enter letters and numbers only.\" minlength=\"3\" maxlength=\"20\" required><br><br>\n" + 
 				"                  	<input type=\"submit\" value=\"Create\" onclick=\"create();\">\n" + 
 				"					</form>\n" +
 				"            </div>\n" + 
