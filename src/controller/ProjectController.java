@@ -218,7 +218,7 @@ public class ProjectController extends servletBase {
 		
 		for(int i = 0; i < plist.size(); i++) {
 			out.print("<tr>\n" + 
-						(isAdmin ? "<td>" + plist.get(i).getName() + "</td>" : "<td><a href=\"" + Constants.PROJECTS_PATH + "?projectSelected=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n") + 
+						(isAdmin ? "<td>" + plist.get(i).getName() + "</td>" : "<td><a href=\"" + Constants.PROJECTS_PATH + "?pickProjectId=" + plist.get(i).getProjectId() + "\">" + plist.get(i).getName() + "</a></td>\n") + 
 						(!allowed[i] ? "" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?editProject=" + plist.get(i).getProjectId()  + "&" + "editProjectName=" + plist.get(i).getName()  +"\"" +  "id=\"editBtn\">edit</a></td>\n") + 
 						(!allowed[i]  || !isAdmin? "" :"<td><a href=\"" + Constants.PROJECTS_PATH + "?deleteProjectId=" + plist.get(i).getName() + "\" onclick=" + addQuotes("return confirm('Are you sure you want to delete this project ?')") + ">delete</a></td>\n") +
 					"</tr>\n");
