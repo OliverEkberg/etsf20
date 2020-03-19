@@ -16,7 +16,7 @@ import database.User;
  * 
  * Class that handles the system login page.
  * 
- * @author Ferit Bï¿½lezek, Emil Jönsson.
+ * @author Ferit Bï¿½lezek, Emil Jï¿½nsson.
  * @version 0.1
  * 
  */
@@ -32,6 +32,8 @@ public class SessionController extends servletBase {
 	*/
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		setSessionTimeout(req);
+
 		PrintWriter out = resp.getWriter();
 
 		String name = req.getParameter("username");
