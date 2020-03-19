@@ -56,8 +56,8 @@ public class TimeReportController extends servletBase {
 			User loggedInUser = this.getLoggedInUser(req);
 
 			String activityType = req.getParameter("activity");
-			String addReportWeek = req.getParameter("week");
-			String addReportYear = req.getParameter("year");
+			String addReportWeek = req.getParameter("addReportWeek");
+			String addReportYear = req.getParameter("addReportYear");
 			String dateOfReport = req.getParameter("dateOfReport");
 			String deleteActivityReportId = req.getParameter("deleteActivityReportId");
 			String deleteTimeReportId = req.getParameter("deleteTimeReportId");
