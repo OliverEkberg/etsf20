@@ -541,10 +541,6 @@ public class TimeReportController extends servletBase {
 		List<User> userList = dbService.getAllUsers(this.getProjectId(req));
 		userList = sortUserList(userList);
 
-		if (userId != null) {
-			html += "<body> <b> " + dbService.getUserById(userId).getUsername() + "</b> <br> </body>\r\n";
-		}
-
 		if (isProjectLeader(req)) {
 
 			// Timereport filtering
@@ -594,6 +590,8 @@ public class TimeReportController extends servletBase {
 					+ "			   <input type=\"submit\" value=\"Get timereports\" >\r\n" + "           </form>"
 					+ "			 </div>" + "         </html>";
 		}
+		
+		html += "<body> <b> " + (userId != null ? dbService.getUserById(userId).getUsername() : "All users") + "</b> <br> </body>\r\n";
 
 		html += getTimereports(req, userId, status, year, week);
 
