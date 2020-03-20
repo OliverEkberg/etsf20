@@ -11,10 +11,16 @@ public class Constants {
 	public static final String STATISTICS_PATH = "statistics";
 	public static final String TIMEREPORTS_PATH = "timereports";
 	public static final String USERS_PATH = "users";
+	
 	public static final int MIN_PASSWORD_LENGTH = 5;
 	public static final int MAX_PASSWORD_LENGTH = 10;
 	public static final int MIN_USERNAME_LENGTH = 5;
 	public static final int MAX_USERNAME_LENGTH = 10;
 	public static final int MAX_MINUTES_PER_DAY = 1440;
 	public static final int SESSION_LENGTH = 1200; // In seconds
+	
+	public static final int PROJECT_LEADER = 1;
+	public static final int SYSTEM_LEADER = 2;
+	public static final int DEVELOPER = 3;
+	public static final int TESTER = 4;
 }
