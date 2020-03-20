@@ -14,11 +14,11 @@ import database.User;
 /**
  * Servlet implementation class SessionController.
  * 
- * Class that handles the system login page.
+ * Class that handles the system login and logout.
  * 
- * @author Ferit B�lezek, Emil J�nsson.
+ * @author Ferit Bolezek
+ * @author Emil Jonsson.
  * @version 0.1
- * 
  */
 
 @WebServlet("/" + Constants.SESSION_PATH)
@@ -55,7 +55,7 @@ public class SessionController extends servletBase {
 			}
 
 		} else {
-			logout(req);
+			logout(req); // If no params provided, assume logout.
 		}
 		
 		out.println(getHeader(req));
@@ -70,10 +70,11 @@ public class SessionController extends servletBase {
 	private boolean canLogIn(String name, String password) {
 		return dbService.getUserByCredentials(name, password) != null;
 	}
-
+	
 	/**
-	* logout the user
-	*/
+	 * Logs out the currently logged in user.
+	 * @param req the current request.
+	 */
 	private void logout(HttpServletRequest req) {
 		if (isLoggedIn(req) == true) {
 			setIsLoggedIn(req, false);
@@ -82,6 +83,7 @@ public class SessionController extends servletBase {
 			setIsAdmin(req, false);
 		}
 	}
+	
 	/**
 	* Builds a String containing HTML for showing a form for logging into the system.
 	* @return html form for entering username and password.
