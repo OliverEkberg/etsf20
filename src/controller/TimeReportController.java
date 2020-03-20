@@ -52,14 +52,16 @@ public class TimeReportController extends servletBase {
 		setSessionTimeout(req);
 
 		try {
-			
 			PrintWriter out = resp.getWriter();
 			User loggedInUser = this.getLoggedInUser(req);
 			
 			out.println(getHeader(req));
 			out.println("<body>");
 			out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/TimeReportController.css\">\n");
-			out.println(getNav(req));
+			out.println(
+					"        <div id=\"wrapper\">\r\n" + 
+							getNav(req) +
+					"            <div id=\"bodyContent\">");
 			out.println("<p id=\"report_title_text\">Reports</p>");
 
 			if (loggedInUser == null) {
@@ -101,7 +103,6 @@ public class TimeReportController extends servletBase {
 					: Integer.parseInt(userQuery);
 			
 			if (!isProjectLeader(req)) {
-				
 				userQueryInteger = getLoggedInUser(req).getUserId();
 			}
 			
@@ -111,7 +112,6 @@ public class TimeReportController extends servletBase {
 			Integer yearInteger = (year == null || "*".equals(year)) ? null
 					: Integer.parseInt(year);
 
-			
 
 			int weekNumber = Helpers.getWeekNbr(LocalDate.now());
 
@@ -168,7 +168,7 @@ public class TimeReportController extends servletBase {
 				out.print(getActivityReports(timereport.getTimeReportId(), req)); // Returns to the view of all
 																					// activityreports for that
 																					// timereport
-
+				out.println(getFooter());
 				return;
 
 			}
@@ -178,6 +178,7 @@ public class TimeReportController extends servletBase {
 					&& subType == null) {
 				out.print(activityReportForm(Integer.parseInt(addReportWeek), Integer.parseInt(addReportYear),
 						timeReportId, req));
+				out.println(getFooter());
 				return;
 			}
 
@@ -189,6 +190,7 @@ public class TimeReportController extends servletBase {
 				} catch (Exception e) {
 				}
 				out.print(getActivityReports(Integer.parseInt(timeReportId), req));
+				out.println(getFooter());
 				return;
 
 			}
@@ -206,6 +208,7 @@ public class TimeReportController extends servletBase {
 			// Shows the timereportingpage of a specific user
 			if (showUserPage != null) {
 				out.print(getUserTimeReports(req, userQueryInteger, status, yearInteger, weekInteger));
+				out.println(getFooter());
 				return;
 			}
 
@@ -219,6 +222,7 @@ public class TimeReportController extends servletBase {
 					timeReport.sign(projectUserId);
 					dbService.updateTimeReport(timeReport);
 					out.print(getUserTimeReports(req, userQueryInteger, status, yearInteger, weekInteger));
+					out.println(getFooter());
 					return;
 				}
 
@@ -235,6 +239,7 @@ public class TimeReportController extends servletBase {
 
 				dbService.updateTimeReport(timeReport);
 				out.print(getUserTimeReports(req, userQueryInteger, status, yearInteger, weekInteger));
+				out.println(getFooter());
 				return;
 			}
 
@@ -245,6 +250,7 @@ public class TimeReportController extends servletBase {
 				timeReport.setFinished(false);
 				dbService.updateTimeReport(timeReport);
 				out.print(getUserTimeReports(req, userQueryInteger, status, yearInteger, weekInteger));
+				out.println(getFooter());
 				return;
 			}
 
@@ -255,6 +261,7 @@ public class TimeReportController extends servletBase {
 				timeReport.setFinished(true);
 				dbService.updateTimeReport(timeReport);
 				out.print(getUserTimeReports(req, userQueryInteger, status, yearInteger, weekInteger));
+				out.println(getFooter());
 				return;
 			}
 
@@ -266,6 +273,7 @@ public class TimeReportController extends servletBase {
 				} catch (Exception e) {
 				}
 				out.print(getUserTimeReports(req, userQueryInteger, status, yearInteger, weekInteger));
+				out.println(getFooter());
 				return;
 			}
 
@@ -277,6 +285,7 @@ public class TimeReportController extends servletBase {
 				if (addReportWeekInt > 0 && addReportWeekInt <= 53) {
 					out.print(activityReportForm(Integer.parseInt(addReportWeek), Integer.parseInt(addReportYear), "",
 							req));
+					out.println(getFooter());
 					return;
 				} else {
 					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH
@@ -289,16 +298,18 @@ public class TimeReportController extends servletBase {
 			if (timeReportId != null) {
 
 				out.print(getActivityReports(Integer.parseInt(timeReportId), req));
+				out.println(getFooter());
 				return;
 			}
 
 			out.print(getUserTimeReports(req, userQueryInteger, status, yearInteger, weekInteger)); // Standard case, if nothing else works this
-																			// is called
+			out.println(getFooter());														// is called
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=unexpected-error");
 		}
+		
 
 	}
 
@@ -481,7 +492,6 @@ public class TimeReportController extends servletBase {
 					+ "\" method=\"get\"> <button name=\"timeReportNotFinishedId\" type=\"submit\" value=\""
 					+ timeReport.getTimeReportId() + "\"> Unmark </button>  </form> \r\n";
 		}
-
 		return html;
 	}
 
@@ -939,7 +949,9 @@ public class TimeReportController extends servletBase {
 				+ "<input type=\"date\" id=\"dateOfReport\" name=\"dateOfReport\" value=\"" + p + "\" min=\"" + s
 				+ "\" max=\"" + e + "\">\r\n" + " <input name=\"timeReportId\" type=\"hidden\" value=\"" + timeReportId
 				+ "\"></input>\r\n" + "              <input class=\"submitBtn\" type=\"submit\" value=\"Send\">\r\n"
-				+ "                </div>\r\n" + "              </form>" + "</div>" + "              </html>";
+				+ "                </div>\r\n" + "              </form>" + "</div>" + "              " +
+				getFooter()
+						+ "</html>";
 
 		return html;
 

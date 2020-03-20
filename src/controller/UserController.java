@@ -39,13 +39,17 @@ public class UserController extends servletBase {
 		out.println(getHeader(req));
 		out.println("<body>");
 		out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/usercontroller.css\">\n");
-		out.println(getNav(req));
+		out.println(
+				"        <div id=\"wrapper\">\r\n" + 
+						getNav(req) +
+				"            <div id=\"bodyContent\">");
 
 		User loggedInUser = getLoggedInUser(req);
 
 		// Change password page requested
 		if ("yes".equals(req.getParameter("changePassword"))) {
 			out.println(changePasswordForm());
+			out.println(getFooter());
 			return;
 		}
 		
@@ -136,6 +140,7 @@ public class UserController extends servletBase {
 				}
 			}
 		}
+		out.println(getFooter());
 	}
 	
 	/**
@@ -179,8 +184,7 @@ public class UserController extends servletBase {
 	* @return html form for changing password.
 	*/
 	public String changePasswordForm() {
-		String html = "<div id=" + addQuotes("bodyContent") + ">";
-		html += "<p id=\"user_title_text\">Change Password</p>";
+		String html = "<p id=\"user_title_text\">Change Password</p>";
 		html += "<form name=" + addQuotes("input");
 		html += " method=" + addQuotes("get") + ">";
 		html += "<p class=\"descriptors\">New password:</p><br>";
@@ -189,7 +193,6 @@ public class UserController extends servletBase {
 		html += "<input type=" + addQuotes("submit") + "value=" + addQuotes("Change Password") + "class="+ addQuotes("btn") + '>';
 		html += "</div>";
 		html += "</form>";
-		html += "</div>";
 
 		return html;
 	}

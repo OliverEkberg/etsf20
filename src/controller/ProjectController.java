@@ -3,6 +3,8 @@ package controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,6 +13,8 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.catalina.ha.backend.Sender;
 
 import baseblocksystem.servletBase;
 import database.Project;
@@ -33,10 +37,10 @@ public class ProjectController extends servletBase {
 	
 	private Project currentProject;
 	
+	private int userCountNotInProject = 0; // Amount of users that is not in the currently selected project.
 	
 	public ProjectController() {
 		super();
-
 	}
 
 	@Override
@@ -88,7 +92,7 @@ public class ProjectController extends servletBase {
 		
 		String initRole = req.getParameter("role");
 		String projectSelected = req.getParameter("pickProjectId");
-		
+		String createdProject = req.getParameter("createdProject");
 		
 		//String edit
 		
@@ -108,9 +112,11 @@ public class ProjectController extends servletBase {
 			Project project = new Project(1, pname);
 			project = createProject(project);
 
-				out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY CREATED PROJECT: " + pname + "</p>");
-				plist.add(project);
+			plist.add(project);
+			resp.sendRedirect(Constants.PROJECTS_PATH + "?createdProject=" + pname);
 		
+		} else if(createdProject != null && !isBlank(createdProject)) {
+			out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY CREATED PROJECT: " + createdProject + "</p>");			
 		} else if (pname != null && !isBlank(pname) && !isAdmin(req)) {
 			out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">FAILED TO CREATE PROJECT: REASON: You are not allowed to perform this action. (Only Admins are allowed to create projects)" +  "</p>");
 		}
@@ -171,7 +177,9 @@ public class ProjectController extends servletBase {
 					"</td>\r\n" +
 					"<td>\n<input type=\"hidden\" name=\"projectId\" value=\"" + currentProject.getProjectId() + "\">\n</td>\n" +
 					"<td> \r\n" + 
-					"<input type=\"submit\" value=\"Add user\">\r\n" + 
+					
+					(userCountNotInProject == 0 ? "<input type=\"submit\" value=\"Add user\" disabled>\r\n" : "<input type=\"submit\" value=\"Add user\">\r\n") + 
+					
 					"</td>" +
 					"</tr>\r\n" + 
 					"</table>\r\n" + 
@@ -186,6 +194,7 @@ public class ProjectController extends servletBase {
 					getUserFormsForProject(p) +
 					"				\r\n" + 
 					"</table>");
+			out.println(getFooter());
 			return;
 		} else if (req.getParameter("editProject") != null && !actionIsAllowed(req, Integer.valueOf(req.getParameter("editProject")))) {
 			out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">ACTION NOT ALLOWED: " + ", reason: You are not an admin or a projectleader for this project.</p>");
@@ -261,10 +270,7 @@ public class ProjectController extends servletBase {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		out.println("            </div>\r\n" + 
-				"    </div>\r\n" + 
-				"\r\n" + 
-				"</body>");
+		out.println(getFooter());
 	}
 	
 	
@@ -285,7 +291,7 @@ public class ProjectController extends servletBase {
 				return true;
 			else {
 				Role r = dbService.getRole(user.getUserId(), projectId);
-				if (r.getRoleId() == 1) {
+				if (r.getRoleId() == Constants.PROJECT_LEADER) {
 					return true;
 				}
 				
@@ -399,6 +405,7 @@ public class ProjectController extends servletBase {
 	 */
 	private String getUserSelectOptions(int projectId) {
 		StringBuilder sbBuilder = new StringBuilder();
+		userCountNotInProject = 0;
 		try {
 			List<User> users = dbService.getAllUsers();
 			Set<Integer> userIdsInProject = new HashSet<Integer>();
@@ -412,6 +419,7 @@ public class ProjectController extends servletBase {
 					sbBuilder.append("\">");
 					sbBuilder.append(user.getUsername());
 					sbBuilder.append("</option>\n");
+					userCountNotInProject++;
 				}
 			}
 		} catch (SQLException e) {
@@ -423,7 +431,6 @@ public class ProjectController extends servletBase {
 		
 		return sbBuilder.toString();
 	}
-	
 	
 	/**
 	 * Gets the options in HTML format for the roles.
@@ -454,14 +461,10 @@ public class ProjectController extends servletBase {
 	 * Given project details, creates the project.
 	 * @param the project's id.
 	 * @return the newly created project.
+	 * @throws SQLException if the project could not be created.
 	 */
-	public Project createProject(Project proj) {
-		try {
-			return dbService.createProject(proj);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return null;
+	public Project createProject(Project proj) throws SQLException {
+		return dbService.createProject(proj);
 	}
 
 }
