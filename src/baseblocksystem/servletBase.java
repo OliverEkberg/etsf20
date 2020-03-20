@@ -15,8 +15,15 @@ import database.Project;
 import database.Role;
 import database.User;
 
+/**
+ * Abstract base with common logic for controller 
+ * 
+ * @author Jesper Annefors
+ * @author Oliver Ekberg
+ * @version 0.1
+ * @since 2020-03-14
+ */
 public abstract class servletBase extends HttpServlet {
-
 	private static final long serialVersionUID = 1L;
 	
 	protected DatabaseService dbService;
@@ -49,6 +56,11 @@ public abstract class servletBase extends HttpServlet {
 		return isLoggedIn;
     }
     
+    /**
+     * Sets sets logged in in the session using given boolean.
+     * @param request The HTTP Servlet request (so that the session can be found)
+     * @param loggedIn whether to set the session to logged in or logged out.
+     */
     protected void setIsLoggedIn(HttpServletRequest request, boolean loggedIn) {
 		HttpSession session = request.getSession(true);
 		session.setAttribute("loggedIn", loggedIn);
@@ -69,11 +81,21 @@ public abstract class servletBase extends HttpServlet {
 		return isAdmin;
     }
     
+    /**
+     * Sets sets is admin in the session using given boolean.
+     * @param request The HTTP Servlet request (so that the session can be found)
+     * @param admin whether the user is admin or not.
+     */
     protected void setIsAdmin(HttpServletRequest request, boolean admin) {
 		HttpSession session = request.getSession(true);
 		session.setAttribute("admin", admin);
 	}
     
+    /**
+     * Gets the id of the currently choosen project.
+     * @param request The HTTP Servlet request (so that the session can be found)
+     * @return id of the current project or 0.
+     */
     protected int getProjectId(HttpServletRequest request) {
     	HttpSession session = request.getSession(true);
     	Object objectState = session.getAttribute("projectId");
@@ -84,11 +106,21 @@ public abstract class servletBase extends HttpServlet {
 		return projectId;
     }
     
+    /**
+     * Sets sets user id in the session using given parameter.
+     * @param request The HTTP Servlet request (so that the session can be found)
+     * @param userId the user id to set. Use 0 to reset this.
+     */
     protected void setUserId(HttpServletRequest request, int userId) {
 		HttpSession session = request.getSession(true);
 		session.setAttribute("userId", userId);
 	}
     
+    /**
+     * Gets the logged in user as a model object.
+     * @param request The HTTP Servlet request (so that the session can be found)
+     * @return the logged in user model or null.
+     */
     protected User getLoggedInUser(HttpServletRequest request) {
     	HttpSession session = request.getSession(true);
     	Object objectState = session.getAttribute("userId");
@@ -100,11 +132,22 @@ public abstract class servletBase extends HttpServlet {
 		return dbService.getUserById(userId);
     }
     
+    /**
+     * Sets sets project id in the session using given parameter.
+     * @param request The HTTP Servlet request (so that the session can be found)
+     * @param projectId the project id to set. Use 0 to reset this.
+     */
     protected void setProjectId(HttpServletRequest request, int projectId) {
 		HttpSession session = request.getSession(true);
 		session.setAttribute("projectId", projectId);
 	}
     
+    /**
+     * Checks currently logged in user is project leader in given project.
+     * @param request The HTTP Servlet request (so that the session can be found)
+     * @param projectId unique identifier of the project to check.
+     * @return whether user is project leader or not.
+     */
     protected boolean isProjectLeader(HttpServletRequest request, int projectId) {
     	try {
     		User loggedInUser = getLoggedInUser(request);
@@ -127,6 +170,7 @@ public abstract class servletBase extends HttpServlet {
     
     /**
      * Constructs the header of all servlets. 
+     * @param req The HTTP Servlet request (so that the session can be found)
      * @return String with html code for the header. 
      */
     protected String getHeader(HttpServletRequest req) {
@@ -135,9 +179,7 @@ public abstract class servletBase extends HttpServlet {
     	sb.append("<html><link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/layout.css\">");
     	sb.append("<div id=\"headerBar\">");
 		
-		if (isLoggedIn(req)) {
-			String userName = "";
-
+		if (isLoggedIn(req)) { // Header should be empty if logged out
 			try {
 				User u = getLoggedInUser(req);
 				Project project = dbService.getProject(getProjectId(req));
@@ -146,11 +188,11 @@ public abstract class servletBase extends HttpServlet {
 					projectName = project.getName();
 				}
 	
-				userName = u.getUsername();
+				String userName = u.getUsername();
 				sb.append("<div id=\"sessionInfo\">");
 				sb.append("<label><b>User: </b>" + userName + "</label>");
 				
-				if (!isAdmin(req)) {
+				if (!isAdmin(req)) { // Since admin can not pick a project, this should only be shown for regular users
 					sb.append("<label><b>, Project: </b>" + projectName + "</label>");
 				}
 				
@@ -164,6 +206,11 @@ public abstract class servletBase extends HttpServlet {
     	return sb.toString();
     }
     
+    /**
+     * Constructs the navigation menu of all servlets. 
+     * @param req The HTTP Servlet request (so that the session can be found)
+     * @return String with html code for the navigation menu. 
+     */
     protected String getNav(HttpServletRequest req) {
     	StringBuilder sb = new StringBuilder();
     	
@@ -171,15 +218,8 @@ public abstract class servletBase extends HttpServlet {
     	sb.append("<ul id=\"menu\">");
     	sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.PROJECTS_PATH + "\">Projects</a></li>");
     	
-    	boolean isAdmin = false;
-    	int projectId = 0;
-    	
-    	try {
-    		isAdmin = isAdmin(req);
-    		projectId = getProjectId(req);
-    	} catch (Exception e) {
-    		e.printStackTrace();
-    	}
+    	boolean isAdmin = isAdmin(req);
+    	int projectId = getProjectId(req);
     	
     	if (isAdmin) {
 			sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.USERS_PATH + "\">Users</a></li>");
@@ -189,6 +229,7 @@ public abstract class servletBase extends HttpServlet {
     		sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.TIMEREPORTS_PATH + "\">Reports</a></li>");
     		sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.STATISTICS_PATH + "\">Statistics</a></li>");
     	}
+    	
     	sb.append("<li><a class=\"linkBtn\" href=\"" + Constants.USERS_PATH + "?changePassword=yes\">Change password</a></li>");
     	sb.append("</ul>");
     	sb.append("</div>");
@@ -196,6 +237,11 @@ public abstract class servletBase extends HttpServlet {
 		return sb.toString();
     }
     
+    /**
+     * Constructs html and javascript for displaying an alert. 
+     * @param text the text to show in the alert.
+     * @return String with html code that will resolve to an alert. 
+     */
     protected String alert(String text) {
     	StringBuilder sb = new StringBuilder();
     	sb.append("<script>");
@@ -206,6 +252,10 @@ public abstract class servletBase extends HttpServlet {
     	return sb.toString();
     }
     
+    /**
+     * Constructs a footer that makes sure the navigation bar is always at 100 percent height. 
+     * @return String with html and javascript. 
+     */
     protected String getFooter() {
     	return "        <script>        \r\n" + 
 				"        function setFromWindowSize(){\r\n" + 
@@ -223,6 +273,7 @@ public abstract class servletBase extends HttpServlet {
 				"        </script>";
     }
     
+    @Override
     protected abstract void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException;
     
     /**
@@ -230,10 +281,15 @@ public abstract class servletBase extends HttpServlet {
 	 * 
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
+    @Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);
 	}
 	
+    /**
+	 * Makes sure the current session times out after configured time.
+	 * @param req The HTTP Servlet request (so that the session can be found)
+	 */
 	protected void setSessionTimeout(HttpServletRequest req) {
 		req.getSession().setMaxInactiveInterval(Constants.SESSION_LENGTH);
 	}
