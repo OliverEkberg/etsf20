@@ -69,7 +69,7 @@ public class DatabaseService {
 	 * 
 	 * @param rs The result from the SQL query
 	 * @return The Role model
-	 * @throws SQLException
+	 * @throws SQLException if anything goes wrong
 	 */
 	private Role mapRole(ResultSet rs) throws SQLException {
 		return new Role(rs.getInt("roleId"), rs.getString("role"));
@@ -80,7 +80,7 @@ public class DatabaseService {
 	 * 
 	 * @param rs The result from the SQL query
 	 * @return The ActivityType model
-	 * @throws SQLException
+	 * @throws SQLException if anything goes wrong
 	 */
 	private ActivityType mapActivityType(ResultSet rs) throws SQLException {
 		return new ActivityType(rs.getInt("activityTypeId"), rs.getString("type"));
@@ -91,7 +91,7 @@ public class DatabaseService {
 	 * 
 	 * @param rs The result from the SQL query
 	 * @return The ActivitySubType model
-	 * @throws SQLException
+	 * @throws SQLException if anything goes wrong
 	 */
 	private ActivitySubType mapActivitySubType(ResultSet rs) throws SQLException {
 		return new ActivitySubType(rs.getInt("activitySubTypeId"), rs.getInt("activityTypeId"),
@@ -103,7 +103,7 @@ public class DatabaseService {
 	 * 
 	 * @param rs The result from the SQL query
 	 * @return The ActivityReport model
-	 * @throws SQLException
+	 * @throws SQLException if anything goes wrong
 	 */
 	private ActivityReport mapActivityReport(ResultSet rs) throws SQLException {
 		return new ActivityReport(rs.getInt("activityReportId"), rs.getInt("activityTypeId"),
@@ -116,7 +116,7 @@ public class DatabaseService {
 	 * 
 	 * @param rs The result from the SQL query
 	 * @return The User model
-	 * @throws SQLException
+	 * @throws SQLException if anything goes wrong
 	 */
 	private User mapUser(ResultSet rs) throws SQLException {
 		return new User(rs.getInt("userId"), rs.getString("username"), rs.getString("password"),
@@ -128,7 +128,7 @@ public class DatabaseService {
 	 * 
 	 * @param rs The result from the SQL query
 	 * @return The Project model
-	 * @throws SQLException
+	 * @throws SQLException if anything goes wrong
 	 */
 	private Project mapProject(ResultSet rs) throws SQLException {
 		return new Project(rs.getInt("projectId"), rs.getString("name"));
@@ -139,7 +139,7 @@ public class DatabaseService {
 	 * 
 	 * @param rs The result from the SQL query
 	 * @return The TimeReport model
-	 * @throws SQLException
+	 * @throws SQLException if anything goes wrong
 	 */
 	private TimeReport mapTimeReport(ResultSet rs) throws SQLException {
 		Timestamp signedAt = rs.getTimestamp("signedAt");
@@ -239,6 +239,7 @@ public class DatabaseService {
 	 * Gets all users
 	 * 
 	 * @return A list of all users in the database
+	 * @throws SQLException if anything goes wrong
 	 */
 	public List<User> getAllUsers() throws SQLException {
 		List<User> users = new ArrayList<>();
@@ -308,7 +309,7 @@ public class DatabaseService {
 	/**
 	 * Deletes a user by given username. Will throw if user does not exist
 	 * 
-	 * @param userId The unique username of the user to delete
+	 * @param username The unique username of the user to delete
 	 */
 	public void deleteUserByUsername(String username) {
 		String sql = "DELETE FROM Users WHERE username = ?";
@@ -354,8 +355,8 @@ public class DatabaseService {
 	 * Creates a new user
 	 * 
 	 * @param user The user model to insert
-	 * @return The created model
-	 * @throws SQLException
+	 * @return the created user model
+	 * @throws SQLException if anything goes wrong
 	 */
 	public User createUser(User user) throws SQLException {
 		String sql = "INSERT INTO Users (`username`, `password`, `isAdmin`) values (?, ?, ?)";
@@ -553,7 +554,7 @@ public class DatabaseService {
 	 * Creates a new project
 	 * 
 	 * @param project The project model to persist
-	 * @return
+	 * @return the created project
 	 * @throws SQLException If project with given name already exists
 	 */
 	public Project createProject(Project project) throws SQLException {
@@ -807,7 +808,7 @@ public class DatabaseService {
 	 * @param activityReport The activityReport to be updated. Must exist in the
 	 *                       database before running this
 	 * @return The updated and persisted activityReport model
-	 * @throws Exception
+	 * @throws Exception if the update goes wrong
 	 */
 	public ActivityReport updateActivityReport(ActivityReport activityReport) throws Exception {
 		String sql = "UPDATE ActivityReports "
@@ -1006,7 +1007,7 @@ public class DatabaseService {
 	 * 
 	 * @param timeReport The TimeReport to be persisted
 	 * @return The persisted TimeReport model
-	 * @throws SQLException
+	 * @throws SQLException if anything goes wrong
 	 */
 	public TimeReport createTimeReport(TimeReport timeReport) throws SQLException {
 		String sql = "INSERT INTO TimeReports (`projectUserId`, `signedById`, `signedAt`, `year`, `week`, `updatedAt`, `finished`) "
@@ -1053,7 +1054,7 @@ public class DatabaseService {
 	 * @param timeReport The TimeReport to be updated. Must exist in the database
 	 *                   before running this
 	 * @return The updated and persisted TimeReport model
-	 * @throws Exception
+	 * @throws Exception if the update goes wrong
 	 */
 	public TimeReport updateTimeReport(TimeReport timeReport) throws Exception {
 		String sql = "UPDATE TimeReports " + "SET `projectUserId` = ?, `signedById` = ?, `signedAt` = ?, "

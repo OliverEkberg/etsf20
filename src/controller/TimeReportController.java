@@ -32,7 +32,9 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * Handles timereporting and all that it includes. 
  * 
- * @author Linus, Sebastian, Andre
+ * @author Linus
+ * @author Sebastian
+ * @author Andre
  * 
  * @version 1.0
  * 
@@ -77,8 +79,6 @@ public class TimeReportController extends servletBase {
 				return;
 			}
 			
-			
-
 			String activityType = req.getParameter("activityTypeId");
 			String addReportWeek = req.getParameter("addReportWeek");
 			String addReportYear = req.getParameter("addReportYear");
@@ -194,16 +194,6 @@ public class TimeReportController extends servletBase {
 				return;
 
 			}
-
-			/*// Parameters for retriving all timereports for a specific week and year
-			if (getReportsWeek != null && getReportsYear != null) {
-
-				out.print(this.getTimereportsByWeekAndYear(Integer.parseInt(getReportsWeek),
-						Integer.parseInt(getReportsYear), req));
-				return;
-			}
-			
-			*/
 
 			// Shows the timereportingpage of a specific user
 			if (showUserPage != null) {
@@ -328,7 +318,7 @@ public class TimeReportController extends servletBase {
 	 *                          was created.
 	 * @param resp              - HttpServletResponse
 	 * @return - The newly created activityreport
-	 * @throws Exception
+	 * @throws Exception if anything goes wrong
 	 */
 	private ActivityReport createActivityReport(int activityTypeId, int activitySubTypeId, LocalDate date, int year,
 			int week, int minutes, int userId, int projectId, HttpServletResponse resp) throws Exception {
@@ -379,7 +369,7 @@ public class TimeReportController extends servletBase {
 	 * @param timeReportId - The id of the timereport which you want to access.
 	 * @param req          - HttpServletRequest
 	 * @return A String containing HTML to show the page described above.
-	 * @throws Exception
+	 * @throws Exception if anything goes wrong
 	 */
 	private String getActivityReports(int timeReportId, HttpServletRequest req) throws Exception {
 
@@ -502,7 +492,7 @@ public class TimeReportController extends servletBase {
 	 * @param activityReport - The specified activityreport.
 	 * @param typeList       - A list containing all possible activity types
 	 * @return a String representation of the activity.
-	 * @throws Exception
+	 * @throws Exception if anything goes wrong.
 	 */
 	private String getActivityType(ActivityReport activityReport, List<ActivityType> typeList) throws Exception {
 
@@ -524,7 +514,7 @@ public class TimeReportController extends servletBase {
 	 * @param activityReport - The specified activityreport.
 	 * @param subTypeList    - A list containing all possible activity subtypes
 	 * @return a String representation of the activity subtype.
-	 * @throws Exception
+	 * @throws Exception if anything goes wrong.
 	 */
 	private String getActivitySubType(ActivityReport activityReport, List<ActivitySubType> subTypeList)
 			throws Exception {
@@ -543,10 +533,13 @@ public class TimeReportController extends servletBase {
 	 * Builds a String containing a HTML page showing all timereports for a specific
 	 * user inside the selected project.
 	 * 
-	 * @param user - The user of which you want to retrieve timereports from.
-	 * @param req  - HttpServletRequest
+	 * @param req HttpServletRequest
+	 * @param userId the userId for which user to retrieve timereports from.
+	 * @param status the status for which to retrieve timereports from.
+	 * @param year the year for which to retrieve timereports from.
+	 * @param week the week for which  to retrieve timereports from.
 	 * @return A String containing HTML to show the page described above.
-	 * @throws Exception
+	 * @throws Exception if anything goes wrong.
 	 */
 	private String getUserTimeReports(HttpServletRequest req, Integer userId, String status, Integer year, Integer week) throws Exception {
 
@@ -652,7 +645,7 @@ public class TimeReportController extends servletBase {
 	 * @param year - The year of the the timereport(s) that you wish to see.
 	 * @param week - The week of the timereport(s) that you wish to see.
 	 * @return A String containing HTML to show the page described above.
-	 * @throws Exception
+	 * @throws Exception if anything goes wrong.
 	 */
 	private String getTimereports(HttpServletRequest req, Integer userId, String status, Integer year, Integer week)
 			throws Exception {
@@ -802,9 +795,9 @@ public class TimeReportController extends servletBase {
 	}
 
 	/**
-	 * Sorts a list of TimeReports by year, and then week. .
+	 * Sorts a list of TimeReports by year, and then week.
 	 *  
-	 * @param userList - The list to be sorted
+	 * @param userTimeReports the list to be sorted
 	 * @return a sorted list.
 	 */
 	private List<TimeReport> sortTimeReports(List<TimeReport> userTimeReports) {
@@ -825,7 +818,7 @@ public class TimeReportController extends servletBase {
 	 * 
 	 * @param tr - The timereport to calculate time of
 	 * @return an int containing total time spent
-	 * @throws SQLException
+	 * @throws SQLException if timeReport does not exist.
 	 */
 	private int getTotalTimeReportTime(TimeReport tr) throws SQLException {
 
@@ -847,6 +840,7 @@ public class TimeReportController extends servletBase {
 	 * @param week         - The week of the reported activity
 	 * @param year         - The year of the reported activity
 	 * @param timeReportId - The timereport in which the activityreport will lie
+	 * @param req		   - The current HTTP request.
 	 * @return A String containing the HTML described above
 	 */
 	private String activityReportForm(int week, int year, String timeReportId, HttpServletRequest req) {
