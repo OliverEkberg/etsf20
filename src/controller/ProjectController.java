@@ -194,6 +194,7 @@ public class ProjectController extends servletBase {
 					getUserFormsForProject(p) +
 					"				\r\n" + 
 					"</table>");
+			out.println(getFooter());
 			return;
 		} else if (req.getParameter("editProject") != null && !actionIsAllowed(req, Integer.valueOf(req.getParameter("editProject")))) {
 			out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">ACTION NOT ALLOWED: " + ", reason: You are not an admin or a projectleader for this project.</p>");
@@ -269,10 +270,7 @@ public class ProjectController extends servletBase {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		out.println("            </div>\r\n" + 
-				"    </div>\r\n" + 
-				"\r\n" + 
-				"</body>");
+		out.println(getFooter());
 	}
 	
 	

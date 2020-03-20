@@ -333,6 +333,7 @@ public class StatisticController extends servletBase {
 		sb.append("</div>");
 		sb.append("</div>");
 		sb.append("</div>");
+		sb.append(getFooter());
 		sb.append("</body>");
 		return sb.toString();
 	}

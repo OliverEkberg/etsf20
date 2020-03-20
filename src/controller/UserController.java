@@ -39,13 +39,17 @@ public class UserController extends servletBase {
 		out.println(getHeader(req));
 		out.println("<body>");
 		out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/usercontroller.css\">\n");
-		out.println(getNav(req));
+		out.println(
+				"        <div id=\"wrapper\">\r\n" + 
+						getNav(req) +
+				"            <div id=\"bodyContent\">");
 
 		User loggedInUser = getLoggedInUser(req);
 
 		// Change password page requested
 		if ("yes".equals(req.getParameter("changePassword"))) {
 			out.println(changePasswordForm());
+			out.println(getFooter());
 			return;
 		}
 		
@@ -136,6 +140,7 @@ public class UserController extends servletBase {
 				}
 			}
 		}
+		out.println(getFooter());
 	}
 	
 	/**

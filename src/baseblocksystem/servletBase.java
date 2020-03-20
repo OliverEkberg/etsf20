@@ -206,6 +206,23 @@ public abstract class servletBase extends HttpServlet {
     	return sb.toString();
     }
     
+    protected String getFooter() {
+    	return "        <script>        \r\n" + 
+				"        function setFromWindowSize(){\r\n" + 
+				"            var h = window.innerHeight;	\r\n" + 
+				"            var bodyContentHeight = document.getElementById(\"bodyContent\").offsetHeight;\r\n" + 
+				"\r\n" + 
+				"            if (bodyContentHeight < h) {\r\n" + 
+				"              document.getElementById(\"navigation\").style.height = h;\r\n" + 
+				"            } else {\r\n" + 
+				"              document.getElementById(\"navigation\").style.height = bodyContentHeight;\r\n" + 
+				"            }\r\n" + 
+				"        }\r\n" + 
+				"        window.addEventListener(\"resize\", setFromWindowSize);\r\n" + 
+				"        setFromWindowSize();\r\n" + 
+				"        </script>";
+    }
+    
     protected abstract void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException;
     
     /**
