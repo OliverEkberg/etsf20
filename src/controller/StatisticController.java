@@ -45,22 +45,13 @@ public class StatisticController extends servletBase {
 	List<Project> activeProjects;
 	List<User> projectUsers;
 
-	public StatisticController() {
-		super();
-	}
-
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		setSessionTimeout(req);
 
 		PrintWriter out = resp.getWriter();
 
-		try {
-			if (getLoggedInUser(req) == null) {
-				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
-				return;
-			}
-		} catch (Exception e) {
+		if (getLoggedInUser(req) == null) {
 			resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
 			return;
 		}
@@ -101,8 +92,8 @@ public class StatisticController extends servletBase {
 
 	/**
 	 * Given two dates, splits them into 10 week intervals.
-	 * @param query option fromDate (start date) received from the HTML datePicker.
-	 * @param query option toDate (end date) received from the HTML datePicker.
+	 * @param from query option fromDate (start date) received from the HTML datePicker.
+	 * @param to query option toDate (end date) received from the HTML datePicker.
 	 * @return list of dates.
 	 */
 	private List<LocalDate> getStatDates(LocalDate from, LocalDate to) {
@@ -128,13 +119,13 @@ public class StatisticController extends servletBase {
 	
 	/**
 	 * Gets a list of statistics filtered by the parameters.
-	 * @param query option fromDate (start date) received from the HTML datePicker.
-	 * @param query option toDate (end date) received from the HTML datePicker.
-	 * @param the project's id.
-	 * @param query string, depending on what type of stats to get, received from URL query.
-	 * @param the current httpRequest.
+	 * @param fromDate query option fromDate (start date) received from the HTML datePicker.
+	 * @param toDate query option toDate (end date) received from the HTML datePicker.
+	 * @param projectId the project's id.
+	 * @param query query string, depending on what type of stats to get, received from URL query.
+	 * @param req the current httpRequest.
 	 * @return A list of the requested statistics.
-	 * @throws Exception if stats could not be received.
+	 * @throws Exception if statistics could not be received.
 	 */
 	private List<Statistic> getStats(LocalDate fromDate, LocalDate toDate, int projectId, String query, HttpServletRequest req) throws Exception {
 		List<Statistic> stats = new ArrayList<Statistic>();
@@ -167,12 +158,11 @@ public class StatisticController extends servletBase {
 
 		return stats;
 	}
-
 	
 	/**
 	 *  Checks if the current user is allowed to perform the action.
-	 * @param the current httpRequest.
-	 * @param the project's id.
+	 * @param req the current httpRequest.
+	 * @param projectId the project's id.
 	 * @return whether this action is allowed or not.
 	 */
 	private boolean actionIsAllowed(HttpServletRequest req, int projectId) {
@@ -201,24 +191,23 @@ public class StatisticController extends servletBase {
 
 	
 	/**
-	 * Gets the roles Id given the roles name.
-	 * @param the roles name.
-	 * @param all available roles.
-	 * @return the role's Id.
+	 * Gets the roleId given the roles name.
+	 * @param name the name of the role to get id for.
+	 * @param roles all available roles.
+	 * @return the role's Id or 0.
 	 */
 	private int getRoleIdFor(String name, List<Role> roles) {
 		for (Role role : roles) {
 			if (role.getRole().equals(name))
 				return role.getRoleId();
 		}
-
 		return 0;
 	}
 
 	/**
-	 * Gets the Id given the username.
-	 * @param the username.
-	 * @return the Id linked to the user.
+	 * Gets the userId given the username.
+	 * @param username the username to get userId for.
+	 * @return the userId linked to the username or -1 if not found.
 	 */
 	private int getIdForUser(String username) {
 		for (User user : projectUsers) {
@@ -230,8 +219,8 @@ public class StatisticController extends servletBase {
 
 	/**
 	 * Gets a StatisticType given parameter options.
-	 * @param query string, depending on what type of stats to get, received from URL query.
-	 * @param the current httpRequest.
+	 * @param query query string, depending on what type of stats to get, received from URL query.
+	 * @param req the current httpRequest.
 	 * @return a StatisticType.
 	 */
 	private StatisticType statsToGet(String query, HttpServletRequest req) {
@@ -256,14 +245,13 @@ public class StatisticController extends servletBase {
 		}
 		return StatisticType.ALL;		
 	}
-
 	
 	/**
 	 * Gets the HTML to display on this page.
-	 * @param list of statistics.
-	 * @param the current httpRequest.
-	 * @param the date to check from. Will use first day of week if null provided.
-	 * @param the date to check to. Will use last day of week if null provided.
+	 * @param statistics list of statistics.
+	 * @param req the current httpRequest.
+	 * @param from the date to check from. Will use first day of week if null provided.
+	 * @param to the date to check to. Will use last day of week if null provided.
 	 * @return the HTML for the site.
 	 */
 	private String statisticsPageForm(List<Statistic> statistics, HttpServletRequest req, LocalDate from, LocalDate to) {
@@ -340,7 +328,7 @@ public class StatisticController extends servletBase {
 
 	/**
 	 * Gets the options in HTML format for the different statistic groups.
-	 * 
+	 * @param req the current httpRequest.
 	 * @return the HTML code for select options.
 	 */
 	private String getSelectOptions(HttpServletRequest req) {
@@ -390,7 +378,7 @@ public class StatisticController extends servletBase {
 
 	/**
 	 * Makes HTML of statistics data.
-	 * @param The statistic to get in HTML format.
+	 * @param statistic The statistic to get in HTML format.
 	 * @return HTML for the statistics in table format.
 	 */
 	private String getStatisticsDataTable(Statistic statistic) {
