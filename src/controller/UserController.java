@@ -184,8 +184,7 @@ public class UserController extends servletBase {
 	* @return html form for changing password.
 	*/
 	public String changePasswordForm() {
-		String html = "<div id=" + addQuotes("bodyContent") + ">";
-		html += "<p id=\"user_title_text\">Change Password</p>";
+		String html = "<p id=\"user_title_text\">Change Password</p>";
 		html += "<form name=" + addQuotes("input");
 		html += " method=" + addQuotes("get") + ">";
 		html += "<p class=\"descriptors\">New password:</p><br>";
@@ -194,7 +193,6 @@ public class UserController extends servletBase {
 		html += "<input type=" + addQuotes("submit") + "value=" + addQuotes("Change Password") + "class="+ addQuotes("btn") + '>';
 		html += "</div>";
 		html += "</form>";
-		html += "</div>";
 
 		return html;
 	}
