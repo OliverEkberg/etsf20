@@ -3,7 +3,11 @@ package controller;
 import java.time.LocalDate;
 import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
+
+import database.User;
 
 /**
  * Provides a set of helper methods that are to be used throughout the whole system.
@@ -37,5 +41,19 @@ public class Helpers {
 	public static int getWeekNbr(LocalDate dateInWeek) {
 		TemporalField woy = WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear(); 
 		return dateInWeek.get(woy);
+	}
+	
+	/**
+	 * Sorts a list of Users alphabeticaly.
+	 *  
+	 * @param userList - The list to be sorted
+	 * @return a sorted list of users.
+	 */
+	public static List<User> sortUserList(List<User> userList) { 
+
+		Comparator<User> comparator = (u1, u2) -> u2.getUsername().compareTo(u1.getUsername());
+		userList.sort(comparator);
+
+		return userList;
 	}
 }
