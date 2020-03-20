@@ -100,6 +100,7 @@ public class UserController extends servletBase {
 
 			try {
 				List<User> users = dbService.getAllUsers();
+				users = Helpers.sortUserList(users);
 				out.println("<table id=\"userTable\" border=" + addQuotes("1") + ">");
 				out.println("<tr><th>Name</th><th colspan=\"2\">Settings</th></tr>");
 				for (User u : users) {

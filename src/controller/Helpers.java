@@ -51,7 +51,7 @@ public class Helpers {
 	 */
 	public static List<User> sortUserList(List<User> userList) { 
 
-		Comparator<User> comparator = (u1, u2) -> u2.getUsername().compareTo(u1.getUsername());
+		Comparator<User> comparator = (u1, u2) -> u1.getUsername().toLowerCase().compareTo(u2.getUsername().toLowerCase());
 		userList.sort(comparator);
 
 		return userList;
