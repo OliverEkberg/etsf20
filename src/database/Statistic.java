@@ -1,7 +1,7 @@
 package database;
 
 /**
-* A model class for the statisics made from information in the database.
+* A model class for the statistics made from information in the database.
 * 
 * @author Jesper Annefors
 * @author Oliver Ekberg
