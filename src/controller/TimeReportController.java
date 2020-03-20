@@ -948,10 +948,22 @@ public class TimeReportController extends servletBase {
 				+ "  <label for=\"dateInfo\">Enter date for activity: </label>\r\n"
 				+ "<input type=\"date\" id=\"dateOfReport\" name=\"dateOfReport\" value=\"" + p + "\" min=\"" + s
 				+ "\" max=\"" + e + "\">\r\n" + " <input name=\"timeReportId\" type=\"hidden\" value=\"" + timeReportId
-				+ "\"></input>\r\n" + "              <input class=\"submitBtn\" type=\"submit\" value=\"Send\">\r\n"
+				+ "\"></input>\r\n" + "              <input id=\"addReportBtn\" class=\"submitBtn\" type=\"submit\" value=\"Send\">\r\n"
 				+ "                </div>\r\n" + "              </form>" + "</div>" + "              " +
-				getFooter()
-						+ "</html>";
+				getFooter();
+		
+				html += "<script>";
+				html += "const addReportBtn = document.querySelector('#addReportBtn');";
+				html += "const addReportForm = document.querySelector('#filter_form');";
+				html += "addReportBtn.addEventListener('click', () => { ";
+				html += "const timeSpent = parseInt(document.querySelector('#timeSpent').value);";
+				html += "if (timeSpent > 0 && timeSpent <= " + Constants.MAX_MINUTES_PER_DAY + ") {";
+				html += "addReportBtn.disabled = true; addReportForm.submit();";
+				html += "}";
+				html += " });";
+				html += "</script>";
+		
+				html += "</html>";
 
 		return html;
 

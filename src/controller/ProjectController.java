@@ -178,7 +178,7 @@ public class ProjectController extends servletBase {
 					"<td>\n<input type=\"hidden\" name=\"projectId\" value=\"" + currentProject.getProjectId() + "\">\n</td>\n" +
 					"<td> \r\n" + 
 					
-					(userCountNotInProject == 0 ? "<input type=\"submit\" value=\"Add user\" disabled>\r\n" : "<input type=\"submit\" value=\"Add user\">\r\n") + 
+					"<input id=\"addUserBtn\" " + (userCountNotInProject == 0 ? "disabled " : "") + "type=\"submit\" value=\"Add user\">\r\n" + 
 					
 					"</td>" +
 					"</tr>\r\n" + 
@@ -194,6 +194,11 @@ public class ProjectController extends servletBase {
 					getUserFormsForProject(p) +
 					"				\r\n" + 
 					"</table>");
+			out.println("<script>");
+			out.println("const addUserBtn = document.querySelector('#addUserBtn');");
+			out.println("const addUserForm = document.querySelector('#user_form');");
+			out.println("addUserBtn.addEventListener('click', () => { addUserBtn.disabled = true; addUserForm.submit(); });");
+			out.println("</script>");
 			out.println(getFooter());
 			return;
 		} else if (req.getParameter("editProject") != null && !actionIsAllowed(req, Integer.valueOf(req.getParameter("editProject")))) {
