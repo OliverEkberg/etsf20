@@ -990,16 +990,4 @@ public class TimeReportController extends servletBase {
 		User loggedInUser = getLoggedInUser(req);
 		return loggedInUser != null && loggedInUser.getUserId() == user.getUserId();
 	}
-
-	/**
-	 * Checks if the userId sent in is the logged in user.
-	 * 
-	 * @param req - HttpServletRequest.
-	 * @param userId - UserId to check.
-	 * @return true if the user is the logged in user, else false.
-	 */
-	private boolean isUserIdLoggedInUser(Integer userId, HttpServletRequest req) {
-		User loggedInUser = getLoggedInUser(req);
-		return loggedInUser != null && userId != null && loggedInUser.getUserId() == userId;
-	}
 }
