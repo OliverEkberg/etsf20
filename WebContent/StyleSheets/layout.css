@@ -52,6 +52,7 @@ body{
     float:left;
     width: 12vw;
     height: 88vh;
+    margin-right: 16px;
 }
 
 #bodyContent {
