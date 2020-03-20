@@ -79,6 +79,7 @@ public class TimeReportController extends servletBase {
 					: Integer.parseInt(userQuery);
 			
 			if (!isProjectLeader(req)) {
+				
 				userQueryInteger = getLoggedInUser(req).getUserId();
 			}
 			
@@ -415,7 +416,8 @@ public class TimeReportController extends servletBase {
 						+ "		<input name=\"deleteActivityReportId\" type=\"hidden\" value=\""
 						+ aReport.getActivityReportId() + "\"></input>\r\n"
 						+ " <input name=\"timeReportId\" type=\"hidden\" value=\"" + timeReportId + "\"></input>\r\n"
-						+ "		<input type=\"submit\" value=\"Remove\"></input>\r\n" + "	</td> \r\n" + "</form>";
+						+ "		<input type=\"submit\" value=\"Remove\" "
+						+ "    onclick=\"return confirm('Are you sure you want to delete this activityreport?')\" ></input>\r\n" + "	</td> \r\n" + "</form>";
 
 			}
 
@@ -546,6 +548,7 @@ public class TimeReportController extends servletBase {
 			html += "<html>\r\n" + "<div id=\"form\">" + " <form id=\"userFilter\" method=\"get\">\r\n"
 					+ "          Get all timereports for this project for: \r\n"
 					+ "                <div id=\"user\">\r\n"
+					+ "						<label for=\"user\">User: </label>"
 					+ "                    <select id=\"user\" name=\"user\" form=\"userFilter\">\r\n"
 					+ "                      			  <option value=\"*\" "+ (userId == null ? "" : "selected ") +">All users</option>\r\n";
 
@@ -556,6 +559,7 @@ public class TimeReportController extends servletBase {
 			}
 
 			html += "</select>\r\n " + "</div>\r\n" + " <div id=\"status\">\r\n"
+					+ "						<label for=\"status\">Status: </label>"
 					+ "                    <select id=\"status\" name=\"status\" form=\"userFilter\">\r\n"
 					+ "                        <option value=\"*\""+ (status == null || status.equals("*") ? "" : "selected ") +">All</option>\r\n"
 					+ "                        <option value=\"signed\" " + ("signed".equals(status) ? "selected " : "") + ">Signed</option>\r\n"
@@ -565,6 +569,7 @@ public class TimeReportController extends servletBase {
 			
 			// Get reports for week and year
 			html +=	  "                <div id=\"weekFilter\">\r\n"
+					+ "					  <label for=\"week\">Week: </label>"
 					+ "                    <select id=\"weekFilter\" name=\"weekFilter\" form=\"userFilter\">\r\n"
 					+ "<option value=\"*\" "+ (week == null ? "" : "selected ") +">All</option>\r\n";
 
@@ -575,6 +580,7 @@ public class TimeReportController extends servletBase {
 			}
 
 			html += "</select>\r\n  </div>\r\n" + "<div id=\"yearFilter\">\r\n"
+					+ "					<label for=\"year\">Year: </label>"
 					+ "                    <select id=\"yearFilter\" name=\"yearFilter\" form=\"userFilter\">\r\n"
 					+ "<option value=\"*\" "+ (year == null ? "" : "selected ") +">All</option>\r\n";
 			// Year dropdown list
@@ -669,7 +675,7 @@ public class TimeReportController extends servletBase {
 						break;
 
 					case "readyForSign":
-						if (tr.isFinished()) {
+						if (tr.isFinished() && !tr.isSigned()) {
 							userTimeReports.add(tr);
 						}
 						break;
@@ -730,7 +736,8 @@ public class TimeReportController extends servletBase {
 			if (!tr.isSigned() && isUserLoggedInUser(req, reportOwner)) {
 				html += "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?deleteTimeReportId="
 						+ tr.getTimeReportId() + "\" method=\"get\"> "
-						+ "<button name=\"deleteTimeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId()
+						+ "<button name=\"deleteTimeReportId\" "
+						+ "onclick=\"return confirm('Are you sure you want to delete this timereport?')\" type=\"submit\" value=\"" + tr.getTimeReportId()
 						+ "\"> Remove </button> </form> </td> \r\n";
 			} else {
 				html += "<td>";
