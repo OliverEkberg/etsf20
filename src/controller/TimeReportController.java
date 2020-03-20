@@ -52,8 +52,30 @@ public class TimeReportController extends servletBase {
 		setSessionTimeout(req);
 
 		try {
+			
 			PrintWriter out = resp.getWriter();
 			User loggedInUser = this.getLoggedInUser(req);
+			
+			out.println(getHeader(req));
+			out.println("<body>");
+			out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/TimeReportController.css\">\n");
+			out.println(getNav(req));
+			out.println("<p id=\"report_title_text\">Reports</p>");
+
+			if (loggedInUser == null) {
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
+			}
+
+			else if (loggedInUser.isAdmin()) {
+				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
+			}
+
+			if (getProjectId(req) == 0) {
+				out.print("<p>Please choose a project first!</p>");
+				return;
+			}
+			
+			
 
 			String activityType = req.getParameter("activityTypeId");
 			String addReportWeek = req.getParameter("addReportWeek");
@@ -89,24 +111,7 @@ public class TimeReportController extends servletBase {
 			Integer yearInteger = (year == null || "*".equals(year)) ? null
 					: Integer.parseInt(year);
 
-			out.println(getHeader(req));
-			out.println("<body>");
-			out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/TimeReportController.css\">\n");
-			out.println(getNav(req));
-			out.println("<p id=\"report_title_text\">Reports</p>");
-
-			if (loggedInUser == null) {
-				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
-			}
-
-			else if (loggedInUser.isAdmin()) {
-				resp.sendRedirect("/BaseBlockSystem/" + Constants.SESSION_PATH);
-			}
-
-			if (getProjectId(req) == 0) {
-				out.print("<p>Please choose a project first!</p>");
-				return;
-			}
+			
 
 			int weekNumber = Helpers.getWeekNbr(LocalDate.now());
 
