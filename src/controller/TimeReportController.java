@@ -154,8 +154,7 @@ public class TimeReportController extends servletBase {
 						loggedInUser.getUserId(), this.getProjectId(req), resp);
 
 				if (activityReport == null) {
-					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH
-							+ "?error=activity-report-could-not-be-created");
+					
 					return;
 				}
 
@@ -539,7 +538,7 @@ public class TimeReportController extends servletBase {
 
 		// Adds all users with timereports in this project into user list
 		List<User> userList = dbService.getAllUsers(this.getProjectId(req));
-		userList = sortUserList(userList);
+		userList = Helpers.sortUserList(userList);
 
 		if (isProjectLeader(req)) {
 
@@ -690,6 +689,7 @@ public class TimeReportController extends servletBase {
 		for (TimeReport tr : userTimeReports) {
 
 			int timeReportTotalTime = getTotalTimeReportTime(tr);
+			User reportOwner = dbService.getUserByTimeReportId(tr.getTimeReportId());
 			String signed;
 			String markedFinished;
 
@@ -727,7 +727,7 @@ public class TimeReportController extends servletBase {
 
 			// If timereport isn't signed, and the report owner is the one browsing, a
 			// button for deleting it should be visible
-			if (!tr.isSigned() && this.isUserIdLoggedInUser(userId, req)) {
+			if (!tr.isSigned() && isUserLoggedInUser(req, reportOwner)) {
 				html += "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?deleteTimeReportId="
 						+ tr.getTimeReportId() + "\" method=\"get\"> "
 						+ "<button name=\"deleteTimeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId()
@@ -777,23 +777,6 @@ public class TimeReportController extends servletBase {
 		}
 
 		return false;
-	}
-
-	/**
-	 * Sorts a list of Users alphabeticaly.
-	 *  
-	 * @param userList - The list to be sorted
-	 * @return a sorted list.
-	 */
-	private List<User> sortUserList(List<User> userList) {
-
-		List<User> temp = userList;
-
-		Comparator<User> comparator = (u1, u2) -> u2.getUsername().compareTo(u1.getUsername());
-
-		temp.sort(comparator);
-
-		return temp;
 	}
 
 	/**
