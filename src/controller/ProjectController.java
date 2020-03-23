@@ -235,7 +235,15 @@ public class ProjectController extends servletBase {
 					"					</form>\n" +
 					"            </div>\n" + 
 					"        </div>\n" +
-					"		</table>" +
+					"	 	</table>" +
+					"<script>" +
+					"const pnField = document.querySelector('#projectName');" +
+					"pnField.addEventListener('keydown', (e) => {" +
+					"	if (pnField.value.length >= 20 && e.keyCode !== 13) {" + // Alert if max number of characters already in field and pressed key is NOT enter
+					"		alert('You have reached the maximum limit of allowed characters');" +
+					"	}" +
+					"});" +
+					"</script>" +
 					"        <!-- create-new-project btn onclick-action (open popup) -->\n" + 
 					"        <script>\n" + 
 					"            var modal = document.getElementById(\"myModal\");\n" + 
