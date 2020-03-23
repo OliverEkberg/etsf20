@@ -80,6 +80,8 @@ public class ProjectController extends servletBase {
 			String projectSelected = req.getParameter("pickProjectId");
 			String createdProject = req.getParameter("createdProject");
 			
+			String success = req.getParameter("success");
+			
 			if (projectSelected != null ) {
 				setProjectId(req, Integer.valueOf(projectSelected));
 				if (isAdmin(req)) {
@@ -89,17 +91,19 @@ public class ProjectController extends servletBase {
 				}
 			}
 			
-			if (pname != null && !isBlank(pname) && isAdmin(req)) {
+			if (pname != null && !isBlank(pname) && isAdmin(req) && success == null) {
 				Project project = new Project(1, pname);
 				project = createProject(project);
 	
 				plist.add(project);
 				resp.sendRedirect(Constants.PROJECTS_PATH + "?createdProject=" + pname);
 			
-			} else if(createdProject != null && !isBlank(createdProject)) {
+			} else if(createdProject != null && !isBlank(createdProject) && success == null) {
 				out.println("<p style=\"background-color:#16a085;color:white;padding:16px;\">SUCCESFULLY CREATED PROJECT: " + createdProject + "</p>");			
-			} else if (pname != null && !isBlank(pname) && !isAdmin(req)) {
+			} else if (pname != null && !isBlank(pname) && !isAdmin(req) && success == null) {
 				out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">FAILED TO CREATE PROJECT: REASON: You are not allowed to perform this action. (Only Admins are allowed to create projects)" +  "</p>");
+			} else if (success != null && !isBlank(success) && success.equals("false")) {
+				out.println("<p style=\"background-color:#c0392b;color:white;padding:16px;\">FAILED TO CREATE PROJECT: REASON: The chosen project name already exists." +  "</p>");
 			}
 			
 			if ( delete != null && !isBlank(delete) && (deleteUser == null || isBlank(deleteUser))) {
@@ -253,6 +257,10 @@ public class ProjectController extends servletBase {
 			}
 		
 		} catch (Exception e) {
+			String pname = req.getParameter("projectName");
+			if (pname != null && !isBlank(pname)) {
+				resp.sendRedirect(Constants.PROJECTS_PATH + "?" + pname + "&" + "success=false");
+			}
 			e.printStackTrace();
 		}
 		out.println(getFooter());
