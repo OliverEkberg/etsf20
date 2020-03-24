@@ -24,6 +24,7 @@ import database.User;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import static java.time.temporal.TemporalAdjusters.firstDayOfYear;
 
 /**
  * Servlet implementation class TimeReportController
@@ -573,7 +574,8 @@ public class TimeReportController extends servletBase {
 					+ "                        <option value=\"signed\" " + ("signed".equals(status) ? "selected " : "") + ">Signed</option>\r\n"
 					+ "                        <option value=\"unsigned\" " + ("unsigned".equals(status) ? "selected " : "") + ">Unsigned</option>\r\n"
 					+ "                        <option value=\"readyForSign\" " + ("readyForSign".equals(status) ? "selected " : "") + ">Ready for signing</option>\r\n"
-					+ "						   </select>";
+					+ "                        <option value=\"notReadyForSign\" " + ("notReadyForSign".equals(status) ? "selected " : "") + ">Not ready for signing</option>\r\n"
+					+ "					   </select>";
 			
 			// Get reports for week and year
 			html +=	  "                <div id=\"weekFilter\">\r\n"
@@ -684,6 +686,12 @@ public class TimeReportController extends servletBase {
 
 					case "readyForSign":
 						if (tr.isFinished() && !tr.isSigned()) {
+							userTimeReports.add(tr);
+						}
+						break;
+						
+					case "notReadyForSign":
+						if (!tr.isFinished()) {
 							userTimeReports.add(tr);
 						}
 						break;
@@ -867,6 +875,13 @@ public class TimeReportController extends servletBase {
 		if (e.compareTo(LocalDate.now()) < 0) {
 			p = e;
 		}
+		
+		if (e.getYear() != s.getYear()) { // Year shift
+            s = e.with(firstDayOfYear());
+        }
+		
+		
+		
 
 		List<ActivityType> activityTypes = dbService.getActivityTypes();
 		List<ActivitySubType> activitySubTypes = dbService.getActivitySubTypes();
