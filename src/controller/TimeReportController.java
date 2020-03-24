@@ -340,7 +340,7 @@ public class TimeReportController extends servletBase {
 							.filter(ar -> ar.getReportDate().equals(date)).mapToInt(ar -> ar.getMinutes()).sum();
 
 					if (totalTime + minutes > Constants.MAX_MINUTES_PER_DAY) {
-//						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
+						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
 						return null;
 					}
 
