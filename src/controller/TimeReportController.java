@@ -961,6 +961,16 @@ public class TimeReportController extends servletBase {
 				+ "                </div>\r\n" + "              </form>" + "</div>" + "              " +
 				getFooter();
 		
+				html += "<script>";
+				html += "const addReportBtn = document.querySelector('#addReportBtn');";
+				html += "const addReportForm = document.querySelector('#filter_form');";
+				html += "addReportBtn.addEventListener('click', () => { ";
+				html += "if (addReportForm.checkValidity()) {";
+				html += "addReportBtn.disabled = true; addReportForm.submit();";
+				html += "}";
+				html += " });";
+				html += "</script>";
+		
 				html += "</html>";
 
 		return html;
