@@ -24,6 +24,7 @@ import database.User;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import static java.time.temporal.TemporalAdjusters.firstDayOfYear;
 
 /**
  * Servlet implementation class TimeReportController
@@ -339,7 +340,7 @@ public class TimeReportController extends servletBase {
 							.filter(ar -> ar.getReportDate().equals(date)).mapToInt(ar -> ar.getMinutes()).sum();
 
 					if (totalTime + minutes > Constants.MAX_MINUTES_PER_DAY) {
-//						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
+						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
 						return null;
 					}
 
@@ -573,7 +574,8 @@ public class TimeReportController extends servletBase {
 					+ "                        <option value=\"signed\" " + ("signed".equals(status) ? "selected " : "") + ">Signed</option>\r\n"
 					+ "                        <option value=\"unsigned\" " + ("unsigned".equals(status) ? "selected " : "") + ">Unsigned</option>\r\n"
 					+ "                        <option value=\"readyForSign\" " + ("readyForSign".equals(status) ? "selected " : "") + ">Ready for signing</option>\r\n"
-					+ "						   </select>";
+					+ "                        <option value=\"notReadyForSign\" " + ("notReadyForSign".equals(status) ? "selected " : "") + ">Not ready for signing</option>\r\n"
+					+ "					   </select>";
 			
 			// Get reports for week and year
 			html +=	  "                <div id=\"weekFilter\">\r\n"
@@ -684,6 +686,12 @@ public class TimeReportController extends servletBase {
 
 					case "readyForSign":
 						if (tr.isFinished() && !tr.isSigned()) {
+							userTimeReports.add(tr);
+						}
+						break;
+						
+					case "notReadyForSign":
+						if (!tr.isFinished()) {
 							userTimeReports.add(tr);
 						}
 						break;
@@ -867,6 +875,13 @@ public class TimeReportController extends servletBase {
 		if (e.compareTo(LocalDate.now()) < 0) {
 			p = e;
 		}
+		
+		if (e.getYear() != s.getYear()) { // Year shift
+            s = e.with(firstDayOfYear());
+        }
+		
+		
+		
 
 		List<ActivityType> activityTypes = dbService.getActivityTypes();
 		List<ActivitySubType> activitySubTypes = dbService.getActivitySubTypes();
@@ -940,22 +955,11 @@ public class TimeReportController extends servletBase {
 																											// URL
 				+ "<input name=\"addReportYear\" type=\"hidden\" value=\"" + year + "\"> </input>\r\n"
 				+ "  <label for=\"dateInfo\">Enter date for activity: </label>\r\n"
-				+ "<input type=\"date\" id=\"dateOfReport\" name=\"dateOfReport\" value=\"" + p + "\" min=\"" + s
+				+ "<input required type=\"date\" id=\"dateOfReport\" name=\"dateOfReport\" value=\"" + p + "\" min=\"" + s
 				+ "\" max=\"" + e + "\">\r\n" + " <input name=\"timeReportId\" type=\"hidden\" value=\"" + timeReportId
 				+ "\"></input>\r\n" + "              <input id=\"addReportBtn\" class=\"submitBtn\" type=\"submit\" value=\"Send\">\r\n"
 				+ "                </div>\r\n" + "              </form>" + "</div>" + "              " +
 				getFooter();
-		
-				html += "<script>";
-				html += "const addReportBtn = document.querySelector('#addReportBtn');";
-				html += "const addReportForm = document.querySelector('#filter_form');";
-				html += "addReportBtn.addEventListener('click', () => { ";
-				html += "const timeSpent = parseInt(document.querySelector('#timeSpent').value);";
-				html += "if (timeSpent > 0 && timeSpent <= " + Constants.MAX_MINUTES_PER_DAY + ") {";
-				html += "addReportBtn.disabled = true; addReportForm.submit();";
-				html += "}";
-				html += " });";
-				html += "</script>";
 		
 				html += "</html>";
 
