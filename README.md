@@ -1,5 +1,8 @@
 # Repository for group 2 in the PUSP-course
 
+## Javadoc
+Can be found [here](https://oliverekberg.github.io/etsf20/javadoc).
+
 ## Important notices
 * **NEVER** commit passwords. If by accident commit a password, contact Oliver immediately.
 * **NEVER** commit anything to `master`. `master` shall only get changed through pull requests that are approved by Oliver and SG. Instead, create a branch with a descriptive name and work on it. When you are ready for code review, submit a pull request.
