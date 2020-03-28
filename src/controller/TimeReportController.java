@@ -31,7 +31,7 @@ import static java.time.temporal.TemporalAdjusters.firstDayOfYear;
  * 
  * A timereporting page.
  * 
- * Handles timereporting and all that it includes. 
+ * Handles timereporting and all that it includes.
  * 
  * @author Linus
  * @author Sebastian
@@ -57,14 +57,11 @@ public class TimeReportController extends servletBase {
 		try {
 			PrintWriter out = resp.getWriter();
 			User loggedInUser = this.getLoggedInUser(req);
-			
+
 			out.println(getHeader(req));
 			out.println("<body>");
 			out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"StyleSheets/TimeReportController.css\">\n");
-			out.println(
-					"        <div id=\"wrapper\">\r\n" + 
-							getNav(req) +
-					"            <div id=\"bodyContent\">");
+			out.println("        <div id=\"wrapper\">\r\n" + getNav(req) + "            <div id=\"bodyContent\">");
 			out.println("<p id=\"report_title_text\">Reports</p>");
 
 			if (loggedInUser == null) {
@@ -79,7 +76,7 @@ public class TimeReportController extends servletBase {
 				out.print("<p>Please choose a project first!</p>");
 				return;
 			}
-			
+
 			String activityType = req.getParameter("activityTypeId");
 			String addReportWeek = req.getParameter("addReportWeek");
 			String addReportYear = req.getParameter("addReportYear");
@@ -102,17 +99,14 @@ public class TimeReportController extends servletBase {
 
 			Integer userQueryInteger = (userQuery == null || "*".equals(userQuery)) ? null
 					: Integer.parseInt(userQuery);
-			
+
 			if (!isProjectLeader(req)) {
 				userQueryInteger = getLoggedInUser(req).getUserId();
 			}
-			
-			Integer weekInteger = (week == null || "*".equals(week)) ? null
-					: Integer.parseInt(week);
-			
-			Integer yearInteger = (year == null || "*".equals(year)) ? null
-					: Integer.parseInt(year);
 
+			Integer weekInteger = (week == null || "*".equals(week)) ? null : Integer.parseInt(week);
+
+			Integer yearInteger = (year == null || "*".equals(year)) ? null : Integer.parseInt(year);
 
 			int weekNumber = Helpers.getWeekNbr(LocalDate.now());
 
@@ -161,7 +155,7 @@ public class TimeReportController extends servletBase {
 						loggedInUser.getUserId(), this.getProjectId(req), resp);
 
 				if (activityReport == null) {
-					
+
 					return;
 				}
 
@@ -225,13 +219,20 @@ public class TimeReportController extends servletBase {
 
 			// Proect leader unsigns a timereport
 			if (timeReportUnsignId != null) {
-				TimeReport timeReport = dbService.getTimeReportById(Integer.parseInt(timeReportUnsignId));
-				timeReport.unsign();
+				if (this.isProjectLeader(req, this.getProjectId(req))) {
+					TimeReport timeReport = dbService.getTimeReportById(Integer.parseInt(timeReportUnsignId));
+					timeReport.unsign();
 
-				dbService.updateTimeReport(timeReport);
-				out.print(getUserTimeReports(req, userQueryInteger, status, yearInteger, weekInteger));
-				out.println(getFooter());
-				return;
+					dbService.updateTimeReport(timeReport);
+					out.print(getUserTimeReports(req, userQueryInteger, status, yearInteger, weekInteger));
+					out.println(getFooter());
+					return;
+				}
+				
+				else {
+					resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH
+							+ "?error=only-a-projectleader-can-unsign-a-timereport");
+				}
 			}
 
 			// User marks timereport as not finished
@@ -293,14 +294,15 @@ public class TimeReportController extends servletBase {
 				return;
 			}
 
-			out.print(getUserTimeReports(req, userQueryInteger, status, yearInteger, weekInteger)); // Standard case, if nothing else works this
-			out.println(getFooter());														// is called
+			out.print(getUserTimeReports(req, userQueryInteger, status, yearInteger, weekInteger)); // Standard case, if
+																									// nothing else
+																									// works this
+			out.println(getFooter()); // is called
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=unexpected-error");
 		}
-		
 
 	}
 
@@ -340,7 +342,8 @@ public class TimeReportController extends servletBase {
 							.filter(ar -> ar.getReportDate().equals(date)).mapToInt(ar -> ar.getMinutes()).sum();
 
 					if (totalTime + minutes > Constants.MAX_MINUTES_PER_DAY) {
-						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH + "?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
+						resp.sendRedirect("/BaseBlockSystem/" + Constants.TIMEREPORTS_PATH
+								+ "?error=total-amount-of-minutes-surpasses-maximum-daily-limit");
 						return null;
 					}
 
@@ -424,7 +427,8 @@ public class TimeReportController extends servletBase {
 						+ aReport.getActivityReportId() + "\"></input>\r\n"
 						+ " <input name=\"timeReportId\" type=\"hidden\" value=\"" + timeReportId + "\"></input>\r\n"
 						+ "		<input type=\"submit\" value=\"Remove\" "
-						+ "    onclick=\"return confirm('Are you sure you want to delete this activityreport?')\" ></input>\r\n" + "	</td> \r\n" + "</form>";
+						+ "    onclick=\"return confirm('Are you sure you want to delete this activityreport?')\" ></input>\r\n"
+						+ "	</td> \r\n" + "</form>";
 
 			}
 
@@ -534,15 +538,16 @@ public class TimeReportController extends servletBase {
 	 * Builds a String containing a HTML page showing all timereports for a specific
 	 * user inside the selected project.
 	 * 
-	 * @param req HttpServletRequest
+	 * @param req    HttpServletRequest
 	 * @param userId the userId for which user to retrieve timereports from.
 	 * @param status the status for which to retrieve timereports from.
-	 * @param year the year for which to retrieve timereports from.
-	 * @param week the week for which  to retrieve timereports from.
+	 * @param year   the year for which to retrieve timereports from.
+	 * @param week   the week for which to retrieve timereports from.
 	 * @return A String containing HTML to show the page described above.
 	 * @throws Exception if anything goes wrong.
 	 */
-	private String getUserTimeReports(HttpServletRequest req, Integer userId, String status, Integer year, Integer week) throws Exception {
+	private String getUserTimeReports(HttpServletRequest req, Integer userId, String status, Integer year, Integer week)
+			throws Exception {
 
 		String html = "<!--square.html-->\r\n" + "<!DOCTYPE html>\r\n";
 		LocalDate d = LocalDate.now();
@@ -559,62 +564,69 @@ public class TimeReportController extends servletBase {
 					+ "                <div id=\"user\">\r\n"
 					+ "						<label for=\"user\">User: </label>"
 					+ "                    <select id=\"user\" name=\"user\" form=\"userFilter\">\r\n"
-					+ "                      			  <option value=\"*\" "+ (userId == null ? "" : "selected ") +">All users</option>\r\n";
+					+ "                      			  <option value=\"*\" " + (userId == null ? "" : "selected ")
+					+ ">All users</option>\r\n";
 
 			// User dropdown list
 			for (User u : userList) {
 				boolean selectedUser = userId != null && u.getUserId() == userId;
-				html += "<option value=" + u.getUserId() + " " + (selectedUser ? "selected " : "") + "> " + u.getUsername() + " </option>\r\n";
+				html += "<option value=" + u.getUserId() + " " + (selectedUser ? "selected " : "") + "> "
+						+ u.getUsername() + " </option>\r\n";
 			}
 
 			html += "</select>\r\n " + "</div>\r\n" + " <div id=\"status\">\r\n"
 					+ "						<label for=\"status\">Status: </label>"
 					+ "                    <select id=\"status\" name=\"status\" form=\"userFilter\">\r\n"
-					+ "                        <option value=\"*\""+ (status == null || status.equals("*") ? "" : "selected ") +">All</option>\r\n"
-					+ "                        <option value=\"signed\" " + ("signed".equals(status) ? "selected " : "") + ">Signed</option>\r\n"
-					+ "                        <option value=\"unsigned\" " + ("unsigned".equals(status) ? "selected " : "") + ">Unsigned</option>\r\n"
-					+ "                        <option value=\"readyForSign\" " + ("readyForSign".equals(status) ? "selected " : "") + ">Ready for signing</option>\r\n"
-					+ "                        <option value=\"notReadyForSign\" " + ("notReadyForSign".equals(status) ? "selected " : "") + ">Not ready for signing</option>\r\n"
+					+ "                        <option value=\"*\""
+					+ (status == null || status.equals("*") ? "" : "selected ") + ">All</option>\r\n"
+					+ "                        <option value=\"signed\" " + ("signed".equals(status) ? "selected " : "")
+					+ ">Signed</option>\r\n" + "                        <option value=\"unsigned\" "
+					+ ("unsigned".equals(status) ? "selected " : "") + ">Unsigned</option>\r\n"
+					+ "                        <option value=\"readyForSign\" "
+					+ ("readyForSign".equals(status) ? "selected " : "") + ">Ready for signing</option>\r\n"
+					+ "                        <option value=\"notReadyForSign\" "
+					+ ("notReadyForSign".equals(status) ? "selected " : "") + ">Not ready for signing</option>\r\n"
 					+ "					   </select>";
-			
+
 			// Get reports for week and year
-			html +=	  "                <div id=\"weekFilter\">\r\n"
+			html += "                <div id=\"weekFilter\">\r\n"
 					+ "					  <label for=\"week\">Week: </label>"
 					+ "                    <select id=\"weekFilter\" name=\"weekFilter\" form=\"userFilter\">\r\n"
-					+ "<option value=\"*\" "+ (week == null ? "" : "selected ") +">All</option>\r\n";
+					+ "<option value=\"*\" " + (week == null ? "" : "selected ") + ">All</option>\r\n";
 
 			// Week dropdown list
 			for (int i = 1; i < 54; i++) {
 				boolean selectedWeek = week != null && i == week;
-				html += "<option value=" + i + " " + (selectedWeek ? "selected " : "") + ">Week: " + i + " </option>\r\n";
+				html += "<option value=" + i + " " + (selectedWeek ? "selected " : "") + ">Week: " + i
+						+ " </option>\r\n";
 			}
 
 			html += "</select>\r\n  </div>\r\n" + "<div id=\"yearFilter\">\r\n"
 					+ "					<label for=\"year\">Year: </label>"
 					+ "                    <select id=\"yearFilter\" name=\"yearFilter\" form=\"userFilter\">\r\n"
-					+ "<option value=\"*\" "+ (year == null ? "" : "selected ") +">All</option>\r\n";
+					+ "<option value=\"*\" " + (year == null ? "" : "selected ") + ">All</option>\r\n";
 			// Year dropdown list
 			for (int i = 2020; i <= d.getYear(); i++) {
 				boolean selectedYear = year != null && i == year;
-				html += "    <option value=" + i + " " + (selectedYear ? "selected " : "") + ">Year: " + i + "</option>\r\n";
+				html += "    <option value=" + i + " " + (selectedYear ? "selected " : "") + ">Year: " + i
+						+ "</option>\r\n";
 			}
-			
+
 			// Button for retrieving timereports.
-			html += "       </select>\r\n" 
-					+ "             </div>\r\n"
+			html += "       </select>\r\n" + "             </div>\r\n"
 					+ "			   <input type=\"submit\" value=\"Get timereports\" >\r\n" + "           </form>"
 					+ "			 </div>" + "         </html>";
 		}
-		
-		html += "<body> <b> " + (userId != null ? dbService.getUserById(userId).getUsername() : "All users") + "</b> <br> </body>\r\n";
+
+		html += "<body> <b> " + (userId != null ? dbService.getUserById(userId).getUsername() : "All users")
+				+ "</b> <br> </body>\r\n";
 
 		html += getTimereports(req, userId, status, year, week);
 
 		// Adds more buttons and options underneath the table containing timereports
 		html += "<div id=\"form\">" + " <form id=\"filter_form\" method=\"get\">\r\n"
-				+ "             Create timereport for: \r\n" 
-				+ "                <div id=\"selectWeek\">\r\n"
-		+ "                    <select id=\"addReportWeek\" name=\"addReportWeek\" form=\"filter_form\">\r\n";
+				+ "             Create timereport for: \r\n" + "                <div id=\"selectWeek\">\r\n"
+				+ "                    <select id=\"addReportWeek\" name=\"addReportWeek\" form=\"filter_form\">\r\n";
 		// Week selection dropdown list
 		for (int i = 1; i < 54; i++) {
 
@@ -633,19 +645,20 @@ public class TimeReportController extends servletBase {
 				+ "			  <input type=\"submit\" value=\"Create timereport\" >\r\n" + "           </form>"
 				+ "</div>" + "          </html>";
 
-
 		return html;
 
 	}
-	
+
 	/**
-	 *  Builds a String containing a HTML page showing all timereports that conform to the specified filter parameters
+	 * Builds a String containing a HTML page showing all timereports that conform
+	 * to the specified filter parameters
 	 * 
-	 * @param req - HttpServletRequest
-	 * @param userId - The id of user (or * for all users) whos timereports you wish to see.
+	 * @param req    - HttpServletRequest
+	 * @param userId - The id of user (or * for all users) whos timereports you wish
+	 *               to see.
 	 * @param status - The status of the timereport(s) that you wish to see.
-	 * @param year - The year of the the timereport(s) that you wish to see.
-	 * @param week - The week of the timereport(s) that you wish to see.
+	 * @param year   - The year of the the timereport(s) that you wish to see.
+	 * @param week   - The week of the timereport(s) that you wish to see.
 	 * @return A String containing HTML to show the page described above.
 	 * @throws Exception if anything goes wrong.
 	 */
@@ -689,7 +702,7 @@ public class TimeReportController extends servletBase {
 							userTimeReports.add(tr);
 						}
 						break;
-						
+
 					case "notReadyForSign":
 						if (!tr.isFinished()) {
 							userTimeReports.add(tr);
@@ -703,9 +716,10 @@ public class TimeReportController extends servletBase {
 		userTimeReports = sortTimeReports(userTimeReports);
 
 		// Html table start and header
-		html += "<table width=\"600\" border=\"1\">\r\n" + "<tr>\r\n" + "<th> Year </th>\r\n" + "<th> Week </th><th> Username </th>\r\n"
-				+ "<th> Timespent (minutes) </th>\r\n" + "<th> Status </th>\r\n" + "<th> Ready for signing </th>\r\n"
-				+ "<th> Select timereport </th>\r\n" + "<th> Remove timereport </th>\r\n";
+		html += "<table width=\"600\" border=\"1\">\r\n" + "<tr>\r\n" + "<th> Year </th>\r\n"
+				+ "<th> Week </th><th> Username </th>\r\n" + "<th> Timespent (minutes) </th>\r\n"
+				+ "<th> Status </th>\r\n" + "<th> Ready for signing </th>\r\n" + "<th> Select timereport </th>\r\n"
+				+ "<th> Remove timereport </th>\r\n";
 
 		// Adds all timereports into the table
 		for (TimeReport tr : userTimeReports) {
@@ -725,24 +739,18 @@ public class TimeReportController extends servletBase {
 			if (tr.isFinished()) { // get isFinished or not
 				if (tr.isSigned()) {
 					markedFinished = "";
-				} 
-				else {
+				} else {
 					markedFinished = "Yes";
 				}
-			} 
-			else {
+			} else {
 				markedFinished = "No";
 			}
 
 			// Add timereport information into table
-			html += "<tr>\r\n" 
-			+ "<td>" + tr.getYear() + "</td>\r\n" 
-			+ "<td>" + tr.getWeek() + "</td>\r\n"
-			+ "<td>" + dbService.getUserByTimeReportId(tr.getTimeReportId()).getUsername() + "</td>\r\n"
-			+ "<td>" + timeReportTotalTime + "</td>\r\n" 
-			+ "<td>" + signed + "</td>\r\n"
-			+ "<td>" + markedFinished + "</td>\r\n" 
-			+ "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="
+			html += "<tr>\r\n" + "<td>" + tr.getYear() + "</td>\r\n" + "<td>" + tr.getWeek() + "</td>\r\n" + "<td>"
+					+ dbService.getUserByTimeReportId(tr.getTimeReportId()).getUsername() + "</td>\r\n" + "<td>"
+					+ timeReportTotalTime + "</td>\r\n" + "<td>" + signed + "</td>\r\n" + "<td>" + markedFinished
+					+ "</td>\r\n" + "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?timeReportId="
 					+ tr.getTimeReportId() + "\" method=\"get\"> "
 					+ "<button name=\"timeReportId\" type=\"submit\" value=\"" + tr.getTimeReportId()
 					+ "\"> Select </button>  </form> </td> \r\n";
@@ -751,10 +759,9 @@ public class TimeReportController extends servletBase {
 			// button for deleting it should be visible
 			if (!tr.isSigned() && isUserLoggedInUser(req, reportOwner)) {
 				html += "<td> <form action=\"" + Constants.TIMEREPORTS_PATH + "?deleteTimeReportId="
-						+ tr.getTimeReportId() + "\" method=\"get\"> "
-						+ "<button name=\"deleteTimeReportId\" "
-						+ "onclick=\"return confirm('Are you sure you want to delete this timereport?')\" type=\"submit\" value=\"" + tr.getTimeReportId()
-						+ "\"> Remove </button> </form> </td> \r\n";
+						+ tr.getTimeReportId() + "\" method=\"get\"> " + "<button name=\"deleteTimeReportId\" "
+						+ "onclick=\"return confirm('Are you sure you want to delete this timereport?')\" type=\"submit\" value=\""
+						+ tr.getTimeReportId() + "\"> Remove </button> </form> </td> \r\n";
 			} else {
 				html += "<td>";
 			}
@@ -771,31 +778,31 @@ public class TimeReportController extends servletBase {
 	}
 
 	/**
-	 *  Sees if the sent in TimeReport has the same year as the sent in year.
+	 * Sees if the sent in TimeReport has the same year as the sent in year.
 	 * 
-	 * @param tr - The Timereport to check the year off.
+	 * @param tr   - The Timereport to check the year off.
 	 * @param year - The year to check the timereport for.
 	 * @return true if the years matches, else false.
 	 */
 	private boolean sameYear(TimeReport tr, Integer year) {
 
-		if(year == null || tr.getYear() == year) {
+		if (year == null || tr.getYear() == year) {
 			return true;
 		}
-		
+
 		return false;
 	}
 
 	/**
-	 *  Sees if the sent in TimeReport has the same week as the sent in week.
+	 * Sees if the sent in TimeReport has the same week as the sent in week.
 	 * 
-	 * @param tr - The Timereport to check the week off.
+	 * @param tr   - The Timereport to check the week off.
 	 * @param week - The week to check the timereport for.
 	 * @return true if the years matches, else false.
 	 */
 	private boolean sameWeek(TimeReport tr, Integer week) {
 
-		if(week == null || tr.getWeek() == week) {
+		if (week == null || tr.getWeek() == week) {
 			return true;
 		}
 
@@ -804,7 +811,7 @@ public class TimeReportController extends servletBase {
 
 	/**
 	 * Sorts a list of TimeReports by year, and then week.
-	 *  
+	 * 
 	 * @param userTimeReports the list to be sorted
 	 * @return a sorted list.
 	 */
@@ -820,7 +827,7 @@ public class TimeReportController extends servletBase {
 		return temp;
 
 	}
-	
+
 	/**
 	 * Calculates the total amount of time spent within a single timereport.
 	 * 
@@ -848,7 +855,7 @@ public class TimeReportController extends servletBase {
 	 * @param week         - The week of the reported activity
 	 * @param year         - The year of the reported activity
 	 * @param timeReportId - The timereport in which the activityreport will lie
-	 * @param req		   - The current HTTP request.
+	 * @param req          - The current HTTP request.
 	 * @return A String containing the HTML described above
 	 */
 	private String activityReportForm(int week, int year, String timeReportId, HttpServletRequest req) {
@@ -875,13 +882,10 @@ public class TimeReportController extends servletBase {
 		if (e.compareTo(LocalDate.now()) < 0) {
 			p = e;
 		}
-		
+
 		if (e.getYear() != s.getYear()) { // Year shift
-            s = e.with(firstDayOfYear());
-        }
-		
-		
-		
+			s = e.with(firstDayOfYear());
+		}
 
 		List<ActivityType> activityTypes = dbService.getActivityTypes();
 		List<ActivitySubType> activitySubTypes = dbService.getActivitySubTypes();
@@ -907,7 +911,7 @@ public class TimeReportController extends servletBase {
 				+ " <form id=\"filter_form\" method=\"get\">\r\n" + "                 Activity type\r\n"
 				+ "                <div id=\"activity_picker\">\r\n"
 				+ "                    <select id=\"act_picker_1\" name=\"activityTypeId\" form=\"filter_form\">\r\n"; // Activity
-																													// picker
+																														// picker
 
 		for (ActivityType at : activityTypes) {
 			html += "<option value=" + at.getActivityTypeId() + ">" + at.getType() + "</option>";
@@ -957,22 +961,22 @@ public class TimeReportController extends servletBase {
 				+ "  <label for=\"dateInfo\">Enter date for activity: </label>\r\n"
 				+ "<input type=\"date\" id=\"dateOfReport\" name=\"dateOfReport\" value=\"" + p + "\" min=\"" + s
 				+ "\" max=\"" + e + "\">\r\n" + " <input name=\"timeReportId\" type=\"hidden\" value=\"" + timeReportId
-				+ "\"></input>\r\n" + "              <input id=\"addReportBtn\" class=\"submitBtn\" type=\"submit\" value=\"Send\">\r\n"
-				+ "                </div>\r\n" + "              </form>" + "</div>" + "              " +
-				getFooter();
-		
-				html += "<script>";
-				html += "const addReportBtn = document.querySelector('#addReportBtn');";
-				html += "const addReportForm = document.querySelector('#filter_form');";
-				html += "addReportBtn.addEventListener('click', () => { ";
-				html += "const timeSpent = parseInt(document.querySelector('#timeSpent').value);";
-				html += "if (timeSpent > 0 && timeSpent <= " + Constants.MAX_MINUTES_PER_DAY + ") {";
-				html += "addReportBtn.disabled = true; addReportForm.submit();";
-				html += "}";
-				html += " });";
-				html += "</script>";
-		
-				html += "</html>";
+				+ "\"></input>\r\n"
+				+ "              <input id=\"addReportBtn\" class=\"submitBtn\" type=\"submit\" value=\"Send\">\r\n"
+				+ "                </div>\r\n" + "              </form>" + "</div>" + "              " + getFooter();
+
+		html += "<script>";
+		html += "const addReportBtn = document.querySelector('#addReportBtn');";
+		html += "const addReportForm = document.querySelector('#filter_form');";
+		html += "addReportBtn.addEventListener('click', () => { ";
+		html += "const timeSpent = parseInt(document.querySelector('#timeSpent').value);";
+		html += "if (timeSpent > 0 && timeSpent <= " + Constants.MAX_MINUTES_PER_DAY + ") {";
+		html += "addReportBtn.disabled = true; addReportForm.submit();";
+		html += "}";
+		html += " });";
+		html += "</script>";
+
+		html += "</html>";
 
 		return html;
 
@@ -991,7 +995,7 @@ public class TimeReportController extends servletBase {
 	/**
 	 * Checks if the user sent in is the logged in user.
 	 * 
-	 * @param req - HttpServletRequest.
+	 * @param req  - HttpServletRequest.
 	 * @param user - User to check .
 	 * @return true if the user is the logged in user, else false.
 	 */
